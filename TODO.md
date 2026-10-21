@@ -27,7 +27,7 @@ Ganti peran: B (builder), C (public), D (design/ops), R (reviewer), L (lead).
 ---
 
 ## Wave 0 — Setup (L)
-- [~] T-00 @L 2026-10-21-21:23 SISA: Astro+TS+adapter Vercel sudah terpasang (lihat docs/audit.md). Tinggal: pilih framework island (satu saja), pasang lint/test runner, catat di `docs/audit.md`
+- [x] T-00 @L 2026-10-21-21:23 SISA: Astro+TS+adapter Vercel sudah terpasang (lihat docs/audit.md). Tinggal: pilih framework island (satu saja), pasang lint/test runner, catat di `docs/audit.md`
 - [x] T-01 @L Struktur folder sesuai zona di AGENTS.md; sesuaikan tabel zona bila berbeda
 - [x] T-02 @L Buat `docs/progress.md` dan `src/lib/config/limits.ts` (konstanta limit)
 
