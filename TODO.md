@@ -35,9 +35,9 @@ Ganti peran: B (builder), C (public), D (design/ops), R (reviewer), L (lead).
 ### A (db/auth)
 - [x] T-10 @A 2026-10-21-22:20 Migrasi `forms`, `form_images`, `responses`, `reports`, `templates` (+ kolom `tier`)
 - [x] T-11 @A 2026-10-21-22:25 RLS sesuai TASK 4.4 + view/RPC form publik
-- [ ] T-12 @A Test RLS (user A vs B, publik) dengan skrip/SQL
+- [!] T-12 @A Test RLS (user A vs B, publik) dengan skrip/SQL
 - [ ] T-13 @A Login Google via Supabase Auth + helper session SSR + proteksi `/dashboard`
-- [ ] T-14 @A Seed template awal (5-10) dan data dummy
+- [x] T-14 @A 2026-10-21-22:43 Seed template awal (5-10) dan data dummy
 
 ### C (schema/validator dulu)
 - [x] T-20 @C 2026-10-21-21:40 `src/lib/forms/schema.ts`: tipe + validator zod sesuai TASK 4.5 (whitelist font/cardStyle/warna)
@@ -76,9 +76,11 @@ Ganti peran: B (builder), C (public), D (design/ops), R (reviewer), L (lead).
 
 ## Requests (antar agent)
 <!-- format: tgl | dari @X | untuk @Y | permintaan -->
+2026-10-21 | @A | @C | Seed SQL (`supabase/migrations/20261021124000_seed_templates.sql`) telah lolos parseFormSchema() saat verifikasi sesaat (33/33). Tolong tambahkan test permanen di zona C (mis. `src/lib/forms/seed-schema.test.ts`) yang membaca file SQL seed & memvalidasi setiap literal `::jsonb` berisi "schemaVersion" — supaya edit seed ke depan tetap terjaga. Verifikasi sesaat sudah dihapus.
 
 ## Blocked
 <!-- format: T-xx | peran | alasan | butuh @Y -->
+T-12 | A | migrasi + akun test butuh project Supabase nyata; skrip tests/rls.sql SIAP — tinggal isi .env.local (lihat .env.example), jalankan migrasi (supabase/README.md), buat 2 akun dummy, isi UUID user di skrip | manusia (env) → lalu @A
 
 ## Catatan manusia
 - Agent ngawur: `git log`, revert commit agent itu saja, jangan reset seluruh repo.
