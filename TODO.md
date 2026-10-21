@@ -35,7 +35,7 @@ Ganti peran: B (builder), C (public), D (design/ops), R (reviewer), L (lead).
 ### A (db/auth)
 - [x] T-10 @A 2026-10-21-22:20 Migrasi `forms`, `form_images`, `responses`, `reports`, `templates` (+ kolom `tier`)
 - [x] T-11 @A 2026-10-21-22:25 RLS sesuai TASK 4.4 + view/RPC form publik
-- [!] T-12 @A Test RLS (user A vs B, publik) dengan skrip/SQL
+- [x] T-12 @A 2026-10-22-02:45 Test RLS (user A vs B, publik) dengan skrip/SQL — dieksekusi manusia via SQL Editor, tanpa error (9 ketentuan lolos)
 - [x] T-13 @A 2026-10-22-02:00 Login Google via Supabase Auth + helper session SSR + proteksi `/dashboard` — verifikasi manual login Google localhost oleh manusia 2026-10-22 ✅
 - [x] T-14 @A 2026-10-21-22:43 Seed template awal (5-10) dan data dummy
 
@@ -81,7 +81,7 @@ Ganti peran: B (builder), C (public), D (design/ops), R (reviewer), L (lead).
 
 ## Blocked
 <!-- format: T-xx | peran | alasan | butuh @Y -->
-T-12 | A | migrasi + akun test butuh project Supabase nyata; skrip tests/rls.sql SIAP — tinggal isi .env.local (lihat .env.example), jalankan migrasi (supabase/README.md), buat 2 akun dummy, isi UUID user di skrip | manusia (env) → lalu @A
+<!-- (kosong) -->
 
 ## Catatan manusia
 - Agent ngawur: `git log`, revert commit agent itu saja, jangan reset seluruh repo.
