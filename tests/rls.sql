@@ -87,7 +87,7 @@ begin
   -- [R5] user A: baca/tulis punya sendiri
   reset role;
   set local role authenticated;
-  select set_config('request.jwt.claims',
+  perform set_config('request.jwt.claims',
     format('{"sub":"%s","role":"authenticated"}', user_a), true);
 
   select count(*) into count_tmp from public.forms
@@ -133,7 +133,7 @@ begin
   insert into public.responses (form_id, form_version, answers)
     values (form_b_draft, 1, '{"q1":"rahasia-b"}'::jsonb);
   set local role authenticated;
-  select set_config('request.jwt.claims',
+  perform set_config('request.jwt.claims',
     format('{"sub":"%s","role":"authenticated"}', user_a), true);
   select count(*) into count_tmp from public.responses
     where form_id = form_b_draft;
