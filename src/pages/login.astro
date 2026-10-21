@@ -1,0 +1,44 @@
+---
+import Base from '../layouts/Base.astro';
+
+// Login handler berjalan via /auth/login (server → Google). Halaman ini
+// hanya menampilkan tombol & pesan status (T-13, Agent A).
+const error = Astro.url.searchParams.get('error');
+const configured = Astro.locals.supabase !== null;
+
+const errorText =
+  error === 'setup'
+    ? 'Sesi masuk belum siap — coba lagi beberapa saat, atau beri tahu admin jika masih terjadi.'
+    : error === 'no_code'
+      ? 'Tautan masuk kedaluwarsa. Silakan coba masuk lagi.'
+      : error === 'auth'
+        ? 'Masuk gagal — coba lagi. (Gunakan akun Google karya.)'
+        : null;
+---
+
+<Base title="Masuk">
+  <section class="container" style="max-width:420px;margin-inline:auto;padding-block:var(--space-6)">
+    <h1>Masuk</h1>
+    <p style="color:var(--text-muted)">
+      Masuk untuk membuat & mengelola form pencari responden Anda.
+      Responden tidak perlu menjalankan ini.
+    </p>
+
+    {
+      errorText && (
+        <p role="alert" style="color:var(--danger)">
+          {errorText}
+        </p>
+      )
+    }
+
+    {configured ? (
+      <a href="/auth/login">Masuk dengan Google</a>
+    ) : (
+      <p style="color:var(--danger)">
+        Autentikasi belum dikonfigurasi: <code>PUBLIC_SUPABASE_URL</code> /
+        <code>PUBLIC_SUPABASE_ANON_KEY</code> kosong.
+      </p>
+    )}
+  </section>
+</Base>

@@ -36,7 +36,7 @@ Ganti peran: B (builder), C (public), D (design/ops), R (reviewer), L (lead).
 - [x] T-10 @A 2026-10-21-22:20 Migrasi `forms`, `form_images`, `responses`, `reports`, `templates` (+ kolom `tier`)
 - [x] T-11 @A 2026-10-21-22:25 RLS sesuai TASK 4.4 + view/RPC form publik
 - [!] T-12 @A Test RLS (user A vs B, publik) dengan skrip/SQL
-- [ ] T-13 @A Login Google via Supabase Auth + helper session SSR + proteksi `/dashboard`
+- [~] T-13 @A 2026-10-22-02:00 Login Google via Supabase Auth + helper session SSR + proteksi `/dashboard`
 - [x] T-14 @A 2026-10-21-22:43 Seed template awal (5-10) dan data dummy
 
 ### C (schema/validator dulu)

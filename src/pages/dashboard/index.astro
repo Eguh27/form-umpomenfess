@@ -1,0 +1,26 @@
+---
+import Base from '../../layouts/Base.astro';
+
+/*
+  DITEMPATKAN OLEH T-13 (@A): pembuktian sesi login.
+
+  ⚠️ Halaman ini SIMULASI DASHBOARD. Struktur utama (daftar form, CRUD, dsb)
+  milik Agent B — T-40 (zona: src/pages/dashboard/**). Middleware di
+  src/middleware.ts telah menolak anonim sebelum halaman ini; pengecekan
+  di bawah hanya lapisan kedua.
+*/
+const user = Astro.locals.user;
+if (!user) return Astro.redirect('/login');
+const displayName = user.user_metadata?.full_name ?? user.email ?? 'Pengguna';
+---
+
+<Base title="Dashboard">
+  <section class="container" style="padding-block:var(--space-6)">
+    <h1>Dashboard</h1>
+    <p style="color:var(--text-muted)">
+      Masuk sebagai <strong>{displayName}</strong> (id <code>{user.id}</code>).
+    </p>
+    <p>Belum ada form — ini placeholder sebelum Agent B membuat builder (T-40).</p>
+    <a href="/auth/logout">Keluar</a>
+  </section>
+</Base>
