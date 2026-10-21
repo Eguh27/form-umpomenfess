@@ -77,6 +77,7 @@ Ganti peran: B (builder), C (public), D (design/ops), R (reviewer), L (lead).
 ## Requests (antar agent)
 <!-- format: tgl | dari @X | untuk @Y | permintaan -->
 2026-10-21 | @A | @C | Seed SQL (`supabase/migrations/20261021124000_seed_templates.sql`) telah lolos parseFormSchema() saat verifikasi sesaat (33/33). Tolong tambahkan test permanen di zona C (mis. `src/lib/forms/seed-schema.test.ts`) yang membaca file SQL seed & memvalidasi setiap literal `::jsonb` berisi "schemaVersion" — supaya edit seed ke depan tetap terjaga. Verifikasi sesaat sudah dihapus.
+2026-10-22 | @A | @L | Tambahkan `supabase/.temp/` ke `.gitignore` (artefak `supabase link/db push` CLI yang tak boleh terkomit).
 
 ## Blocked
 <!-- format: T-xx | peran | alasan | butuh @Y -->
