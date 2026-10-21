@@ -19,8 +19,8 @@ begin;
 
 do $$
 declare
-  user_a uuid := '<USER_A_UUID>'::uuid;   -- GANTI
-  user_b uuid := '<USER_B_UUID>'::uuid;   -- GANTI
+  user_a uuid := 'd2c2b24e-ce59-4b81-a139-ffb597f0623a'::uuid; -- a@dummy.test
+  user_b uuid := '8466e803-ca39-4d28-8baa-284e7a827d3c'::uuid; -- b@dummy.test
   dummy_schema jsonb := '{"schemaVersion":1,"theme":{"bg":"#f7fcfc","accent":"#ec4899","text":"#1f2937","font":"Poppins","radius":16,"cardStyle":"menfess","bannerPublicId":null},"blocks":[{"id":"b1","type":"heading","text":"Test","size":"m","align":"left"},{"id":"q1","type":"question","kind":"short_text","label":"Nama","required":true}]}'::jsonb;
   form_a_draft uuid;
   form_a_published uuid;
@@ -79,8 +79,8 @@ begin
   begin
     insert into public.reports (form_id, reason) values (form_a_draft, 'uji draft');
     raise exception '[GAGAL] anon dapat melaporkan form draft';
-  exception when check_violation then
-    null; -- with check menolak di view
+  exception when insufficient_privilege then
+    null; -- pelanggaran policy RLS (with check) = 42501, bukan check_violation
   end;
   insert into public.reports (form_id, reason) values (form_a_published, 'uji publik');
 
