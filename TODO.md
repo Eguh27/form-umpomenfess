@@ -33,7 +33,7 @@ Ganti peran: B (builder), C (public), D (design/ops), R (reviewer), L (lead).
 
 ## Wave 1 (butuh T-02)
 ### A (db/auth)
-- [ ] T-10 @A Migrasi `forms`, `form_images`, `responses`, `reports`, `templates` (+ kolom `tier`)
+- [~] T-10 @A 2026-10-21-22:20 Migrasi `forms`, `form_images`, `responses`, `reports`, `templates` (+ kolom `tier`)
 - [ ] T-11 @A RLS sesuai TASK 4.4 + view/RPC form publik
 - [ ] T-12 @A Test RLS (user A vs B, publik) dengan skrip/SQL
 - [ ] T-13 @A Login Google via Supabase Auth + helper session SSR + proteksi `/dashboard`
