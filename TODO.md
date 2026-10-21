@@ -40,8 +40,8 @@ Ganti peran: B (builder), C (public), D (design/ops), R (reviewer), L (lead).
 - [ ] T-14 @A Seed template awal (5-10) dan data dummy
 
 ### C (schema/validator dulu)
-- [ ] T-20 @C `src/lib/forms/schema.ts`: tipe + validator zod sesuai TASK 4.5 (whitelist font/cardStyle/warna)
-- [ ] T-21 @C Unit test validator (nilai di luar whitelist ditolak, ID duplikat ditolak, batas jumlah blok/pertanyaan)
+- [x] T-20 @C 2026-10-21-21:40 `src/lib/forms/schema.ts`: tipe + validator zod sesuai TASK 4.5 (whitelist font/cardStyle/warna)
+- [x] T-21 @C 2026-10-21-22:05 Unit test validator (nilai di luar whitelist ditolak, ID duplikat ditolak, batas jumlah blok/pertanyaan)
 
 ### D (design)
 - [ ] T-30 @D `design/tokens.css` (saat ini SEMENTARA, hanya --brand #BFE8EA yang asli) diganti dengan nilai asli dari `design/reference/` + `design/README.md` (komponen & aturan pemakaian)
