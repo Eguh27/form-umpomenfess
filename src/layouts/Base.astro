@@ -1,0 +1,29 @@
+---
+import '../styles/global.css';
+interface Props { title?: string; description?: string }
+const { title = 'umpomenfess form', description = 'Bikin form cantik untuk cari responden, gratis.' } = Astro.props;
+const main = 'https://umpomenfess.my.id';
+---
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#BFE8EA" />
+    <meta name="description" content={description} />
+    <title>{title}</title>
+  </head>
+  <body>
+    <header class="container" style="display:flex;justify-content:space-between;align-items:center;padding-block:var(--space-4)">
+      <a href="/" style="text-decoration:none;font-weight:700">umpomenfess <span class="eyebrow">form</span></a>
+      <nav style="display:flex;gap:var(--space-4)">
+        <a href={main}>Menfess</a>
+        <a href="/dashboard">Dashboard</a>
+      </nav>
+    </header>
+    <main><slot /></main>
+    <footer class="container" style="padding-block:var(--space-7);color:var(--text-muted)">
+      © 2026 umpomenfess ✦ Universitas Muhammadiyah Ponorogo · <a href={main}>Kembali ke menfess</a>
+    </footer>
+  </body>
+</html>

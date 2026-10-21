@@ -1,0 +1,35 @@
+/*
+  design/tokens.css — satu sumber gaya untuk seluruh halaman form & dashboard.
+
+  STATUS: SEMENTARA. Hanya --brand (#BFE8EA, dari theme-color umpomenfess.my.id)
+  yang berasal dari situs utama. Nilai bertanda [GANTI] adalah tebakan netral.
+  TUGAS Agent D (T-30): ganti semuanya dengan nilai asli dari design/reference/.
+*/
+:root {
+  /* Warna */
+  --brand: #bfe8ea;            /* dari situs utama */
+  --brand-strong: #7cc7cb;     /* [GANTI] */
+  --bg: #f7fcfc;               /* [GANTI] */
+  --surface: #ffffff;          /* [GANTI] */
+  --text: #1f2937;             /* [GANTI] */
+  --text-muted: #6b7280;       /* [GANTI] */
+  --border: #dbeff0;           /* [GANTI] */
+  --danger: #dc2626;
+  --success: #16a34a;
+
+  /* Tipografi: ganti dengan font situs utama */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; /* [GANTI] */
+  --font-display: var(--font-sans);                                                       /* [GANTI] */
+
+  /* Bentuk */
+  --radius-sm: 8px;
+  --radius: 16px;              /* [GANTI] */
+  --radius-lg: 24px;
+  --shadow: 0 6px 24px rgb(0 0 0 / 0.06);
+
+  /* Spasi */
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
+  --space-5: 24px; --space-6: 32px; --space-7: 48px; --space-8: 72px;
+
+  --container: 1080px;
+}
