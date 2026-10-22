@@ -57,22 +57,57 @@ export interface BuilderState {
   blocks: BlockDraft[];
 }
 
-/** Form kosong: teks pembuka agar preview tidak berongga. */
+/** Form kosong: tanpa blok (preview menampilkan catatan kosong). */
 export function emptyState(title = 'Form tanpa judul'): BuilderState {
   return { title, theme: defaultTheme(), blocks: [] };
 }
 
-/** Konversi baris tabel `templates` → BuilderState awal (schema/theme sudah valid). */
-export function stateFromTemplate(t: { title: string; schema: unknown }): BuilderState {
-  const data = (t.schema ?? {}) as { theme?: Partial<ThemeDraft>; blocks?: unknown };
-  return {
-    title: t.title,
-    theme: { ...defaultTheme(), ...(data.theme ?? {}) },
-    blocks: Array.isArray(data.blocks) ? (data.blocks as BlockDraft[]) : [],
-  };
+/** Lengkapi field opsional agar sesuai tipe BlockDraft (data dari DB/templates). */
+function normalizeBlock(raw: unknown): BlockDraft | null {
+  if (typeof raw !== 'object' || raw === null) return null;
+  const b = raw as Record<string, unknown>;
+  const id = String(b.id ?? '');
+  switch (b.type) {
+    case 'heading':
+      return {
+        id,
+        type: 'heading',
+        text: String(b.text ?? ''),
+        size: (['s', 'm', 'l', 'xl'] as const).includes(b.size as never) ? (b.size as 'm') : 'm',
+        align: String(b.align ?? 'left'),
+      };
+    case 'text':
+      return { id, type: 'text', text: String(b.text ?? '') };
+    case 'image':
+      return { id, type: 'image', publicId: String(b.publicId ?? ''), align: String(b.align ?? 'center') };
+    case 'divider':
+      return { id, type: 'divider' };
+    case 'question':
+      return {
+        id,
+        type: 'question',
+        kind: String(b.kind ?? 'short_text'),
+        label: String(b.label ?? ''),
+        required: Boolean(b.required),
+        options: Array.isArray(b.options) ? (b.options as string[]) : [],
+        min: typeof b.min === 'number' ? b.min : null,
+        max: typeof b.max === 'number' ? b.max : null,
+        maxLength: typeof b.maxLength === 'number' ? b.maxLength : null,
+      };
+    default:
+      return null;
+  }
 }
 
-/** Konversi row `forms` (schema jsonb) → BuilderState untuk editor. */
-export function stateFromForm(row: { title: string; schemas: unknown }): BuilderState {
-  return stateFromTemplate({ title: row.title, schema: row.schemas });
+/** Schema JSON (dari tabel/templates) → BuilderState utk editor. */
+export function stateFromRow(row: { title: string; schema: unknown }): BuilderState {
+  const data = (row.schema ?? {}) as { theme?: Partial<ThemeDraft>; blocks?: unknown };
+  const blocks = Array.isArray(data.blocks)
+    ? (data.blocks.map(normalizeBlock).filter((b): b is BlockDraft => b !== null))
+    : [];
+  return {
+    title: row.title,
+    theme: { ...defaultTheme(), ...(data.theme ?? {}) },
+    blocks,
+  };
 }

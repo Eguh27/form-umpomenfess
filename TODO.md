@@ -51,10 +51,10 @@ Ganti peran: B (builder), C (public), D (design/ops), R (reviewer), L (lead).
 ## Wave 2
 ### B (builder + dashboard; butuh T-13, T-20, T-31)
 - [x] T-40 @B 2026-10-22-10:50 Dashboard selesai: island `DashboardForms` + halaman server (list RLS + count respons, buat kosong/template, duplikat schema utuh, tutup, soft delete) — 58 test lulus; verifikasi visual island menunggu login manusia (middleware redirect betul di browser)
-- [~] T-41 @B 2026-10-22-11:00 Builder: tambah/hapus/urut blok (tombol naik/turun), panel properti (color picker, font, radius), simpan draft otomatis
-- [ ] T-42 @B Upload banner/gambar (tanda tangan upload, batas ukuran/jumlah, catat `form_images`)
-- [~] T-43 @B 2026-10-22-11:00 Preview live (HP/desktop), undo/redo, peringatan "jangan minta kata sandi", tombol publish + validasi schema
-- [ ] T-44 @B Test: builder hanya menghasilkan JSON valid; tidak ada input HTML mentah
+- [x] T-41 @B 2026-10-22-10:57 Builder inti: island Editor + BlockList (up/down/hapus/tambah) + BlockPanel/ThemePanel + autosave 1.5s HANYA dengan schema valid + state/history/serialize teruji — diverifikasi browser (tambah blok, panel, preview live update)
+- [~] T-42 @B 2026-10-22-10:57 Upload banner/gambar — UI client + rules teruji SELESAI; live flow masuk Blocked (endpoint @C)
+- [x] T-43 @B 2026-10-22-10:57 Preview HP/desktop + undo/redo (stack 50) + peringatan otomatis label sensitif + tombol publish (validasi dulu, versi++) — publish live menunggu sesi manusia
+- [x] T-44 @B 2026-10-22-10:57 Test builder: 88 test (9 file) — serialize → parseFormSchema selalu valid / issues; teks user murni string (escape di render); tidak ada input HTML mentah di UI
 
 ### C (public; butuh T-12, T-20, T-31)
 - [ ] T-50 @C Halaman `/f/[slug]`: render schema + tema aman (escape), mobile-first, catatan privasi, tombol Laporkan
@@ -78,13 +78,14 @@ Ganti peran: B (builder), C (public), D (design/ops), R (reviewer), L (lead).
 
 - @D→@C (CONTRACT CHANGE perlu): `FONT_WHITELIST` di `src/lib/forms/schema.ts` masih `system-ui|Poppins|Inter|Georgia` — tema baru memakai **Quicksand (500/600/700) + Baloo 2 (700)** (font situs utama & template kaca). Mohon whitelist diganti (usulan: `system-ui|Quicksand|Baloo 2`), edit TASK 4.5, sebut CONTRACT CHANGE di progress.md, lalu sinkronkan seed template T-14 (font `Poppins` di seed sudah ada di DB → perlu UPDATE atau re-seed). Test T-20/21 yang menyebut nama font ikut diperbarui.
 - @D→@L: D menyentuh `src/layouts/Base.astro`, `src/styles/global.css`, `src/pages/index.astro` (restyle landing) — ini bagian tugas T-31 "layout dasar"; mohon ratifikasi kepemilikan zona. Juga: tambahkan `supabase/.temp/` & `client_secret_*.json` ke `.gitignore`.
+- @B→@C (T-42, endpoint WAJIB): buat `POST /api/uploads/sign` (zona C, TASK 4.6). Kontrak yang dipakai klien B (`BannerUpload.tsx`): user login saja; req `{ bytes:number, mime:string }` (mime ∈ jpg/png/webp/gif, bytes ≤ LIMITS.maxImageBytes); respons 200 `{ cloudName, apiKey, timestamp, signature, publicId, folder:'form' }` (publicId HARUS berawalan `form/` — klien memvalidasi `parseSignResponse`); error 401 tanpa sesi, 400 payload, 5xx env kurang. Jangan catat isi berkas di log. Klien lalu upload langsung ke Cloudinary dan menyimpan `theme.bannerPublicId`. Batas jumlah gambar/form (max 5, rows form_images) cek di server.
 <!-- format: tgl | dari @X | untuk @Y | permintaan -->
 2026-10-21 | @A | @C | Seed SQL (`supabase/migrations/20261021124000_seed_templates.sql`) telah lolos parseFormSchema() saat verifikasi sesaat (33/33). Tolong tambahkan test permanen di zona C (mis. `src/lib/forms/seed-schema.test.ts`) yang membaca file SQL seed & memvalidasi setiap literal `::jsonb` berisi "schemaVersion" — supaya edit seed ke depan tetap terjaga. Verifikasi sesaat sudah dihapus.
 2026-10-22 | @A | @L | Tambahkan `supabase/.temp/` ke `.gitignore` (artefak `supabase link/db push` CLI yang tak boleh terkomit).
 
 ## Blocked
 <!-- format: T-xx | peran | alasan | butuh @Y -->
-<!-- (kosong) -->
+T-42 (live flow) | B | UI unggahan + aturan ukuran/jenis selesai & teruji, tapi hanya jalan nyata setelah `POST /api/uploads/sign` ada | butuh @C (kontrak di Requests)
 
 ## Catatan manusia
 - Agent ngawur: `git log`, revert commit agent itu saja, jangan reset seluruh repo.

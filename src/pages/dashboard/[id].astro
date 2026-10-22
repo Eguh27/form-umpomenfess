@@ -1,0 +1,44 @@
+---
+import Base from '../../layouts/Base.astro';
+
+/*
+  Penyunting form (T-41/T-43, @B). Middleware menjaga sesi; lapisan kedua di
+  sini + SELECT via client user (RLS) — ID milik orang lain tidak akan terbaca.
+  Route: /dashboard/<uuid>.
+*/
+import Editor from '../../components/builder/Editor';
+import { stateFromRow } from '../../components/builder/defaults';
+
+const user = Astro.locals.user;
+if (!user) return Astro.redirect('/login');
+
+const formId = Astro.params.id ?? '';
+const uuidLike = /^[0-9a-f-]{36}$/i.test(formId);
+if (!uuidLike) return Astro.redirect('/dashboard');
+
+const row = Astro.locals.supabase
+  ? (await Astro.locals.supabase!.from('forms').select('id, slug, title, status, version, schema')
+    .eq('id', formId).maybeSingle()).data
+  : null;
+
+if (row === null) return Astro.redirect('/dashboard');
+
+const cloudName = (import.meta.env.CLOUDINARY_CLOUD_NAME as string | undefined) ?? '';
+const state = stateFromRow(row as unknown as { title: string; schema: unknown });
+---
+<Base title={`Edit: ${state.title} — umpomenfess form`}>
+  <section class="container" style="padding-block:var(--space-5)">
+    <p class="eyebrow">
+      <a href="/dashboard" style="text-decoration:none">← Dashboard</a> ✦ Builder
+    </p>
+    <Editor
+      client:load
+      formId={String(row.id)}
+      slug={String(row.slug)}
+      status={String(row.status)}
+      version={(row.version as number) ?? 1}
+      initial={state}
+      cloudName={cloudName}
+    />
+  </section>
+</Base>
