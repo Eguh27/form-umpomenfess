@@ -10,3 +10,4 @@ dist/
 backups/
 supabase/.temp/
 client_secret_*.json
+.playwright-cli/
