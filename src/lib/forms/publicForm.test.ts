@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   answersFromFormData,
   closedState,
+  errKind,
   errMessage,
   parsePublicSchema,
   publicFontStack,
@@ -88,7 +89,7 @@ describe('answersFromFormData / validateSubmit', () => {
     expect(validate(fd).ok).toBe(false);
   });
 
-  it('wajib kosong → gagal + id palsu diabaikan', () => {
+  it('wajib kosong → gagal + id tidak dikenal ditolak validator', () => {
     const fd = new FormData();
     fd.set('evil', '<script>');
     const result = validate(fd);
@@ -118,5 +119,14 @@ describe('errMessage hanya kode yang dikenal', () => {
     expect(errMessage('<script>csrf</script>')).toBeNull();
     expect(errMessage('ratelimit')).toContain('banyak');
     expect(errMessage(null)).toBeNull();
+  });
+});
+
+describe('errKind memisahkan sukses dari galat (S5)', () => {
+  it('lapor_ok = sukses; kode galat dikenal = galat; tak dikenal = null', () => {
+    expect(errKind('lapor_ok')).toBe('sukses');
+    expect(errKind('ratelimit')).toBe('galat');
+    expect(errKind('tidak_ada_kode')).toBeNull();
+    expect(errKind(null)).toBeNull();
   });
 });

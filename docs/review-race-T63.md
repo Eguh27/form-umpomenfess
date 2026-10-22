@@ -9,10 +9,10 @@
 
 | # | Temuan | Severity | Pemilik | Rekomendasi T-64 |
 |---|---|---|---|---|
-| R1 | Kuota respons: cek `count` lalu `insert` — dua langkah terpisah (TOCTOU); request concurrent di batas kuota bisa melewatkan `max_responses` beberapa baris | **Sedang** | @A (+@C memakai) | pindahkan penjaga kuota ke SQL: fungsi/rpc `insert_response(form_id, version, answers, client_token)` yang mengunci baris form (`SELECT … FOR UPDATE`) & menghitung kuota DI DALAM transaksi; endpoint tinggal memanggil rpc via service role |
-| R2 | Idempotensi lembut (map in-memory) gugur saat restart/skala-out; urutan cek juga membahayakan UX double-click | **Sedang** | @A + @B + @C | tiga lapisan: (a) @A kolom `client_token` + partial unique index `(form_id, client_token) where client_token is not null`; (b) @C pindah cek replay SEBELUM verify captcha; (c) @B disable tombol setelah klik pertama |
-| R3 | Map rate-limit tidak dibatasi jumlah IP unik → DoS memori oleh flood IP | Rendah | @C | cap ukuran map (mis. >10_000 clear) — identik temuan S4 |
-| R4 | Replay map `clear()` sekaligus saat >5000 → amnesia massal (buang semua token sah lain) | Rendah | @C | ganti bounded/LRU ring sederhana, atau hapus map begitu kontrak (a) aktif |
+| R1 | Kuota respons: cek `count` lalu `insert` — dua langkah terpisah (TOCTOU); request concurrent di batas kuota bisa melewatkan `max_responses` beberapa baris | **Sedang** | @A (+@C memakai) | TERBUKA: pindahkan penjaga kuota ke SQL: fungsi/rpc `insert_response(form_id, version, answers, client_token)` yang mengunci baris form (`SELECT … FOR UPDATE`) & menghitung kuota DI DALAM transaksi; endpoint tinggal memanggil rpc via service role |
+| R2 | Idempotensi lembut (map in-memory) gugur saat restart/skala-out; urutan cek juga membahayakan UX double-click | **Sedang** | @A + @B | a. @A kolom `client_token` + partial unique index `(form_id, client_token) where client_token is not null`; b. @B disable tombol setelah klik pertama. SISI @C SUDAH: cek replay kini SEBELUM verifikasi captcha + token ditanam halaman (R2b) |
+| R3 | Map rate-limit tidak dibatasi jumlah IP unik → DoS memori oleh flood IP | Rendah | @C | ✅ dibaih @C di T-64 (cap 10k IP → clear) |
+| R4 | Replay map `clear()` sekaligus saat >5000 → amnesia massal (buang semua token sah lain) | Rendah | @C | ✅ dibaih @C di T-64 (evict FIFO ring, bukan clear massal); R2b: cek replay pindah SEBELUM captcha |
 | R5 | `form_images` cap: cek count lalu insert juga TOCTOU | Rendah | @C (kelas R1) | cukup approximated MVP; row orphan tak terpakai disapu T-60 |
 | R6 | Submit membaca `version` di t0, insert `form_version` di t1; owner publish (version++) di antaranya | Info | — | DESAIN OK: baris mencatat versi schema yang DIJAWAB responden |
 | R7 | Publish double-click → version++ dua kali (schema sama) | Info | — | tidak berbahaya |

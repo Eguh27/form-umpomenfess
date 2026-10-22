@@ -9,6 +9,7 @@ import Base from '../../../layouts/Base.astro';
 */
 import {
   closedState,
+  errKind,
   errMessage,
   parsePublicSchema,
   publicFontStack,
@@ -20,6 +21,7 @@ import type { FormSchemaData } from '../../../lib/forms/schema';
 const slug = Astro.params.slug ?? '';
 const err = Astro.url.searchParams.get('err');
 const errText = errMessage(err);
+const errKindCode = errKind(err);
 
 const supabase = Astro.locals.supabase;
 
@@ -105,7 +107,12 @@ const headingSizeRem: Record<string, string> = { s: '1.1rem', m: '1.4rem', l: '1
           </article>
         )}
 
-        {errText && (
+        {errText !== null && errKindCode === 'sukses' && (
+          <p role="status" class="help" style="color:var(--success);font-weight:700;margin-bottom:var(--space-3)">
+            {errText}
+          </p>
+        )}
+        {errText !== null && errKindCode === 'galat' && (
           <p role="alert" class="help" style="color:var(--danger);font-weight:700;margin-bottom:var(--space-3)">
             {errText}
           </p>
@@ -190,15 +197,27 @@ const headingSizeRem: Record<string, string> = { s: '1.1rem', m: '1.4rem', l: '1
               );
             })}
 
-            <div
-              class="cf-turnstile"
-              data-sitekey={turnstileSiteKey}
-              data-theme="auto"
-              aria-hidden={turnstileSiteKey === '' ? 'true' : undefined}
-            />
-            {turnstileSiteKey === '' && (
+            {turnstileSiteKey === '' ? (
               <p class="help">Verifikasi anti-bot aktif setelah env TURNSTILE diisi.</p>
+            ) : (
+              <div class="cf-turnstile" data-sitekey={turnstileSiteKey} data-theme="auto" />
             )}
+            {turnstileSiteKey !== '' && (
+              <script is:inline async defer src="https://challenges.cloudflare.com/turnstile/v0/api.js" />
+            )}
+
+            <input type="hidden" id="client-token" name="client_token" />
+            <script is:inline>
+              // Token dedup untuk double-click/refresh (server yang menegakkan
+              // lewat cek replay). Jawaban tetap anonim — token hanya murni
+              // untuk idempotensi 5 menit, tidak mengandung identitas.
+              (function () {
+                const el = document.getElementById('client-token');
+                if (el !== null && crypto.randomUUID) {
+                  el.value = crypto.randomUUID().replace(/-/g, '');
+                }
+              })();
+            </script>
 
             <button type="submit" class="btn btn--accent" style="margin-top:var(--space-4);width:100%">
               Kirim jawaban

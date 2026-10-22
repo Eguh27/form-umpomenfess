@@ -9,7 +9,13 @@
  * tidak diinsert dua kali (double-click/refresh); tokenizer sulit dipakai
  * sampai @A menambah kolom client_token (lihat TODO Requests @A).
  */
-import { payloadTooLarge, redirectBack, jsonError } from '../../../../lib/forms/endpoints';
+import {
+  formDataTooLarge,
+  payloadTooLarge,
+  redirectBack,
+  redirectThanks,
+  jsonError,
+} from '../../../../lib/forms/endpoints';
 import { getSupabaseService } from '../../../../lib/forms/service';
 import { verifyTurnstile } from '../../../../lib/forms/turnstile';
 import { checkAndRecord, ipFromHeaders } from '../../../../lib/forms/rateLimit';
@@ -22,6 +28,8 @@ import {
 
 /** idempotensi lembut: `${ip}:${token}` → waktu terakhir terlihat. */
 const seen = new Map<string, number>();
+const seenKeys: string[] = [];
+const SEEN_MAX = 5000;
 const NONCE_TTL = 5 * 60_000;
 
 function alreadySeen(ip: string, token: string, now: number): boolean {
@@ -30,9 +38,15 @@ function alreadySeen(ip: string, token: string, now: number): boolean {
   return last !== undefined && now - last < NONCE_TTL;
 }
 
+/** R4: evict FIFO — token sah lain tidak dibuang bersama (bukan clear massal). */
 function remember(ip: string, token: string, now: number): void {
-  if (seen.size > 5000) seen.clear(); // batas memori kasar MVP
-  seen.set(`${ip}:${token}`, now);
+  const key = `${ip}:${token}`;
+  seen.set(key, now);
+  seenKeys.push(key);
+  while (seenKeys.length > SEEN_MAX) {
+    const victim = seenKeys.shift();
+    if (victim !== undefined) seen.delete(victim);
+  }
 }
 
 export const POST = async (ctx: { params: Record<string, string | undefined>; request: Request }): Promise<Response> => {
@@ -42,9 +56,22 @@ export const POST = async (ctx: { params: Record<string, string | undefined>; re
   if (await payloadTooLarge(ctx.request)) return jsonError('payload_besar', 413);
 
   const form = await ctx.request.formData();
+  // S3: header content-length bisa dipalsukan (chunked); ukur isi sebenarnya.
+  if (await formDataTooLarge(form)) return jsonError('payload_besar', 413);
 
   const ip = ipFromHeaders(ctx.request.headers);
   if (!checkAndRecord(ip)) return redirectBack(slug, 'ratelimit');
+
+  // R2b: cek replay SEBELUM captcha — token Turnstile single-use membuat
+  // klik kedua gagal di captcha padahal jawaban pertama sudah masuk. Replay
+  // (token sudah terpakai sukses) berhenti di sini TANPA efek samping; bukan
+  // jalur bypass: request pertama dengan token itu selalu diperiksa penuh.
+  const rawToken = form.get('client_token');
+  const token =
+    typeof rawToken === 'string' && /^[A-Za-z0-9_-]{1,64}$/.test(rawToken) ? rawToken : null;
+  if (token !== null && alreadySeen(ip, token, Date.now())) {
+    return redirectThanks(slug);
+  }
 
   const secret = (import.meta.env.TURNSTILE_SECRET_KEY as string | undefined)?.trim() ?? null;
   const captcha = await verifyTurnstile(form.get('cf-turnstile-response'), ip, secret);
@@ -78,14 +105,6 @@ export const POST = async (ctx: { params: Record<string, string | undefined>; re
   const answers = validateSubmit(parsed, form);
   if (!answers.ok) return redirectBack(slug, answers.code);
 
-  const rawToken = form.get('client_token');
-  const token =
-    typeof rawToken === 'string' && /^[A-Za-z0-9_-]{1,64}$/.test(rawToken) ? rawToken : null;
-  if (token !== null && alreadySeen(ip, token, Date.now())) {
-    // Kiriman ulang (double-click/refresh) → perlakukan sebagai sukses.
-    return new Response(null, { status: 303, headers: { Location: `/f/${slug}/terima-kasih` } });
-  }
-
   const { error: insertError } = await service.from('responses').insert({
     form_id: pub.id,
     form_version: pub.version,
@@ -94,5 +113,5 @@ export const POST = async (ctx: { params: Record<string, string | undefined>; re
   if (insertError !== null) return redirectBack(slug, 'kirim');
   if (token !== null) remember(ip, token, Date.now());
 
-  return new Response(null, { status: 303, headers: { Location: `/f/${slug}/terima-kasih` } });
+  return redirectThanks(slug);
 };

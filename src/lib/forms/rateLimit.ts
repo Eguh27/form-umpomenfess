@@ -31,6 +31,8 @@ export function ipFromHeaders(headers: Headers): string {
  * (mis. laporan: 5/menit) tanpa menyentuh konstanta default submit.
  */
 export function checkAndRecord(ip: string, now: number = Date.now(), max: number = RATE_LIMIT.maxPerWindow): boolean {
+  // S4/R3: jaga memori — jumlah IP unik dibatasi kasar (flood banyak IP).
+  if (hits.size > 10_000) hits.clear();
   const list = (hits.get(ip) ?? []).filter((t) => now - t < RATE_LIMIT.windowMs);
   if (list.length >= max) {
     list.push(now);

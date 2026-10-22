@@ -124,9 +124,19 @@ describe('parseFormSchema — whitelist & bentuk nilai (ditolak, bukan dibersihk
     rejects(form([], { radius: 16.5 }));
   });
 
-  it('bannerPublicId dengan bentuk URL bebas ditolak (bukan publicId Cloudinary)', () => {
+  it('bannerPublicId ditolak tanpa awalan form/ atau bentuk bebas (anti cross-owner image)', () => {
     rejects(form([], { bannerPublicId: 'https://evil.example/track.png' }));
     rejects(form([], { bannerPublicId: '' }));
+    rejects(form([], { bannerPublicId: 'banner/abc' }));
+    rejects(form([], { bannerPublicId: 'samples/landscapes/x' }));
+  });
+
+  it('blok image publicId juga wajib awalan form/ (S2)', () => {
+    const ok = parseFormSchema(form([{ id: 'b3', type: 'image', publicId: 'form/abc' }]));
+    expect(ok.ok).toBe(true);
+
+    const bad = parseFormSchema(form([{ id: 'b3', type: 'image', publicId: 'banner/abc' }]));
+    expect(bad.ok).toBe(false);
   });
 
   it('id blok dengan karakter aneh / terlalu panjang ditolak', () => {

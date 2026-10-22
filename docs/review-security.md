@@ -13,12 +13,12 @@
 
 | # | Temuan | Severity | Zona pemilik | Status |
 |---|---|---|---|---|
-| S1 | Widget Turnstile tanpa `<script api.js>` — form publik tak bisa dikirim | **Tinggi** (fungsional; keamanan tetap fail-closed) | @C | terbuka → T-64 |
-| S2 | `publicIdPattern` mengizinkan publicId luar folder `form/` — gambar pemilik lain bisa dijadikan banner (cloud dibagikan) | Sedang | @C | terbuka → T-64 |
-| S3 | Batas 64KB via header `content-length` saja — chunked tanpa header bisa lewat | Sedang | @C | terbuka → T-64 |
-| S4 | Map rate-limit membesar tak terbatas per IP unik (memori) | Rendah | @C | terbuka → T-64 |
-| S5 | `?err=lapor_ok` ditampilkan sebagai banner `role=alert` berwarna danger — pesan sukses tampak seperti gagal | Rendah | @C | terbuka → T-64 |
-| S6 | Respons 303 redirect tanpa `cache-control: no-store` (konsistensi dgn export.csv) | Rendah | @C | terbuka → T-64 |
+| S1 | Widget Turnstile tanpa `<script api.js>` — form publik tak bisa dikirim | **Tinggi** (fungsional; keamanan tetap fail-closed) | @C | ✅ dibaih @C di T-64 (T-64 commit C) |
+| S2 | `publicIdPattern` mengizinkan publicId luar folder `form/` — gambar pemilik lain bisa dijadikan banner (cloud dibagikan) | Sedang | @C | ✅ dibaih @C di T-64 |
+| S3 | Batas 64KB via header `content-length` saja — chunked tanpa header bisa lewat | Sedang | @C | ✅ dibaih @C di T-64 (`formDataTooLarge`) |
+| S4 | Map rate-limit membesar tak terbatas per IP unik (memori) | Rendah | @C | ✅ dibaih @C di T-64 (cap 10k IP) |
+| S5 | `?err=lapor_ok` ditampilkan sebagai banner `role=alert` berwarna danger — pesan sukses tampak seperti gagal | Rendah | @C | ✅ dibaih @C di T-64 (`errKind`) |
+| S6 | Respons 303 redirect tanpa `cache-control: no-store` (konsistensi dgn export.csv) | Rendah | @C | ✅ dibaih @C di T-64 (`redirectThanks`+`redirectBack`) |
 | S7 | Halaman terautentikasi (/dashboard) tanpa `Cache-Control: private, no-store` eksplisit | Rendah | @L/@B | terbuka → T-64 |
 | S8 | CSP belum ada (script-src/connect-src/img-src belum diunci) | Rendah | @L/@D | terbuka → T-64 |
 | S9 | `docs/google.json` (kredensial) masih untracked DI DALAM folder repo | Sedang | manusia/@L | gitignore menunggu @L; berkas mohon dipindah keluar |

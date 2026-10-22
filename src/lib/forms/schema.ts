@@ -60,7 +60,7 @@ export const SCHEMA_LIMITS = {
   /** rentang maksimum (max - min) pertanyaan skala */
   scaleRangeMax: 20,
   /** format publicId Cloudinary milik project ini (bukan URL bebas — cegah tracking pixel). */
-  publicIdPattern: /^[A-Za-z0-9][A-Za-z0-9/_-]{0,199}$/,
+  publicIdPattern: /^form\/[A-Za-z0-9][A-Za-z0-9/_-]{0,199}$/,
 } as const;
 
 /** Warna hex #rrggbb (6 digit; builder color picker memang menghasilkan bentuk ini). */
@@ -72,7 +72,7 @@ const blockId = z
 
 const publicId = z
   .string()
-  .regex(SCHEMA_LIMITS.publicIdPattern, 'publicId wajib format [A-Za-z0-9/_-] tanpa URL');
+  .regex(SCHEMA_LIMITS.publicIdPattern, 'publicId wajib awalan form/ (hasil uploads/sign), karakter [A-Za-z0-9/_-]');
 
 // ---------------------------------------------------------------------------
 // Theme

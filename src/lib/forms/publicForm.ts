@@ -134,6 +134,13 @@ export function errMessage(code: string | null): string | null {
   }
 }
 
+/** Kode err mana yang sebenarnya SUKSES (S5 — banner berbeda gaya). */
+export function errKind(code: string | null): 'galat' | 'sukses' | null {
+  if (code === null) return null;
+  if (code === 'lapor_ok') return 'sukses';
+  return errMessage(code) !== null ? 'galat' : null;
+}
+
 /** URL Cloudinary aman (host project saja). */
 export function cloudinaryUrl(publicId: string, cloudName: string): string {
   return `https://res.cloudinary.com/${cloudName}/image/upload/f_auto,q_auto/${publicId}`;

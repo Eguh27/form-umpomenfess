@@ -10,11 +10,36 @@ export async function payloadTooLarge(req: Request): Promise<boolean> {
   return Number.isFinite(len) && len > LIMITS.maxSubmitPayloadBytes;
 }
 
+/**
+ * Batas bayte AKTUAL pasca-parse (anti-chunked header palsu, S3): jumlah ukuran
+ * tiap entri FormData — string dihitung UTF-8, file pakai size sebenarnya.
+ */
+export async function formDataTooLarge(form: FormData, max = LIMITS.maxSubmitPayloadBytes): Promise<boolean> {
+  let total = 0;
+  for (const value of form.values()) {
+    if (value instanceof File) {
+      total += value.size;
+    } else {
+      total += new Blob([value]).size;
+    }
+    if (total > max) return true;
+  }
+  return false;
+}
+
 /** Redirect berertakode err utk halaman form (pesan pendek diterjemahkan halaman). */
 export function redirectBack(slug: string, code: string): Response {
   return new Response(null, {
     status: 303,
-    headers: { Location: `/f/${slug}?err=${encodeURIComponent(code)}` },
+    headers: { Location: `/f/${slug}?err=${encodeURIComponent(code)}`, 'cache-control': 'no-store' },
+  });
+}
+
+/** Redirect sukses ke halaman terima kasih (no-store, S6). */
+export function redirectThanks(slug: string): Response {
+  return new Response(null, {
+    status: 303,
+    headers: { Location: `/f/${slug}/terima-kasih`, 'cache-control': 'no-store' },
   });
 }
 

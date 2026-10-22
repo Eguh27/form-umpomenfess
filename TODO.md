@@ -68,7 +68,8 @@ Ganti peran: B (builder), C (public), D (design/ops), R (reviewer), L (lead).
 - [x] T-61 @D 2026-10-22 12:45 Backup mingguan di luar repo + `docs/restore.md` — `scripts/backup.mjs` (pg_dump → Supabase Storage privat, sha256+manifest+retensi) + workflow; belum dieksekusi nyata, tunggu secrets/DB URL
 - [x] T-62 @R 2026-10-22-16:05 Review keamanan -> `docs/review-security.md` — 1 TINGGI (Turnstile script hilang), 2 SEDANG (publicIdPattern lsp., payload chunked), 6 RENDAH; 7 area WS-R senantiasa aman dgn bukti
 - [x] T-63 @R 2026-10-22-16:05 Review race -> `docs/review-race-T63.md` — R1 TOCTOU kuota (rpc @A), R2 idempotensi 3-lapis + urutan replay (sebelum captcha), R3/R4 map memori; R6-R8 info/oke
-- [ ] T-64 @A/@B/@C/@D Perbaiki temuan T-62/T-63 di zona masing-masing
+- [x] T-64 @C 2026-10-22-17:15 (bagian zona C dari tugas multi-zone): S1 script Turnstile, S2 wajib folder form/, S3 cek byte FormData, S4/R3 cap map, S5 banner sukses, S6 no-store redirect, R2b replay sebelum captcha, R4 evict FIFO, koreksi judul test — 132 test + lint/check/build hijau; bagian @C BERAKHIR di sini
+- [~] T-64 @A/@B/@D SISA: R1 rpc kuota (A), kolom client_token + index (A), disable tombol (B), tandai form_images used (B), cache private dashboard (B), CSP (L/D) — lihat review docs
 - [ ] T-65 @L Uji end-to-end dummy lalu uji di HP dengan beberapa teman
 - [ ] T-66 @L Checklist go-live (manusia): env production, domain, Turnstile production, backup aktif, cron dari dry-run ke nyata
 
