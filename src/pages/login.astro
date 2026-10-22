@@ -1,44 +1,804 @@
 ---
 import Base from '../layouts/Base.astro';
 
-// Login handler berjalan via /auth/login (server → Google). Halaman ini
-// hanya menampilkan tombol & pesan status (T-13, Agent A).
+// Login & Sign-up page (T-15, Agent A).
+// Mendukung:
+// 1. Masuk dengan Email & Password (POST /auth/email).
+// 2. Daftar Akun Baru dengan Email & Password (POST /auth/email).
+// 3. Masuk dengan Akun Google OAuth (GET /auth/login).
+// 4. Lupa kata sandi via email reset.
+
 const error = Astro.url.searchParams.get('error');
+const msg = Astro.url.searchParams.get('msg');
+const initialTab = Astro.url.searchParams.get('tab') ?? 'login';
 const configured = Astro.locals.supabase !== null;
 
-const errorText =
-  error === 'setup'
-    ? 'Sesi masuk belum siap — coba lagi beberapa saat, atau beri tahu admin jika masih terjadi.'
-    : error === 'no_code'
-      ? 'Tautan masuk kedaluwarsa. Silakan coba masuk lagi.'
-      : error === 'auth'
-        ? 'Masuk gagal — coba lagi. (Gunakan akun Google karya.)'
-        : null;
+const ERROR_MESSAGES: Record<string, string> = {
+  setup: 'Konfigurasi autentikasi belum lengkap di server. Hubungi admin.',
+  no_code: 'Tautan autentikasi kedaluwarsa. Silakan coba lagi.',
+  auth: 'Autentikasi Google gagal. Coba beberapa saat lagi.',
+  kredensial_salah: 'Email atau kata sandi tidak cocok. Periksa kembali.',
+  kredensial_kosong: 'Mohon isi email dan kata sandi Anda.',
+  data_kurang: 'Mohon lengkapi email dan kata sandi untuk mendaftar.',
+  password_pendek: 'Kata sandi minimal 6 karakter demi keamanan akun Anda.',
+  email_belum_konfirmasi: 'Email Anda belum dikonfirmasi. Periksa kotak masuk/spam Anda.',
+  email_wajib: 'Mohon masukkan email untuk mengatur ulang kata sandi.',
+};
+
+const SUCCESS_MESSAGES: Record<string, string> = {
+  konfirmasi_email: 'Tautan konfirmasi telah dikirim ke email Anda! Periksa kotak masuk untuk mengaktifkan akun.',
+  reset_terkirim: 'Tautan reset sandi telah dikirim ke email Anda. Periksa kotak masuk Anda.',
+};
+
+const errorText = error ? (ERROR_MESSAGES[error] ?? decodeURIComponent(error)) : null;
+const successText = msg ? (SUCCESS_MESSAGES[msg] ?? decodeURIComponent(msg)) : null;
 ---
 
-<Base title="Masuk">
-  <section class="container" style="max-width:420px;margin-inline:auto;padding-block:var(--space-6)">
-    <h1>Masuk</h1>
-    <p style="color:var(--text-muted)">
-      Masuk untuk membuat & mengelola form pencari responden Anda.
-      Responden tidak perlu menjalankan ini.
-    </p>
+<Base title="Masuk & Daftar — umpomenfess form">
+  <div class="auth-ambient-wrap">
+    <!-- Ambient glowing arcs di latar belakang (sesuai referensi langit berawan) -->
+    <div class="ambient-arc arc-1" aria-hidden="true"></div>
+    <div class="ambient-arc arc-2" aria-hidden="true"></div>
+    <div class="ambient-arc arc-3" aria-hidden="true"></div>
 
-    {
-      errorText && (
-        <p role="alert" style="color:var(--danger)">
-          {errorText}
-        </p>
-      )
+    <section class="auth-center-container">
+      <article class="auth-card">
+        <!-- Badge Ikon [→] di bagian atas (sesuai referensi) -->
+        <div class="auth-icon-badge" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+            <polyline points="10 17 15 12 10 7" />
+            <line x1="15" y1="12" x2="3" y2="12" />
+          </svg>
+        </div>
+
+        <!-- Tab Switcher (Masuk vs Daftar) -->
+        <div class="auth-tab-pill">
+          <button type="button" id="tab-btn-login" class={`tab-pill-item ${initialTab === 'login' ? 'is-active' : ''}`}>
+            Masuk
+          </button>
+          <button type="button" id="tab-btn-signup" class={`tab-pill-item ${initialTab === 'signup' ? 'is-active' : ''}`}>
+            Daftar Akun
+          </button>
+        </div>
+
+        <!-- Header Teks -->
+        <div class="auth-header-text">
+          <h1 id="auth-title" class="auth-title">
+            {initialTab === 'signup' ? 'Daftar akun baru' : 'Masuk dengan email'}
+          </h1>
+          <p id="auth-subtitle" class="auth-subtitle">
+            {initialTab === 'signup'
+              ? 'Buat akun dalam hitungan detik untuk mulai menyusun form skripsi & survei.'
+              : 'Kelola form kuesioner dan kumpulkan respons mahasiswa dengan mudah & gratis.'}
+          </p>
+        </div>
+
+        {/* Pesan Galat & Sukses */}
+        {errorText && (
+          <div role="alert" class="auth-alert alert-error">
+            <span>⚠</span>
+            <span>{errorText}</span>
+          </div>
+        )}
+
+        {successText && (
+          <div role="status" class="auth-alert alert-success">
+            <span>✓</span>
+            <span>{successText}</span>
+          </div>
+        )}
+
+        {!configured && (
+          <div role="alert" class="auth-alert alert-error">
+            <span>⚠</span>
+            <span>Kredensial Supabase belum terpasang di <code>.env.local</code>. Hubungi administrator.</span>
+          </div>
+        )}
+
+        {/* FORM 1: MASUK (LOGIN) */}
+        <form
+          id="form-login"
+          method="POST"
+          action="/auth/email"
+          class={`auth-form ${initialTab === 'login' ? 'is-visible' : 'is-hidden'}`}
+        >
+          <input type="hidden" name="action" value="login" />
+
+          {/* Input Email */}
+          <div class="input-icon-field">
+            <span class="field-leading-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="4" width="20" height="16" rx="2" />
+                <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+              </svg>
+            </span>
+            <input
+              type="email"
+              name="email"
+              class="auth-input"
+              placeholder="Email Anda"
+              required
+              autocomplete="email"
+            />
+          </div>
+
+          {/* Input Password */}
+          <div class="input-icon-field">
+            <span class="field-leading-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
+            </span>
+            <input
+              type="password"
+              name="password"
+              id="password-login"
+              class="auth-input"
+              placeholder="Kata sandi"
+              required
+              autocomplete="current-password"
+            />
+            <button
+              type="button"
+              class="field-trailing-btn toggle-password"
+              data-target="password-login"
+              aria-label="Lihat atau sembunyikan kata sandi"
+            >
+              <svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+            </button>
+          </div>
+
+          <div style="display:flex;justify-content:flex-end;margin-top:2px;">
+            <button type="button" id="btn-show-forgot" class="auth-link-subtle">
+              Lupa kata sandi?
+            </button>
+          </div>
+
+          <button type="submit" class="auth-primary-btn" disabled={!configured}>
+            Masuk ke Dashboard
+          </button>
+        </form>
+
+        {/* FORM 2: DAFTAR AKUN BARU (SIGN UP) */}
+        <form
+          id="form-signup"
+          method="POST"
+          action="/auth/email"
+          class={`auth-form ${initialTab === 'signup' ? 'is-visible' : 'is-hidden'}`}
+        >
+          <input type="hidden" name="action" value="signup" />
+
+          {/* Input Nama Lengkap */}
+          <div class="input-icon-field">
+            <span class="field-leading-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+            </span>
+            <input
+              type="text"
+              name="fullName"
+              class="auth-input"
+              placeholder="Nama lengkap atau panggilan"
+              autocomplete="name"
+            />
+          </div>
+
+          {/* Input Email */}
+          <div class="input-icon-field">
+            <span class="field-leading-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="4" width="20" height="16" rx="2" />
+                <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+              </svg>
+            </span>
+            <input
+              type="email"
+              name="email"
+              class="auth-input"
+              placeholder="Email aktif Anda"
+              required
+              autocomplete="email"
+            />
+          </div>
+
+          {/* Input Password */}
+          <div class="input-icon-field">
+            <span class="field-leading-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
+            </span>
+            <input
+              type="password"
+              name="password"
+              id="password-signup"
+              class="auth-input"
+              placeholder="Kata sandi baru (min 6 karakter)"
+              required
+              minlength="6"
+              autocomplete="new-password"
+            />
+            <button
+              type="button"
+              class="field-trailing-btn toggle-password"
+              data-target="password-signup"
+              aria-label="Lihat atau sembunyikan kata sandi"
+            >
+              <svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+            </button>
+          </div>
+
+          <button type="submit" class="auth-primary-btn" disabled={!configured}>
+            Buat Akun Gratis
+          </button>
+        </form>
+
+        {/* FORM 3: LUPA KATA SANDI */}
+        <form id="form-forgot" method="POST" action="/auth/email" class="auth-form is-hidden">
+          <input type="hidden" name="action" value="forgot" />
+          <p style="font-size:0.85rem;color:var(--text-muted);margin:0 0 12px;line-height:1.4;">
+            Masukkan email Anda. Kami akan mengirimkan tautan untuk mengatur ulang kata sandi.
+          </p>
+
+          <div class="input-icon-field">
+            <span class="field-leading-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="4" width="20" height="16" rx="2" />
+                <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+              </svg>
+            </span>
+            <input
+              type="email"
+              name="email"
+              class="auth-input"
+              placeholder="Email terdaftar Anda"
+              required
+            />
+          </div>
+
+          <button type="submit" class="auth-primary-btn" disabled={!configured}>
+            Kirim Tautan Reset
+          </button>
+
+          <div style="text-align:center;margin-top:10px;">
+            <button type="button" id="btn-back-login" class="auth-link-subtle">
+              ← Kembali ke halaman masuk
+            </button>
+          </div>
+        </form>
+
+        {/* Pemisah Titik-titik (Sesuai Referensi Gambar) */}
+        <div class="auth-dotted-divider">
+          <span>Atau masuk dengan</span>
+        </div>
+
+        {/* Baris Tombol Sosial (Google, Facebook, Apple) */}
+        <div class="auth-social-row">
+          {/* Tombol Google (Fungsional OAuth) */}
+          <a
+            href={configured ? '/auth/login' : '#'}
+            class="social-btn google-btn"
+            title="Masuk cepat dengan akun Google"
+            aria-label="Masuk dengan Google"
+          >
+            <svg viewBox="0 0 24 24" class="social-svg">
+              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+            </svg>
+          </a>
+
+          {/* Tombol Facebook */}
+          <button
+            type="button"
+            class="social-btn facebook-btn"
+            title="Facebook Login (segera hadir)"
+            aria-label="Masuk dengan Facebook"
+            onclick="alert('Login Facebook akan segera hadir! Silakan gunakan email atau Google.')"
+          >
+            <svg viewBox="0 0 24 24" fill="#1877F2" class="social-svg">
+              <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+            </svg>
+          </button>
+
+          {/* Tombol Apple */}
+          <button
+            type="button"
+            class="social-btn apple-btn"
+            title="Apple Sign-In (segera hadir)"
+            aria-label="Masuk dengan Apple"
+            onclick="alert('Sign in with Apple akan segera hadir! Silakan gunakan email atau Google.')"
+          >
+            <svg viewBox="0 0 24 24" fill="currentColor" class="social-svg">
+              <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.38c.62-.75 1.04-1.8 1.01-2.85-.9-.04-2 .53-2.61 1.25-.55.63-.99 1.68-.94 2.7.99.08 1.95-.49 2.54-1.1"/>
+            </svg>
+          </button>
+        </div>
+
+        {/* Footer teks toggle mode */}
+        <div class="auth-bottom-switch">
+          <span id="switch-prompt">Belum punya akun?</span>{' '}
+          <button type="button" id="btn-toggle-switch" class="auth-switch-link">
+            Daftar sekarang
+          </button>
+        </div>
+      </article>
+    </section>
+  </div>
+</Base>
+
+<style>
+  /* Container dengan latar ambient gradient yang mengikuti token situs */
+  .auth-ambient-wrap {
+    position: relative;
+    min-height: calc(100vh - 120px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(24px, 5vh, 48px) 16px;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 50% -10%, rgba(76, 158, 143, 0.22), transparent 55%),
+      radial-gradient(circle at 10% 40%, rgba(246, 166, 120, 0.2), transparent 45%),
+      radial-gradient(circle at 90% 80%, rgba(232, 96, 76, 0.15), transparent 50%),
+      var(--bg);
+  }
+
+  /* Garis busur ambient halus (efek lingkaran langit di gambar referensi) */
+  .ambient-arc {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    border: 1.5px solid rgba(255, 255, 255, 0.55);
+    opacity: 0.6;
+  }
+  .arc-1 {
+    width: 680px;
+    height: 680px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -46%);
+  }
+  .arc-2 {
+    width: 900px;
+    height: 900px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -46%);
+    opacity: 0.4;
+  }
+  .arc-3 {
+    width: 1150px;
+    height: 1150px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -46%);
+    opacity: 0.25;
+  }
+
+  /* Container kartu di tengah */
+  .auth-center-container {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    max-width: 440px;
+  }
+
+  /* Kartu Mengambang Kaca (Glassmorphism Sesuai Referensi) */
+  .auth-card {
+    background: rgba(255, 255, 255, 0.82);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1.5px solid rgba(255, 255, 255, 0.95);
+    border-radius: 28px;
+    padding: clamp(28px, 6vw, 38px) clamp(20px, 5vw, 32px);
+    box-shadow:
+      0 24px 50px -12px rgba(31, 77, 70, 0.14),
+      0 0 0 1px rgba(255, 255, 255, 0.8),
+      inset 0 1px 2px rgba(255, 255, 255, 0.9);
+  }
+
+  :global([data-theme="dark"]) .auth-card {
+    background: rgba(22, 32, 30, 0.86);
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 24px 50px -12px rgba(0, 0, 0, 0.5);
+  }
+
+  /* Badge Ikon Kotak Bulat di atas */
+  .auth-icon-badge {
+    width: 54px;
+    height: 54px;
+    margin: 0 auto 16px;
+    border-radius: 16px;
+    background: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.95);
+    display: grid;
+    place-items: center;
+    color: var(--ink, #1f4d46);
+    box-shadow:
+      0 10px 22px -4px rgba(31, 77, 70, 0.12),
+      0 2px 6px rgba(0, 0, 0, 0.04);
+  }
+  .auth-icon-badge svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  :global([data-theme="dark"]) .auth-icon-badge {
+    background: #1c2724;
+    border-color: rgba(255, 255, 255, 0.12);
+    color: var(--on-brand, #fff);
+  }
+
+  /* Tab Switcher Masuk / Daftar */
+  .auth-tab-pill {
+    display: flex;
+    background: rgba(0, 0, 0, 0.04);
+    padding: 4px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+  }
+  :global([data-theme="dark"]) .auth-tab-pill {
+    background: rgba(255, 255, 255, 0.06);
+  }
+  .tab-pill-item {
+    flex: 1;
+    border: none;
+    background: transparent;
+    padding: 7px 12px;
+    font-size: 0.86rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    border-radius: 9px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .tab-pill-item.is-active {
+    background: #ffffff;
+    color: var(--ink);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    font-weight: 700;
+  }
+  :global([data-theme="dark"]) .tab-pill-item.is-active {
+    background: var(--surface);
+    color: #fff;
+  }
+
+  /* Judul & Subtitle */
+  .auth-header-text {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .auth-title {
+    font-size: clamp(1.4rem, 4vw, 1.65rem);
+    font-weight: 800;
+    line-height: 1.25;
+    margin: 0 0 6px;
+    color: var(--ink);
+  }
+  .auth-subtitle {
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    line-height: 1.45;
+    margin: 0;
+  }
+
+  /* Alert Feedback */
+  .auth-alert {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 12px;
+    border-radius: 10px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    margin-bottom: 16px;
+  }
+  .alert-error {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: var(--danger, #dc2626);
+  }
+  .alert-success {
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    color: #059669;
+  }
+
+  /* Forms */
+  .auth-form {
+    display: grid;
+    gap: 12px;
+  }
+  .auth-form.is-hidden {
+    display: none;
+  }
+
+  /* Input Field Ber-Ikon (Sesuai Referensi Gambar) */
+  .input-icon-field {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.035);
+    border: 1px solid rgba(31, 77, 70, 0.12);
+    border-radius: 14px;
+    padding: 0 12px;
+    transition: all 0.2s ease;
+  }
+  :global([data-theme="dark"]) .input-icon-field {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+  .input-icon-field:focus-within {
+    border-color: var(--brand);
+    background: #ffffff;
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+  :global([data-theme="dark"]) .input-icon-field:focus-within {
+    background: #172421;
+  }
+
+  .field-leading-icon {
+    display: grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    color: var(--text-muted);
+    opacity: 0.75;
+    flex-shrink: 0;
+    margin-right: 8px;
+  }
+  .field-leading-icon svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  .auth-input {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    background: transparent;
+    padding: 13px 0;
+    font-size: 0.92rem;
+    font-weight: 500;
+    color: var(--ink);
+    outline: none;
+  }
+  .auth-input::placeholder {
+    color: var(--text-muted);
+    opacity: 0.65;
+  }
+
+  .field-trailing-btn {
+    border: none;
+    background: transparent;
+    padding: 4px;
+    cursor: pointer;
+    color: var(--text-muted);
+    display: grid;
+    place-items: center;
+    opacity: 0.7;
+    transition: opacity 0.15s ease;
+  }
+  .field-trailing-btn:hover {
+    opacity: 1;
+  }
+  .field-trailing-btn svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .auth-link-subtle {
+    border: none;
+    background: transparent;
+    padding: 0;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .auth-link-subtle:hover {
+    color: var(--brand);
+    text-decoration: underline;
+  }
+
+  /* Tombol Utama (Pill Gelap Kuat ala Referensi Get Started) */
+  .auth-primary-btn {
+    width: 100%;
+    margin-top: 6px;
+    padding: 13px 20px;
+    border-radius: 14px;
+    background: var(--ink, #1f4d46);
+    color: #ffffff;
+    font-size: 0.95rem;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 14px rgba(31, 77, 70, 0.25);
+  }
+  .auth-primary-btn:hover:not(:disabled) {
+    background: var(--brand, #2f7263);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(31, 77, 70, 0.35);
+  }
+  .auth-primary-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  /* Pemisah Titik-titik (Or sign in with) */
+  .auth-dotted-divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 22px 0 18px;
+  }
+  .auth-dotted-divider::before,
+  .auth-dotted-divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1.5px dotted rgba(31, 77, 70, 0.25);
+  }
+  :global([data-theme="dark"]) .auth-dotted-divider::before,
+  :global([data-theme="dark"]) .auth-dotted-divider::after {
+    border-bottom-color: rgba(255, 255, 255, 0.2);
+  }
+  .auth-dotted-divider span {
+    padding: 0 12px;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+
+  /* Baris Tombol Sosial (Google, Facebook, Apple) */
+  .auth-social-row {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .social-btn {
+    flex: 1;
+    height: 44px;
+    border-radius: 12px;
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-decoration: none;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+  }
+  :global([data-theme="dark"]) .social-btn {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #fff;
+  }
+  .social-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-color: rgba(31, 77, 70, 0.2);
+  }
+  .social-svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  /* Teks Switcher di bagian bawah */
+  .auth-bottom-switch {
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+  .auth-switch-link {
+    border: none;
+    background: transparent;
+    padding: 0;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--brand);
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .auth-switch-link:hover {
+    text-decoration: underline;
+  }
+</style>
+
+<script is:inline>
+  // Interaktivitas tab & toggle password tanpa reload
+  (function () {
+    const tabLogin = document.getElementById('tab-btn-login');
+    const tabSignup = document.getElementById('tab-btn-signup');
+    const formLogin = document.getElementById('form-login');
+    const formSignup = document.getElementById('form-signup');
+    const formForgot = document.getElementById('form-forgot');
+    const titleEl = document.getElementById('auth-title');
+    const subtitleEl = document.getElementById('auth-subtitle');
+    const switchPrompt = document.getElementById('switch-prompt');
+    const switchLink = document.getElementById('btn-toggle-switch');
+    const btnShowForgot = document.getElementById('btn-show-forgot');
+    const btnBackLogin = document.getElementById('btn-back-login');
+
+    function setTab(mode) {
+      if (mode === 'signup') {
+        tabLogin?.classList.remove('is-active');
+        tabSignup?.classList.add('is-active');
+        formLogin?.classList.add('is-hidden');
+        formLogin?.classList.remove('is-visible');
+        formSignup?.classList.remove('is-hidden');
+        formSignup?.classList.add('is-visible');
+        formForgot?.classList.add('is-hidden');
+        if (titleEl) titleEl.textContent = 'Daftar akun baru';
+        if (subtitleEl) subtitleEl.textContent = 'Buat akun dalam hitungan detik untuk mulai menyusun form skripsi & survei.';
+        if (switchPrompt) switchPrompt.textContent = 'Sudah punya akun?';
+        if (switchLink) switchLink.textContent = 'Masuk di sini';
+      } else if (mode === 'forgot') {
+        tabLogin?.classList.remove('is-active');
+        tabSignup?.classList.remove('is-active');
+        formLogin?.classList.add('is-hidden');
+        formSignup?.classList.add('is-hidden');
+        formForgot?.classList.remove('is-hidden');
+        formForgot?.classList.add('is-visible');
+        if (titleEl) titleEl.textContent = 'Lupa kata sandi';
+        if (subtitleEl) subtitleEl.textContent = 'Atur ulang kata sandi akun Anda melalui email.';
+      } else {
+        // login
+        tabLogin?.classList.add('is-active');
+        tabSignup?.classList.remove('is-active');
+        formLogin?.classList.remove('is-hidden');
+        formLogin?.classList.add('is-visible');
+        formSignup?.classList.add('is-hidden');
+        formSignup?.classList.remove('is-visible');
+        formForgot?.classList.add('is-hidden');
+        if (titleEl) titleEl.textContent = 'Masuk dengan email';
+        if (subtitleEl) subtitleEl.textContent = 'Kelola form kuesioner dan kumpulkan respons mahasiswa dengan mudah & gratis.';
+        if (switchPrompt) switchPrompt.textContent = 'Belum punya akun?';
+        if (switchLink) switchLink.textContent = 'Daftar sekarang';
+      }
     }
 
-    {configured ? (
-      <a href="/auth/login">Masuk dengan Google</a>
-    ) : (
-      <p style="color:var(--danger)">
-        Autentikasi belum dikonfigurasi: <code>PUBLIC_SUPABASE_URL</code> /
-        <code>PUBLIC_SUPABASE_ANON_KEY</code> kosong.
-      </p>
-    )}
-  </section>
-</Base>
+    tabLogin?.addEventListener('click', () => setTab('login'));
+    tabSignup?.addEventListener('click', () => setTab('signup'));
+    btnShowForgot?.addEventListener('click', () => setTab('forgot'));
+    btnBackLogin?.addEventListener('click', () => setTab('login'));
+
+    switchLink?.addEventListener('click', () => {
+      const isSignupActive = tabSignup?.classList.contains('is-active');
+      setTab(isSignupActive ? 'login' : 'signup');
+    });
+
+    // Toggle Eye Password
+    const toggles = document.querySelectorAll('.toggle-password');
+    toggles.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const targetId = btn.getAttribute('data-target');
+        const input = document.getElementById(targetId);
+        if (input) {
+          if (input.type === 'password') {
+            input.type = 'text';
+            btn.style.opacity = '1';
+          } else {
+            input.type = 'password';
+            btn.style.opacity = '0.7';
+          }
+        }
+      });
+    });
+  })();
+</script>

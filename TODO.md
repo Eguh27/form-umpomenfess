@@ -38,6 +38,7 @@ Ganti peran: B (builder), C (public), D (design/ops), R (reviewer), L (lead).
 - [x] T-12 @A 2026-10-22-02:45 Test RLS (user A vs B, publik) dengan skrip/SQL — dieksekusi manusia via SQL Editor, tanpa error (9 ketentuan lolos)
 - [x] T-13 @A 2026-10-22-02:00 Login Google via Supabase Auth + helper session SSR + proteksi `/dashboard` — verifikasi manual login Google localhost oleh manusia 2026-10-22 ✅
 - [x] T-14 @A 2026-10-21-22:43 Seed template awal (5-10) dan data dummy
+- [x] T-15 @A 2026-10-22-18:05 Login & Sign Up page (email & password, desain kartu glassmorphic referensi gambar, toggle show/hide password, tab Masuk & Daftar, Google OAuth) + endpoint POST /auth/email — 176 test lulus, lint 0, check 0, build sukses
 
 ### C (schema/validator dulu)
 - [x] T-20 @C 2026-10-21-21:40 `src/lib/forms/schema.ts`: tipe + validator zod sesuai TASK 4.5 (whitelist font/cardStyle/warna)
