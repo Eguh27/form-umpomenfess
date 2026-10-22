@@ -1,49 +1,304 @@
 ---
 import Base from '../layouts/Base.astro';
+import '../styles/landing.css';
+import '../styles/showcase.css';
 ---
-<Base>
-  <section class="container" style="padding-block:var(--space-8)">
-    <p class="eyebrow">✦ Form Builder</p>
-    <h1 style="font-size:clamp(2rem,6vw,3.5rem);margin:var(--space-3) 0">Cari responden, tanpa ribet.</h1>
-    <p style="max-width:52ch;color:var(--text-muted)">
-      Bikin form dengan tampilan sendiri, bagikan link-nya, dan lihat jawabannya di dashboard.
-      Cocok buat kuesioner skripsi.
-    </p>
-    <p style="margin-top:var(--space-5);display:flex;gap:var(--space-3);flex-wrap:wrap">
-      <a class="btn btn--accent" href="/dashboard">Mulai bikin form</a>
-      <a class="btn btn--ghost" href="https://umpomenfess.my.id">Lihat menfess</a>
-    </p>
 
-    <section class="grid grid--2" style="margin-top:var(--space-8)" aria-label="Contoh tema kartu">
-      <article class="card card--menfess">
-        <div class="mc-head">
-          <span class="brand__mark" aria-hidden="true">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M4 4h16v12H10l-6 5z" fill="currentColor"/></svg>
-          </span>
-          <span>
-            <span class="brand__name">umpomenfess</span>
-            <span class="brand__sub">menfess anonim · umpo</span>
-          </span>
-          <span class="pill">Anonim</span>
-        </div>
-        <p style="font-weight:700;font-size:1.05rem">
-          Ini kartu preset <strong>menfess</strong> — kaca blur dengan blob blush di belakangnya.
-          Tampilannya mengikuti template Kaca dari situs utama.
+<Base
+  title="umpomenfess form — bikin form yang orang mau selesaikan"
+  description="Form builder untuk civitas UMPO: kuesioner skripsi, survei kepanitiaan, dan pendataan komunitas. Susun pertanyaan, pilih tema, sebar satu tautan."
+>
+  <section class="hero-studio">
+    <div class="container hero-studio__inner">
+      <div class="hero-copy">
+        <p class="hero-badge"><i aria-hidden="true"></i>Form builder kampus</p>
+        <h1>Bikin form<br />yang orang mau<br /><span class="mark">selesaikan</span>.</h1>
+        <p class="hero-sub">
+          Kuesioner skripsi, survei kepanitiaan, atau pendataan komunitas.
+          Susun pertanyaan, pilih tema, lalu sebar satu tautan. Tanpa install,
+          tanpa akun responden.
         </p>
-        <hr class="dashed-divider" />
-        <p class="mc-foot">Terkirim dengan berani ✦ <span class="code">#CONTOH-01</span></p>
-      </article>
+        <div class="hero-cta">
+          <a class="btn" href="/dashboard">
+            Buat form pertama
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M5 12h14M14 7l5 5-5 5" />
+            </svg>
+          </a>
+        </div>
 
-      <div class="grid" aria-label="Contoh kartu plain dan soft">
-        <article class="card card--plain">
-          <p class="eyebrow">Preset plain</p>
-          <p style="font-weight:600">Kartu putih polos dengan sudut kecil — buat form serius seperti kuesioner skripsi.</p>
+        <p class="hero-note">
+          <span>Gratis</span>
+          <span>Login Google</span>
+          <span>Responden tanpa akun</span>
+        </p>
+        <div class="hero-usecases" aria-label="Contoh penggunaan">
+          <span class="usecase-chip">Kuesioner skripsi</span>
+          <span class="usecase-chip">Survei event</span>
+          <span class="usecase-chip">Pendataan komunitas</span>
+        </div>
+      </div>
+
+      <div class="hero-stage" aria-hidden="true">
+        <div class="paper-stack paper-stack--back"></div>
+        <div class="paper-stack paper-stack--mid"></div>
+
+        <article class="form-mock">
+          <div class="form-mock__head">
+            <span class="form-mock__icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="4.5" y="3" width="15" height="18" rx="3" />
+                <path d="M8.5 8.5h7M8.5 12h7M8.5 15.5h4" />
+              </svg>
+            </span>
+            <span class="form-mock__title">
+              <strong>Survei Kantin</strong>
+              <span>5 pertanyaan · ±2 menit</span>
+            </span>
+            <span class="pill pill--ghost">2/5</span>
+          </div>
+
+          <div class="progress"><span></span></div>
+
+          <p class="form-mock__q">Seberapa puas dengan pilihan menu kantin?</p>
+          <div class="scale-row">
+            <span>1</span>
+            <span>2</span>
+            <span>3</span>
+            <span class="is-selected">4</span>
+            <span>5</span>
+          </div>
+
+          <p class="form-mock__q form-mock__q--small">Menu yang paling sering kamu beli?</p>
+          <div class="choice-row is-selected"><i></i>Mie jebew</div>
+          <div class="choice-row"><i></i>Nasi ayam geprek</div>
+
+          <span class="form-mock__submit">Kirim jawaban</span>
         </article>
-        <article class="card card--soft">
-          <p class="eyebrow">Preset soft</p>
-          <p style="font-weight:600">Kartu semi-transparan yang lembut — pas untuk event &amp; form santai.</p>
+
+        <div class="float-chip float-chip--theme">
+          <span class="swatch-dots"><i></i><i></i><i></i></span>
+          Tema: Blush
+        </div>
+
+        <div class="float-chip float-chip--responses">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+            <path d="M4 20V11M10 20V5M16 20v-6M22 20H2" />
+          </svg>
+          <span><strong>12</strong> respons</span>
+          <small>+3 hari ini</small>
+        </div>
+
+        <div class="float-chip float-chip--link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M10 13a5 5 0 0 0 7.5.5l2-2a5 5 0 0 0-7-7l-1.2 1.2" />
+            <path d="M14 11a5 5 0 0 0-7.5-.5l-2 2a5 5 0 0 0 7 7l1.2-1.2" />
+          </svg>
+          <span>form.umpomenfess.my.id/f/kantin</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="cara">
+    <div class="container">
+      <div class="section-head">
+        <h2>Dari pertanyaan pertama sampai jawaban terakhir.</h2>
+        <p>Alurnya sengaja pendek: tiga langkah, tanpa menu yang bikin bingung.</p>
+      </div>
+
+      <div class="workflow">
+        <div class="workflow__head">
+          <span>form-studio / alur</span>
+          <span>3 langkah</span>
+        </div>
+
+        <div class="workflow-row">
+          <span class="step-label" aria-hidden="true">1</span>
+          <div>
+            <h3>Susun pertanyaan</h3>
+            <p>Tambah teks, pilihan ganda, skala, atau gambar. Tandai wajib sesuai kebutuhan.</p>
+          </div>
+          <div class="workflow-visual">
+            <div class="mini-blocks">
+              <span class="mini-chip">Teks</span>
+              <span class="mini-chip">Pilihan ganda</span>
+              <span class="mini-chip">Skala</span>
+              <span class="mini-add" aria-hidden="true">+</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="workflow-row">
+          <span class="step-label" aria-hidden="true">2</span>
+          <div>
+            <h3>Pilih tampilan</h3>
+            <p>Tiga preset siap pakai. Atur warna, font, dan sudut kartu tanpa menulis CSS.</p>
+          </div>
+          <div class="workflow-visual">
+            <div class="mini-theme">
+              <span class="swatch swatch--blush"></span>
+              <span class="swatch swatch--glass"></span>
+              <span class="swatch swatch--plain"></span>
+              <span class="mini-font">Aa <small>Baloo 2</small></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="workflow-row">
+          <span class="step-label" aria-hidden="true">3</span>
+          <div>
+            <h3>Sebar &amp; pantau</h3>
+            <p>Salin tautan, lihat respons masuk, lalu ekspor CSV. Semua di satu tempat.</p>
+          </div>
+          <div class="workflow-visual">
+            <div class="mini-share">
+              <span class="mini-link">umpomenfess<b>/f/</b>kantin</span>
+              <span class="mini-copy">Salin</span>
+              <span class="mini-bars" aria-hidden="true">
+                <i class="b1"></i><i class="b2"></i><i class="b3"></i><i class="b4"></i>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--themes" id="tema">
+    <div class="container">
+      <div class="section-head">
+        <h2>Form-nya kamu, tampilannya juga.</h2>
+        <p>Mulai dari preset, lalu sesuaikan warna dan font. Preview langsung terlihat sebelum dibagikan.</p>
+      </div>
+
+      <div class="theme-grid">
+        <article class="theme-item">
+          <div class="theme-stage theme-stage--plain">
+            <div class="theme-preview">
+              <p class="preview-kicker">Survei kepanitiaan</p>
+              <h4>Pilih jadwal rapat?</h4>
+              <div class="preview-choice is-picked"><i></i>Sabtu pagi</div>
+              <div class="preview-choice"><i></i>Minggu sore</div>
+              <span class="preview-submit">Kirim</span>
+            </div>
+          </div>
+          <div class="theme-meta">
+            <h3><span class="theme-dot theme-dot--plain"></span>Plain</h3>
+            <p>Bersih dan netral. Cocok untuk form resmi kampus.</p>
+          </div>
+        </article>
+
+        <article class="theme-item">
+          <div class="theme-stage theme-stage--blush">
+            <div class="theme-preview theme-preview--soft">
+              <p class="preview-kicker">Kuesioner skripsi</p>
+              <h4>Seberapa terbantu kelas ini?</h4>
+              <div class="preview-choice is-picked"><i></i>Sangat terbantu</div>
+              <div class="preview-choice"><i></i>Cukup terbantu</div>
+              <span class="preview-submit">Kirim</span>
+            </div>
+          </div>
+          <div class="theme-meta">
+            <h3><span class="theme-dot theme-dot--soft"></span>Soft</h3>
+            <p>Blush hangat dengan tombol coral. Ramah untuk responden.</p>
+          </div>
+        </article>
+
+        <article class="theme-item">
+          <div class="theme-stage theme-stage--glass">
+            <div class="theme-preview theme-preview--glass">
+              <p class="preview-kicker">Pendataan komunitas</p>
+              <h4>Mau ikut kegiatan berikutnya?</h4>
+              <div class="preview-choice is-picked"><i></i>Iya, daftar</div>
+              <div class="preview-choice"><i></i>Nanti dulu</div>
+              <span class="preview-submit">Kirim</span>
+            </div>
+          </div>
+          <div class="theme-meta">
+            <h3><span class="theme-dot theme-dot--glass"></span>Menfess</h3>
+            <p>Kartu kaca transparan di atas blob lembut. Paling ekspresif.</p>
+          </div>
         </article>
       </div>
-    </section>
+    </div>
+  </section>
+
+  <section class="section" id="untuk-siapa">
+    <div class="container usecase-panel">
+      <div class="usecase-copy">
+        <h2>Dari skripsi sampai kepanitiaan.</h2>
+        <p>Satu alat untuk semua form kampus. Responden cukup buka tautan, isi, lalu kirim.</p>
+        <p class="usecase-note"><strong>Tanpa akun responden.</strong> Cukup satu tautan—tanpa install aplikasi.</p>
+      </div>
+
+      <ul class="usecase-list">
+        <li>
+          <span class="usecase-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M7 3h7l4 4v14H7z" />
+              <path d="M14 3v5h5M10 13h5M10 17h5" />
+            </svg>
+          </span>
+          <div>
+            <h3>Kuesioner skripsi</h3>
+            <p>Skala Likert, pertanyaan wajib, ekspor CSV untuk olah data.</p>
+          </div>
+        </li>
+        <li>
+          <span class="usecase-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="4" y="5" width="16" height="16" rx="2" />
+              <path d="M8 3v4M16 3v4M4 10h16" />
+            </svg>
+          </span>
+          <div>
+            <h3>Survei kepanitiaan</h3>
+            <p>Cari jadwal rapat, ukur kepuasan acara, kumpulkan masukan.</p>
+          </div>
+        </li>
+        <li>
+          <span class="usecase-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="9" cy="8" r="3" />
+              <path d="M3 20a6 6 0 0 1 12 0M16 5a3 3 0 0 1 0 6M18 20a6 6 0 0 0-3-5.2" />
+            </svg>
+          </span>
+          <div>
+            <h3>Pendataan komunitas</h3>
+            <p>Data anggota, minat kegiatan, atau daftar hadir.</p>
+          </div>
+        </li>
+        <li>
+          <span class="usecase-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 11v2a1 1 0 0 0 1 1h2l4 4V6L6 10H4a1 1 0 0 0-1 1Z" />
+              <path d="M14 8a5 5 0 0 1 0 8M17 5a9 9 0 0 1 0 14" />
+            </svg>
+          </span>
+          <div>
+            <h3>Form konten &amp; UMKM</h3>
+            <p>Brief konten, pesanan, atau pendaftaran lomba.</p>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="final-cta">
+    <div class="container">
+      <div class="final-cta__panel">
+        <div class="final-cta__copy">
+          <h2>Form pertama, lima menit.</h2>
+          <p>Mulai dari satu pertanyaan. Bisa diubah kapan saja sebelum disebar.</p>
+        </div>
+        <a class="btn" href="/dashboard">
+          Buat form
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M5 12h14M14 7l5 5-5 5" />
+          </svg>
+        </a>
+      </div>
+    </div>
   </section>
 </Base>
