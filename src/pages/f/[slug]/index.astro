@@ -1,0 +1,226 @@
+---
+import Base from '../../../layouts/Base.astro';
+
+/*
+  T-50 @C — halaman isi form publik /f/<slug>. Server-render (cepat, aman).
+  ESCAPE: semua teks user dirender Astro {expr} — TIDAK ada set:html.
+  Tema hanya dari schema yang lolos parseFormSchema (rapat whitelist).
+  T-52 (tutup/penuh/tidak ditemukan) juga di sini.
+*/
+import {
+  closedState,
+  errMessage,
+  parsePublicSchema,
+  publicFontStack,
+  cloudinaryUrl,
+} from '../../../lib/forms/publicForm';
+import { getSupabaseService } from '../../../lib/forms/service';
+import type { FormSchemaData } from '../../../lib/forms/schema';
+
+const slug = Astro.params.slug ?? '';
+const err = Astro.url.searchParams.get('err');
+const errText = errMessage(err);
+
+const supabase = Astro.locals.supabase;
+
+let row = null as unknown as Record<string, unknown> | null;
+let notFound = false;
+
+if (supabase !== null && /^[a-z0-9-]{1,80}$/.test(slug)) {
+  // view public_forms (kebijakan @A): hanya published & tidak soft-deleted.
+  const { data, error } = await supabase
+    .from('public_forms')
+    .select('id, slug, title, schema, schema_version, version, closes_at, max_responses')
+    .eq('slug', slug)
+    .maybeSingle();
+  if (error === null) row = data as unknown as Record<string, unknown> | null;
+}
+if (row === null) notFound = true;
+
+const form: FormSchemaData | null = row === null ? null : parsePublicSchema({ schema: row.schema });
+// Kuota respons dibaca server-side (service role); ini di frontmatter —
+// tidak pernah sampai ke browser. Bila env kosong, kuota dianggap terbuka
+// (ceklengkap aktual tetap dijalankan endpoint submit).
+const service = getSupabaseService();
+let responseCount = 0;
+if (service !== null && row !== null) {
+  const { count } = await service
+    .from('responses')
+    .select('id', { count: 'exact', head: true })
+    .eq('form_id', String(row.id));
+  responseCount = count ?? 0;
+}
+
+const state = row === null
+  ? ({ closed: true, code: 'tidak_tersedia' } as const)
+  : closedState({ closes_at: row.closes_at as string | null, max_responses: row.max_responses as number | null }, responseCount);
+
+const theme = form?.theme;
+const wrapperStyle = theme === undefined
+  ? undefined
+  : `background:${theme.bg};color:${theme.text};font-family:${publicFontStack(theme.font)};border-radius:${theme.radius}px`;
+
+const cloudName = (import.meta.env.CLOUDINARY_CLOUD_NAME as string | undefined) ?? '';
+const turnstileSiteKey = (import.meta.env.TURNSTILE_SITE_KEY as string | undefined) ?? '';
+
+const banner = theme?.bannerPublicId ?? null;
+const isPublishedOpen = form !== null && state.closed === false;
+
+const headingSizeRem: Record<string, string> = { s: '1.1rem', m: '1.4rem', l: '1.85rem', xl: '2.3rem' };
+---
+<Base title={row === null ? 'Form tidak tersedia' : `${String(row.title)} — umpomenfess form`} description={row === null ? 'Form tidak tersedia.' : `Isi form ${String(row.title)}`}>
+  <section class="container" style="padding-block:var(--space-6);max-width:640px">
+    {notFound && (
+      <article class="card card--plain" style="text-align:center;padding:var(--space-7) var(--space-5)">
+        <p class="eyebrow">404-ish</p>
+        <h1 style="margin:var(--space-2) 0">Form tidak tersedia</h1>
+        <p style="color:var(--text-muted)">Tautan salah, form tidak pernah ada, sudah dihapus, atau sedang tidak dipublikasikan.</p>
+        <p><a class="btn btn--ghost" href="https://umpomenfess.my.id">UMPomenfess ↗</a></p>
+      </article>
+    )}
+
+    {row !== null && form === null && (
+      <article class="card card--plain"><h1>Form tidak tersedia</h1></article>
+    )}
+
+    {row !== null && form !== null && (
+      <div style={wrapperStyle}>
+        {banner !== null && cloudName !== '' && (
+          <img
+            src={cloudinaryUrl(banner, cloudName)}
+            alt={`Banner ${String(row.title)}`}
+            style="width:100%;border-radius:calc(var(--radius) * 0.75);margin-bottom:var(--space-4)"
+          />
+        )}
+
+        {state.closed && (
+          <article class="card card--plain" style="margin-bottom:var(--space-5)">
+            {state.code === 'sudah_tutup' ? (
+              <p><strong>Form sudah tutup.</strong> Terima kasih atas antusiasmenya.</p>
+            ) : state.code === 'penuh' ? (
+              <p><strong>Kuota respons penuh.</strong> Kuota sampel form ini telah tercapai.</p>
+            ) : (
+              <p><strong>Form tidak tersedia.</strong></p>
+            )}
+          </article>
+        )}
+
+        {errText && (
+          <p role="alert" class="help" style="color:var(--danger);font-weight:700;margin-bottom:var(--space-3)">
+            {errText}
+          </p>
+        )}
+
+        {isPublishedOpen && (
+          <form
+            method="POST"
+            action={`/api/forms/${slug}/submit`}
+            class:list={['card', `card--${theme?.cardStyle ?? 'plain'}`]}
+            style="padding:var(--space-5)"
+          >
+            {form.blocks.map((block) => {
+              if (block.type === 'heading') {
+                return (
+                  <h2 style={`font-size:${headingSizeRem[block.size]};text-align:${block.align};margin:0 0 var(--space-3)`}>
+                    {block.text}
+                  </h2>
+                );
+              }
+              if (block.type === 'text') {
+                return <p style="margin:var(--space-2) 0">{block.text}</p>;
+              }
+              if (block.type === 'divider') {
+                return <hr class="dashed-divider" />;
+              }
+              if (block.type === 'image') {
+                return (
+                  <div style={`text-align:${block.align};margin:var(--space-3) 0`}>
+                    {cloudName !== '' && (
+                      <img src={cloudinaryUrl(block.publicId, cloudName)} alt="" style={`border-radius:${Math.min(theme?.radius ?? 16, 24)}px`} />
+                    )}
+                  </div>
+                );
+              }
+              // question
+              const req = block.required;
+              return (
+                <div style="margin:var(--space-4) 0">
+                  <label for={block.id} style="font-weight:700;display:block">
+                    {block.label}
+                    {req && <span aria-hidden="true"> *</span>}
+                  </label>
+
+                  {block.kind === 'short_text' && (
+                    <input class="input" id={block.id} name={block.id} maxlength={block.maxLength ?? 2000} required={req} autocomplete="off" />
+                  )}
+                  {block.kind === 'paragraph' && (
+                    <textarea class="textarea" id={block.id} name={block.id} maxlength={block.maxLength ?? 2000} required={req}></textarea>
+                  )}
+                  {block.kind === 'dropdown' && (
+                    <select class="select" id={block.id} name={block.id} required={req}>
+                      <option value="" disabled selected>— pilih —</option>
+                      {(block.options ?? []).map((opt) => <option value={opt}>{opt}</option>)}
+                    </select>
+                  )}
+                  {(block.kind === 'single_choice' || block.kind === 'multiple_choice') && (
+                    <fieldset style="border:0;display:grid;gap:6px;padding:0;margin:4px 0 0">
+                      {(block.options ?? []).map((opt) => (
+                        <label style="display:flex;gap:8px;align-items:center;font-weight:600">
+                          <input
+                            type={block.kind === 'multiple_choice' ? 'checkbox' : 'radio'}
+                            name={block.id}
+                            value={opt}
+                            required={block.kind === 'single_choice' && req}
+                          />
+                          {opt}
+                        </label>
+                      ))}
+                    </fieldset>
+                  )}
+                  {block.kind === 'scale' && (
+                    <fieldset style="border:0;display:flex;flex-wrap:wrap;gap:10px;padding:0;margin:6px 0 0">
+                      {Array.from({ length: (block.max ?? 5) - (block.min ?? 1) + 1 }, (_, i) => (block.min ?? 1) + i).map((n) => (
+                        <label style="display:flex;gap:5px;align-items:center;font-weight:700">
+                          <input type="radio" name={block.id} value={String(n)} required={req} /> {n}
+                        </label>
+                      ))}
+                    </fieldset>
+                  )}
+                </div>
+              );
+            })}
+
+            <div
+              class="cf-turnstile"
+              data-sitekey={turnstileSiteKey}
+              data-theme="auto"
+              aria-hidden={turnstileSiteKey === '' ? 'true' : undefined}
+            />
+            {turnstileSiteKey === '' && (
+              <p class="help">Verifikasi anti-bot aktif setelah env TURNSTILE diisi.</p>
+            )}
+
+            <button type="submit" class="btn btn--accent" style="margin-top:var(--space-4);width:100%">
+              Kirim jawaban
+            </button>
+            <p style="font-size:0.72rem;opacity:0.7;margin-top:var(--space-2)">
+              Jawaban anonim · dipakai hanya untuk form ini · jangan tulis data sensitif (sandi, NIK, rekening).
+            </p>
+          </form>
+        )}
+
+        <div style="margin-top:var(--space-5);display:flex;justify-content:space-between;align-items:center;gap:var(--space-3)">
+          <span style="font-size:0.75rem;opacity:0.65">dibuat dgn umpomenfess form</span>
+          <details>
+            <summary style="cursor:pointer;font-size:0.82rem;font-weight:700">Laporkan form</summary>
+            <form method="POST" action={`/api/forms/${slug}/report`} style="margin-top:8px;display:grid;gap:8px">
+              <label style="font-size:0.8rem" for="report-reason">Alasan (maks 1000 huruf)</label>
+              <input class="input" id="report-reason" name="reason" maxlength={1000} required placeholder="mis. meminta kata sandi / spam" />
+              <button type="submit" class="btn btn--ghost" style="padding:6px 14px;font-size:0.85rem">Kirim laporan</button>
+            </form>
+          </details>
+        </div>
+      </div>
+    )}
+  </section>
+</Base>

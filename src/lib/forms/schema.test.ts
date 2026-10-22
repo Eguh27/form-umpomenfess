@@ -20,7 +20,7 @@ const theme = {
   bg: '#fdf2f8',
   accent: '#ec4899',
   text: '#1f2937',
-  font: 'Poppins',
+  font: 'Quicksand',
   radius: 16,
   cardStyle: 'menfess',
 } as const;

@@ -19,7 +19,7 @@ export const FORM_SCHEMA_VERSION = 1;
 // ---------------------------------------------------------------------------
 
 /** Font yang boleh dipilih pembuat form (dipakai builder + tema). Naikkan HANYA lewat CONTRACT CHANGE. */
-export const FONT_WHITELIST = ['system-ui', 'Poppins', 'Inter', 'Georgia'] as const;
+export const FONT_WHITELIST = ['system-ui', 'Quicksand', 'Baloo 2', 'Georgia'] as const;
 export type FormFont = (typeof FONT_WHITELIST)[number];
 
 /** Preset gaya kartu (TASK 4.5). */

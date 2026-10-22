@@ -47,7 +47,7 @@ Usulan awal: maks form aktif per user 20; maks gambar per form 5; maks ukuran ga
   "schemaVersion": 1,
   "theme": {
     "bg": "#fdf2f8", "accent": "#ec4899", "text": "#1f2937",
-    "font": "Poppins", "radius": 16, "cardStyle": "menfess",
+    "font": "Quicksand", "radius": 16, "cardStyle": "menfess",
     "bannerPublicId": null
   },
   "blocks": [
@@ -63,7 +63,7 @@ Usulan awal: maks form aktif per user 20; maks gambar per form 5; maks ukuran ga
 ```
 - Block type: `heading|text|image|divider|question`
 - Question kind: `short_text|paragraph|single_choice|multiple_choice|dropdown|scale`
-- `font` hanya dari whitelist; `cardStyle` hanya dari preset (`menfess|plain|soft`); warna harus hex valid; angka dibatasi rentang. Nilai di luar whitelist DITOLAK, bukan dibersihkan diam-diam.
+- `font` HANYA dari whitelist **`system-ui|Quicksand|Baloo 2|Georgia`** (CONTRACT CHANGE 2026-10-22 @C: Poppins/Inter diganti Quicksand/Baloo 2 — mengikuti topic situs utama & template kaca; Georgia disematkan untuk variety serif); `cardStyle` hanya dari preset (`menfess|plain|soft`); warna harus hex valid; angka dibatasi rentang. Nilai di luar whitelist DITOLAK, bukan dibersihkan diam-diam.
 - Satu sumber tipe & validator: `src/lib/forms/schema.ts` (dimiliki Agent C; builder dan public page mengimpor dari sini).
 - `answers`: `{ "<questionId>": string | string[] | number }`, divalidasi terhadap schema versi form saat itu.
 

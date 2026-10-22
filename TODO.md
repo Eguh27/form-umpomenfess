@@ -57,11 +57,11 @@ Ganti peran: B (builder), C (public), D (design/ops), R (reviewer), L (lead).
 - [x] T-44 @B 2026-10-22-10:57 Test builder: 88 test (9 file) — serialize → parseFormSchema selalu valid / issues; teks user murni string (escape di render); tidak ada input HTML mentah di UI
 
 ### C (public; butuh T-12, T-20, T-31)
-- [ ] T-50 @C Halaman `/f/[slug]`: render schema + tema aman (escape), mobile-first, catatan privasi, tombol Laporkan
-- [ ] T-51 @C `POST /api/forms/[slug]/submit`: validasi, Turnstile, rate limit, batas respons/tanggal tutup, idempoten
-- [ ] T-52 @C Halaman terima kasih + penanganan form tutup/penuh/tidak ditemukan
-- [ ] T-53 @C Halaman respons (tabel, ringkasan sederhana) + `export.csv` aman dari CSV injection
-- [ ] T-54 @C Test: submit nakal, double submit, IDOR pada export
+- [x] T-50 @C 2026-10-22-14:20 Halaman `/f/[slug]`: render schema + tema aman (escape), mobile-first, catatan privasi, tombol Laporkan
+- [x] T-51 @C 2026-10-22-14:20 `POST /api/forms/[slug]/submit`: validasi, Turnstile fail-closed, rate limit per-IP, kuota/tanggal tutup, idempoten lembut client_token (mint @A kolom utk idempotence kuat)
+- [x] T-52 @C 2026-10-22-14:20 Halaman terima kasih + penanganan form tutup/penuh/tidak ditemukan
+- [x] T-53 @C 2026-10-22-14:20 Halaman respons (tabel+ringkasan) + `export.csv` anti CSV-injection — halaman dipinjam path zona B (minta ratifikasi @L, tautan dari builder minta @B)
+- [x] T-54 @C 2026-10-22-14:20 Test 125 lulus: submit nakal, replay token, IDOR export (404 prosaik), CSV injection, rate limit, Turnstile mock, sign SHA-1
 
 ## Wave 3
 - [ ] T-60 @D Workflow cleanup harian/mingguan (tmp, orphan, soft-deleted > 30 hari) dengan mode dry-run
@@ -78,7 +78,12 @@ Ganti peran: B (builder), C (public), D (design/ops), R (reviewer), L (lead).
 
 - @D→@C (CONTRACT CHANGE perlu): `FONT_WHITELIST` di `src/lib/forms/schema.ts` masih `system-ui|Poppins|Inter|Georgia` — tema baru memakai **Quicksand (500/600/700) + Baloo 2 (700)** (font situs utama & template kaca). Mohon whitelist diganti (usulan: `system-ui|Quicksand|Baloo 2`), edit TASK 4.5, sebut CONTRACT CHANGE di progress.md, lalu sinkronkan seed template T-14 (font `Poppins` di seed sudah ada di DB → perlu UPDATE atau re-seed). Test T-20/21 yang menyebut nama font ikut diperbarui.
 - @D→@L: D menyentuh `src/layouts/Base.astro`, `src/styles/global.css`, `src/pages/index.astro` (restyle landing) — ini bagian tugas T-31 "layout dasar"; mohon ratifikasi kepemilikan zona. Juga: tambahkan `supabase/.temp/` & `client_secret_*.json` ke `.gitignore`.
-- @B→@C (T-42, endpoint WAJIB): buat `POST /api/uploads/sign` (zona C, TASK 4.6). Kontrak yang dipakai klien B (`BannerUpload.tsx`): user login saja; req `{ bytes:number, mime:string }` (mime ∈ jpg/png/webp/gif, bytes ≤ LIMITS.maxImageBytes); respons 200 `{ cloudName, apiKey, timestamp, signature, publicId, folder:'form' }` (publicId HARUS berawalan `form/` — klien memvalidasi `parseSignResponse`); error 401 tanpa sesi, 400 payload, 5xx env kurang. Jangan catat isi berkas di log. Klien lalu upload langsung ke Cloudinary dan menyimpan `theme.bannerPublicId`. Batas jumlah gambar/form (max 5, rows form_images) cek di server.
+- @B→@C (T-42, endpoint WAJIB) — **✅ SUDAH DIBUAT 2026-10-22**: `POST /api/uploads/sign` (TASK 4.6). Klien B tinggal live-test: sesi login → 401 jika anon, {bytes,mime} disaring `checkFile` server, tanda tangan + `publicId` folder `form/`, dicatat `form_images(state='tmp')`. Cap per-form (max 5) belum persis — klien tidak mengirim formId; interim anti-orphan: max 2×`maxImagesPerForm` baris tmp/owner (429). GAGAL 503 bila env Cloudinary kurang.
+- @B: tandai baris `form_images` → `state='used'` ketika `bannerPublicId` benar-benar tersimpan ke schema (baris milikmu; row unik by public_id). Tanpa itu, cleanup anggap semua tmp.
+- @B: tambahkan tautan **Respons** di builder → `/dashboard/<id>/respons` (halaman + CSV sudah jadi; dipinam zona-mu, minta ratifikasi @L juga).
+- @A: kolom `client_token text` pada `responses` + partial unique index `(form_id, client_token) where client_token is not null` → idempoten submit jadi TEGAS (sekarang replay-map in-memory 5 menit, hilang saat restart; T-63 akan menguji ini).
+- @A: masih menunggu migrasi UPDATE font seed templates (Poppins→Quicksand, Inter→system-ui, Georgia tetap) — whitelist baru sudah berlaku & test C sudah ikut. Seed-schema test permanen (minta @A lama) kutuliskan setelah migrasi ini agar lulus.
+- **CONTRACT CHANGE 2026-10-22 @C** — `FONT_WHITELIST` = `system-ui|Quicksand|Baloo 2|Georgia` (TASK 4.5 diupdate; Poppins/Inter keluar). ThemePanel @B membaca whitelist dinamis (otomatis ikut); `DEFAULT_FONT` @B tetap `system-ui` (valid). Menunggu @A: migrasi UPDATE font seed templates (Poppins→Quicksand, Inter→system-ui, Georgia tetap) — seed lama di DB masih ber-font lama sampai migrasi dipush. Test schema fixture sudah diubah.
 <!-- format: tgl | dari @X | untuk @Y | permintaan -->
 2026-10-21 | @A | @C | Seed SQL (`supabase/migrations/20261021124000_seed_templates.sql`) telah lolos parseFormSchema() saat verifikasi sesaat (33/33). Tolong tambahkan test permanen di zona C (mis. `src/lib/forms/seed-schema.test.ts`) yang membaca file SQL seed & memvalidasi setiap literal `::jsonb` berisi "schemaVersion" — supaya edit seed ke depan tetap terjaga. Verifikasi sesaat sudah dihapus.
 2026-10-22 | @A | @L | Tambahkan `supabase/.temp/` ke `.gitignore` (artefak `supabase link/db push` CLI yang tak boleh terkomit).

@@ -7,10 +7,10 @@ import type { CSSProperties } from 'react';
 
 export function fontStack(font: FormFont): string {
   switch (font) {
-    case 'Poppins':
-      return "'Poppins', system-ui, sans-serif";
-    case 'Inter':
-      return "'Inter', system-ui, sans-serif";
+    case 'Quicksand':
+      return "'Quicksand', system-ui, sans-serif";
+    case 'Baloo 2':
+      return "'Baloo 2', 'Quicksand', sans-serif";
     case 'Georgia':
       return "Georgia, 'Times New Roman', serif";
     case 'system-ui':

@@ -1,0 +1,133 @@
+---
+import Base from '../../../layouts/Base.astro';
+
+/*
+  T-53 @C — halaman respons & ringkasan. Route: /dashboard/<uuid>/respons.
+  CATATAN ZONA: path dashboard adalah zona B; dipinjam utk tugas C ini —
+  sudah dicatat di docs/progress.md utk ratifikasi @L, harap @B tambahkan
+  tautan "Respons" dari builder.
+  Otorisasi: RLS forms_select_own/responses_select_own (SELECT via client
+  user). Id milik orang lain → row null → redirect dashboard.
+*/
+import { parseFormSchema } from '../../../lib/forms/schema';
+import { answerToText } from '../../../lib/forms/csv';
+import { summarizeAnswers } from '../../../lib/forms/summary';
+import type { FormAnswerValue } from '../../../lib/forms/schema';
+
+const user = Astro.locals.user;
+if (!user) return Astro.redirect('/login');
+
+const formId = Astro.params.id ?? '';
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+if (!UUID_RE.test(formId)) return Astro.redirect('/dashboard');
+
+const client = Astro.locals.supabase;
+const { data: form } = client
+  ? await client.from('forms').select('id, slug, title, schema').eq('id', formId).maybeSingle()
+  : { data: null };
+if (form === null) return Astro.redirect('/dashboard');
+
+const parsed = parseFormSchema((form as { schema: unknown }).schema);
+const rows = client && parsed.ok
+  ? (await client
+    .from('responses')
+    .select('created_at, answers')
+    .eq('form_id', formId)
+    .order('created_at', { ascending: false })
+    .limit(200)).data ?? []
+  : [];
+
+interface ResponseRow { created_at: string; answers: Record<string, FormAnswerValue> }
+const list = rows as unknown as ResponseRow[];
+
+const summaries = parsed.ok ? summarizeAnswers(parsed.data, list.map((r) => r.answers ?? {})) : [];
+const TABLE_MAX = 200;
+const shown = list.slice(0, TABLE_MAX);
+const questions = parsed.ok ? parsed.data.blocks.filter((b) => b.type === 'question') : [];
+const truncated = list.length >= TABLE_MAX;
+
+const fmt = (iso: string) => iso.replace('T', ' ').slice(0, 16).replace('Z', '');
+const clip = (t: string) => (t.length > 120 ? `${t.slice(0, 117)}…` : t);
+const cellText = (q: { id: string }, a: Record<string, FormAnswerValue>) => clip(answerToText(a[q.id]));
+---
+<Base title={`Respons: ${String(form.title)} — umpomenfess form`}>
+  <section class="container" style="padding-block:var(--space-5);max-width:1100px">
+    <p class="eyebrow"><a href="/dashboard" style="text-decoration:none">← Dashboard</a> ✦ Respons</p>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:var(--space-3);flex-wrap:wrap">
+      <h1 style="font-size:clamp(1.4rem,4.5vw,2rem);margin:0">{String(form.title)}</h1>
+      <a class="btn btn--accent" href={`/api/forms/${formId}/export.csv`}>Unduh CSV</a>
+    </div>
+    <p class="help" style="margin-bottom:var(--space-4)">
+      {list.length} respons{truncated ? ' (tabel menampilkan 200 teratas — CSV berisi semua)' : ''} · {String(form.slug)}
+    </p>
+
+    {!parsed.ok && (
+      <article class="card card--plain" style="padding:var(--space-5)">
+        <p><strong>Schema form tidak valid</strong> — tampilkan CSV untuk data mentah, perbaiki form di builder.</p>
+      </article>
+    )}
+
+    {parsed.ok && (
+      <>
+        {summaries.length === 0 && (
+          <article class="card card--plain" style="padding:var(--space-6);text-align:center">
+            <p style="color:var(--text-muted)">Belum ada respons masuk. Bagikan tautan <code>/f/{String(form.slug)}</code>.</p>
+          </article>
+        )}
+
+        {summaries.map((s) => (
+          <article class="card card--plain" style="padding:var(--space-4) var(--space-5);margin-bottom:var(--space-3)">
+            <h3 style="margin:0 0 4px">{s.label} <span class="help" style="display:inline">({s.answered} dijawab)</span></h3>
+            {s.options !== undefined && (
+              <ul style="margin:0;padding-left:18px">
+                {s.options.map((o) => (
+                  <li style="margin:2px 0">
+                    {o.option} — <strong>{o.count}</strong>
+                    <span class="help" style="display:inline">{list.length > 0 ? ` (${Math.round((o.count / list.length) * 100)}%)` : ''}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {s.average !== undefined && (
+              <p style="margin:4px 0 0">
+                Rata-rata: <strong>{s.average === null ? '—' : s.average.toFixed(2)}</strong>
+                <span class="help" style="display:inline">
+                  {s.histogram !== undefined && ` (${s.histogram.map((h) => `${h.value}:${h.count}`).join(' · ')})`}
+                </span>
+              </p>
+            )}
+          </article>
+        ))}
+
+        {questions.length > 0 && list.length > 0 && (
+          <details open style="margin-top:var(--space-5)">
+            <summary style="cursor:pointer;font-weight:700;margin-bottom:var(--space-3)">Data mentah</summary>
+            <div style="overflow-x:auto">
+              <table style="border-collapse:collapse;font-size:0.85rem;min-width:640px">
+                <thead>
+                  <tr>
+                    <th style="text-align:left;padding:8px;border-bottom:2px solid var(--border)">waktu</th>
+                    {questions.map((q) => (
+                      <th style="text-align:left;padding:8px;border-bottom:2px solid var(--border)">{q.label}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {shown.map((r) => (
+                    <tr>
+                      <td style="padding:7px 8px;border-bottom:1px solid var(--border);white-space:nowrap">{fmt(r.created_at)}</td>
+                      {questions.map((q) => (
+                        <td style="padding:7px 8px;border-bottom:1px solid var(--border)">{cellText(q, r.answers ?? {})}</td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </details>
+        )}
+      </>
+    )}
+  </section>
+</Base>
