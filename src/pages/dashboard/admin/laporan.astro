@@ -1,0 +1,55 @@
+---
+import Base from '../../../layouts/Base.astro';
+import { isAdmin } from '../../../lib/auth/admin';
+import { getSupabaseService } from '../../../lib/forms/service';
+import { listReports, type ReportItem } from '../../../lib/forms/reports';
+import { AdminReports } from '../../../components/builder/AdminReports';
+
+const user = Astro.locals.user;
+if (!user) return Astro.redirect('/login');
+if (!isAdmin(user)) return Astro.redirect('/dashboard');
+
+Astro.response.headers.set('cache-control', 'private, no-store');
+
+let reports: ReportItem[] = [];
+let loadError: string | null = null;
+
+const service = getSupabaseService();
+if (service) {
+  try {
+    reports = await listReports(service, { limit: 100 });
+  } catch (e) {
+    loadError = e instanceof Error ? e.message : String(e);
+  }
+} else {
+  loadError = 'Konfigurasi backend Supabase Service Role belum terpasang di .env.local.';
+}
+---
+
+<Base title="Moderasi Laporan — Admin">
+  <section class="container" style="padding-block:var(--space-6); max-width: 900px;">
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: var(--space-4);">
+      <div>
+        <p class="eyebrow">
+          <a href="/dashboard" style="color:var(--brand); text-decoration: none;">← Kembali ke Dashboard</a>
+        </p>
+        <h1 style="margin: var(--space-1) 0 0; font-size: clamp(1.6rem, 5vw, 2.2rem);">
+          🛡️ Moderasi Laporan Form
+        </h1>
+        <p style="color:var(--text-muted); margin-top: 4px;">
+          Tinjau laporan responden publik, tutup form bermasalah, dan tandai laporan selesai.
+        </p>
+      </div>
+    </div>
+
+    {loadError && (
+      <div role="alert" class="card" style="padding:var(--space-4); border-color:var(--danger); color:var(--danger); font-weight:600;">
+        {loadError}
+      </div>
+    )}
+
+    {!loadError && (
+      <AdminReports client:load initialReports={reports} />
+    )}
+  </section>
+</Base>
