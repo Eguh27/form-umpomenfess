@@ -37,3 +37,34 @@ describe('checkAndRecord (T-51/T-54)', () => {
     expect(checkAndRecord('c', START, 5)).toBe(false);
   });
 });
+
+describe('Pluggable RateLimitStore (E-A2)', () => {
+  it('mendukung custom store adapter dan pergantian store', async () => {
+    const { getRateLimitStore, setRateLimitStore, MemoryRateLimitStore } = await import('./rateLimit');
+    const defaultStore = getRateLimitStore();
+    expect(defaultStore.name).toBe('memory');
+
+    let customCalls = 0;
+    const customStore = {
+      name: 'mock-redis',
+      check: () => {
+        customCalls++;
+        return customCalls <= 2;
+      },
+      reset: () => {
+        customCalls = 0;
+      },
+    };
+
+    setRateLimitStore(customStore);
+    expect(getRateLimitStore().name).toBe('mock-redis');
+    expect(await checkAndRecord('test-ip')).toBe(true);
+    expect(await checkAndRecord('test-ip')).toBe(true);
+    expect(await checkAndRecord('test-ip')).toBe(false);
+
+    // Kembalikan ke memory store default
+    setRateLimitStore(new MemoryRateLimitStore());
+    expect(getRateLimitStore().name).toBe('memory');
+  });
+});
+

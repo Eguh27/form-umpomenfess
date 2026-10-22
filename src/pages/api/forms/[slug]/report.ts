@@ -18,7 +18,7 @@ export const POST = async (ctx: {
 }): Promise<Response> => {
   const slug = ctx.params.slug ?? '';
   const ip = ipFromHeaders(ctx.request.headers);
-  if (!checkAndRecord(ip, Date.now(), 5)) return redirectBack(slug, 'lapor');
+  if (!(await checkAndRecord(ip, Date.now(), 5))) return redirectBack(slug, 'lapor');
 
   const config = getEnvConfig();
   if (config === null) return redirectBack(slug, 'lapor');

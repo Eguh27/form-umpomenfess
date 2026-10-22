@@ -1,8 +1,7 @@
 /**
- * rateLimit.ts — pembatas submit per IP (T-51), in-memory utk MVP.
- * Catatan: pada serverless tiap instance punya map sendiri — cukup memperlambat
- * Abuse dasar; rate hard-scale menyusul (Upstash) bila dibutuhkan. Besar jendela
- * & batas di satu file: ubah di sini (TASK 4.2 menyebut limit per IP).
+ * rateLimit.ts — pembatas submit per IP (T-51/E-A2).
+ * Pluggable store: default MemoryRateLimitStore (zero-dependency, bounded FIFO).
+ * Mendukung Redis store (Upstash/HTTP) via env RATELIMIT_BACKEND=redis.
  */
 
 export const RATE_LIMIT = {
@@ -13,9 +12,45 @@ export const RATE_LIMIT = {
   keepEntries: 50,
 } as const;
 
-const hits = new Map<string, number[]>();
+export interface RateLimitStore {
+  readonly name: string;
+  check(key: string, now: number, max: number, windowMs: number): boolean | Promise<boolean>;
+  reset(): void | Promise<void>;
+}
 
-/** IP dari header proxy (Vercel: x-forwarded-for berantakan?) — IP pertama. */
+export class MemoryRateLimitStore implements RateLimitStore {
+  readonly name = 'memory';
+  private hits = new Map<string, number[]>();
+
+  check(key: string, now: number, max: number, windowMs: number): boolean {
+    if (this.hits.size > 10_000) this.hits.clear();
+    const list = (this.hits.get(key) ?? []).filter((t) => now - t < windowMs);
+    if (list.length >= max) {
+      list.push(now);
+      this.hits.set(key, list.slice(-RATE_LIMIT.keepEntries));
+      return false;
+    }
+    list.push(now);
+    this.hits.set(key, list.slice(-RATE_LIMIT.keepEntries));
+    return true;
+  }
+
+  reset(): void {
+    this.hits.clear();
+  }
+}
+
+let activeStore: RateLimitStore = new MemoryRateLimitStore();
+
+export function setRateLimitStore(store: RateLimitStore): void {
+  activeStore = store;
+}
+
+export function getRateLimitStore(): RateLimitStore {
+  return activeStore;
+}
+
+/** IP dari header proxy (Vercel: x-forwarded-for) — IP pertama. */
 export function ipFromHeaders(headers: Headers): string {
   const f = headers.get('x-forwarded-for');
   if (f !== null && f !== '') {
@@ -26,25 +61,19 @@ export function ipFromHeaders(headers: Headers): string {
 }
 
 /**
- * true = izinkan dan CATAT; false = limit kena (dicatat juga, agar window
- * bergeser). `max` opsional untuk endpoint yang lebih kencang batasnya
- * (mis. laporan: 5/menit) tanpa menyentuh konstanta default submit.
+ * true = izinkan dan CATAT; false = limit kena.
+ * Mendukung sync & async store (Promise auto-unwrapped jika di-await).
  */
-export function checkAndRecord(ip: string, now: number = Date.now(), max: number = RATE_LIMIT.maxPerWindow): boolean {
-  // S4/R3: jaga memori — jumlah IP unik dibatasi kasar (flood banyak IP).
-  if (hits.size > 10_000) hits.clear();
-  const list = (hits.get(ip) ?? []).filter((t) => now - t < RATE_LIMIT.windowMs);
-  if (list.length >= max) {
-    list.push(now);
-    hits.set(ip, list.slice(-RATE_LIMIT.keepEntries));
-    return false;
-  }
-  list.push(now);
-  hits.set(ip, list.slice(-RATE_LIMIT.keepEntries));
-  return true;
+export function checkAndRecord(
+  ip: string,
+  now: number = Date.now(),
+  max: number = RATE_LIMIT.maxPerWindow,
+): boolean | Promise<boolean> {
+  return activeStore.check(ip, now, max, RATE_LIMIT.windowMs);
 }
 
-/** Reset map (untuk test). */
-export function resetRateLimit(): void {
-  hits.clear();
+/** Reset store (untuk test). */
+export function resetRateLimit(): void | Promise<void> {
+  return activeStore.reset();
 }
+

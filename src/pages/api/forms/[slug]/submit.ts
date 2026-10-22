@@ -61,7 +61,7 @@ export const POST = async (ctx: { params: Record<string, string | undefined>; re
   if (await formDataTooLarge(form)) return jsonError('payload_besar', 413);
 
   const ip = ipFromHeaders(ctx.request.headers);
-  if (!checkAndRecord(ip)) return redirectBack(slug, 'ratelimit');
+  if (!(await checkAndRecord(ip))) return redirectBack(slug, 'ratelimit');
 
   // R2b: cek replay SEBELUM captcha — token Turnstile single-use membuat
   // klik kedua gagal di captcha padahal jawaban pertama sudah masuk. Replay
