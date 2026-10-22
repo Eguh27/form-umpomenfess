@@ -207,3 +207,22 @@ manusia ([~]). Story baru EPIC-A (belum dibuat di board):
 (belt-and-braces ±1.5 hari) → BACKLOG: pilih **B (Panel admin laporan)**
 terlebih dulu, karena laporan kini hanya terbaca via SQL manual — risiko
 operasi harian tertinggi yang belum punya wajah UI.
+
+---
+
+## Implementation Plan Adjustments
+
+**Plan Created:** 2026-10-22 · **Plan:** `docs/impl-plan-E-A1.md`
+
+### Tickets Created
+- `docs/impl-plan-E-A1.md` (self-contained ticket) — Story E-A1 diadakan di `TODO.md` sebagai `[ ]` (±3 pts, zone C lalu B).
+
+### Tickets Split
+- E-A1 (3 pts) tetap satu — di bawah ambang >8 pts; zona C (endpoint/helper) berlari lebih dulu, zona B (klien) mengikuti, boundary diperiksa bagian "Execution Order".
+
+### Story Points Updated
+- E-A1: estimasi 0.5 hari → 3 pts (poin memperhitungkan helper murni + test fake-client + wiring 3 file klien).
+
+### New Dependencies
+- E-A1 tidak dibekukan oleh apa pun; legacy path membuat aman terhadap urutan deploy.
+

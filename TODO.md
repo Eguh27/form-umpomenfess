@@ -74,6 +74,10 @@ Ganti peran: B (builder), C (public), D (design/ops), R (reviewer), L (lead).
 - [~] T-65 @L Uji end-to-end dummy lalu uji di HP dengan beberapa teman — ✅ SKRIP SIAP `docs/uji-manual.md` (10 seksi + Bukti akhir): eksekusi tinggal manusia/kawan; saat semua ✓ → ubah ke [x]
 - [x] T-66 @L 2026-10-22-19:05 Checklist go-live -> `docs/golive-checklist.md` (8 seksi: env produksi 11 kutip sumber, urutan 6 migrasi berikut verifikasi SQL, OAuth/domain, cron ops dgn dry-run→nyata, Turnstile produksi, smoke 9 langkah, kebersihan repo, rollback) + pendukung: env ops masuk TASK 4.1/.env.example, `test:ops` di package.json, gitignore `.temp`/`client_secret`, ratifikasi seluruh Requests
 
+## Stories EPIC-A (dari `docs/epic-plan-roadmap.md`)
+- [ ] E-A1 @C lalu @B — formId pada `POST /api/uploads/sign` → cap gambar eksak per-form (`docs/impl-plan-E-A1.md`; ±3 pts; legacy path dipertahankan; test murni helper + wiring klien)
+- [~] T-67 @D 2026-10-22 13:49 Redesign seluruh UI mengikuti tema situs utama `umpomenfess` (langit mint, gunung teal, krem, koral; Fredoka/Nunito; kartu sticker) — token, stylesheet global, header/footer + toggle tema, landing, dan penyesuaian visual halaman login/dashboard/form publik
+
 ---
 
 ## Requests (antar agent)
