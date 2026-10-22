@@ -50,10 +50,10 @@ Ganti peran: B (builder), C (public), D (design/ops), R (reviewer), L (lead).
 
 ## Wave 2
 ### B (builder + dashboard; butuh T-13, T-20, T-31)
-- [ ] T-40 @B Dashboard: daftar form, buat dari template/kosong, duplikat, tutup, soft delete
-- [ ] T-41 @B Builder: tambah/hapus/urut blok (tombol naik/turun), panel properti (color picker, font, radius), simpan draft otomatis
+- [x] T-40 @B 2026-10-22-10:50 Dashboard selesai: island `DashboardForms` + halaman server (list RLS + count respons, buat kosong/template, duplikat schema utuh, tutup, soft delete) — 58 test lulus; verifikasi visual island menunggu login manusia (middleware redirect betul di browser)
+- [~] T-41 @B 2026-10-22-11:00 Builder: tambah/hapus/urut blok (tombol naik/turun), panel properti (color picker, font, radius), simpan draft otomatis
 - [ ] T-42 @B Upload banner/gambar (tanda tangan upload, batas ukuran/jumlah, catat `form_images`)
-- [ ] T-43 @B Preview live (HP/desktop), undo/redo, peringatan "jangan minta kata sandi", tombol publish + validasi schema
+- [~] T-43 @B 2026-10-22-11:00 Preview live (HP/desktop), undo/redo, peringatan "jangan minta kata sandi", tombol publish + validasi schema
 - [ ] T-44 @B Test: builder hanya menghasilkan JSON valid; tidak ada input HTML mentah
 
 ### C (public; butuh T-12, T-20, T-31)

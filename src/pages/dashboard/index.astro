@@ -2,25 +2,64 @@
 import Base from '../../layouts/Base.astro';
 
 /*
-  DITEMPATKAN OLEH T-13 (@A): pembuktian sesi login.
-
-  ⚠️ Halaman ini SIMULASI DASHBOARD. Struktur utama (daftar form, CRUD, dsb)
-  milik Agent B — T-40 (zona: src/pages/dashboard/**). Middleware di
-  src/middleware.ts telah menolak anonim sebelum halaman ini; pengecekan
-  di bawah hanya lapisan kedua.
+  Dashboard index (T-40, @B). Middleware (@A) sudah menahan anonim; pengecekan
+  di bawah hanya lapisan kedua. Data awal dibaca server-side lewat
+  locals.supabase (client ber-cookie user → RLS membatasi ke form miliknya),
+  lalu dipindahkan ke island untuk interaksi.
 */
+import DashboardForms from '../../components/builder/DashboardForms';
+import { listForms, type FormRow, type TemplateRow } from '../../components/builder/dashboardForms';
+
 const user = Astro.locals.user;
 if (!user) return Astro.redirect('/login');
-const displayName = user.user_metadata?.full_name ?? user.email ?? 'Pengguna';
----
+const supabase = Astro.locals.supabase;
 
-<Base title="Dashboard">
+let forms: FormRow[] = [];
+let templates: TemplateRow[] = [];
+let loadError: string | null = null;
+
+if (supabase) {
+  try {
+    forms = await listForms(supabase);
+    const { data, error } = await supabase
+      .from('templates')
+      .select('id, name, preview_url, schema')
+      .order('name');
+    if (error) throw new Error(error.message);
+    templates = ((data ?? []) as Array<Record<string, unknown>>)
+      .filter((t) => typeof t.schema === 'object' && t.schema !== null)
+      .map((t) => ({
+        id: String(t.id),
+        name: String(t.name),
+        title: '',
+        schemaJson: t.schema as Record<string, unknown>,
+        previewUrl: (t.preview_url as string | null) ?? null,
+      }));
+  } catch (e) {
+    loadError = e instanceof Error ? e.message : String(e);
+  }
+} else {
+  loadError =
+    'Supabase belum dikonfigurasi (env kosong) — dashboard butuh PUBLIC_SUPABASE_URL & PUBLIC_SUPABASE_ANON_KEY.';
+}
+
+const displayName = user?.user_metadata?.full_name ?? user?.email ?? 'Pengguna';
+
+function greeting(): string {
+  const hour = new Date().getHours();
+  return hour < 11 ? 'Selamat pagi' : hour < 15 ? 'Selamat siang' : hour < 19 ? 'Selamat sore' : 'Selamat malam';
+}
+---
+<Base title="Dashboard — umpomenfess form">
   <section class="container" style="padding-block:var(--space-6)">
-    <h1>Dashboard</h1>
+    <p class="eyebrow">{greeting()} ✦</p>
+    <h1 style="margin-top:var(--space-2)">Dashboard</h1>
     <p style="color:var(--text-muted)">
-      Masuk sebagai <strong>{displayName}</strong> (id <code>{user.id}</code>).
+      Masuk sebagai <strong>{displayName}</strong> · <a href="/auth/logout">keluar</a>
     </p>
-    <p>Belum ada form — ini placeholder sebelum Agent B membuat builder (T-40).</p>
-    <a href="/auth/logout">Keluar</a>
+
+    {loadError && <p role="alert" style={`color:var(--danger);font-weight:600`}>{loadError}</p>}
+
+    {!loadError && <DashboardForms client:load initialForms={forms} templates={templates} />}
   </section>
 </Base>
