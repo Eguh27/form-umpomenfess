@@ -1,0 +1,74 @@
+name: cleanup
+
+# T-60: harian 03:15 UTC, mingguan Minggu 03:45 UTC.
+# Default DRY-RUN. Aktifkan nyata dengan repository variable CLEANUP_APPLY=true.
+on:
+  schedule:
+    - cron: '15 3 * * *'
+    - cron: '45 3 * * 0'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'daily = tutup form + tmp; weekly = daily + orphan + purge'
+        type: choice
+        options: [daily, weekly]
+        default: daily
+      apply:
+        description: 'Terapkan perubahan (false = dry-run)'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cleanup-ops
+  cancel-in-progress: false
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+      - run: npm test
+      - run: npx vitest run --config scripts/vitest.config.mjs
+
+      - name: Tentukan mode & apply
+        id: cfg
+        env:
+          EVENT: ${{ github.event_name }}
+          SCHEDULE: ${{ github.event.schedule }}
+          INPUT_MODE: ${{ inputs.mode }}
+          INPUT_APPLY: ${{ inputs.apply }}
+          VAR_APPLY: ${{ vars.CLEANUP_APPLY }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT" = "workflow_dispatch" ]; then
+            mode="$INPUT_MODE"
+            apply="$INPUT_APPLY"
+          else
+            if [ "$SCHEDULE" = "45 3 * * 0" ]; then mode="weekly"; else mode="daily"; fi
+            apply="$VAR_APPLY"
+          fi
+          if [ "$mode" = "weekly" ]; then echo "mode_flag=--weekly" >> "$GITHUB_OUTPUT"; fi
+          if [ "$apply" = "true" ]; then echo "apply_flag=--apply" >> "$GITHUB_OUTPUT"; fi
+          echo "mode=$mode apply=$apply"
+
+      - name: Jalankan cleanup
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL || secrets.PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
+          CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
+          CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
+          MODE_FLAG: ${{ steps.cfg.outputs.mode_flag }}
+          APPLY_FLAG: ${{ steps.cfg.outputs.apply_flag }}
+        run: node scripts/cleanup.mjs $MODE_FLAG $APPLY_FLAG

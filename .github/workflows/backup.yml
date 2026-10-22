@@ -1,0 +1,67 @@
+name: backup
+
+# T-61: mingguan Minggu 04:30 UTC. Default DRY-RUN.
+# Aktifkan nyata dengan repository variable BACKUP_APPLY=true.
+on:
+  schedule:
+    - cron: '30 4 * * 0'
+  workflow_dispatch:
+    inputs:
+      apply:
+        description: 'Lakukan dump + unggah (false = dry-run)'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backup-ops
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Pasang pg_dump 17
+        run: |
+          sudo install -d /usr/share/postgresql-common/pgdg
+          curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc \
+            | sudo gpg --dearmor -o /usr/share/keyrings/postgresql.gpg
+          echo "deb [signed-by=/usr/share/keyrings/postgresql.gpg] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" \
+            | sudo tee /etc/apt/sources.list.d/pgdg.list >/dev/null
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client-17
+
+      - run: npm ci
+      - run: npm test
+      - run: npx vitest run --config scripts/vitest.config.mjs
+
+      - name: Tentukan apply
+        id: cfg
+        env:
+          EVENT: ${{ github.event_name }}
+          INPUT_APPLY: ${{ inputs.apply }}
+          VAR_APPLY: ${{ vars.BACKUP_APPLY }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT" = "workflow_dispatch" ]; then apply="$INPUT_APPLY"; else apply="$VAR_APPLY"; fi
+          if [ "$apply" = "true" ]; then echo "apply_flag=--apply" >> "$GITHUB_OUTPUT"; fi
+          echo "apply=$apply"
+
+      - name: Jalankan backup
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL || secrets.PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          BACKUP_BUCKET: ${{ vars.BACKUP_BUCKET }}
+          APPLY_FLAG: ${{ steps.cfg.outputs.apply_flag }}
+        run: node scripts/backup.mjs $APPLY_FLAG
