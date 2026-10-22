@@ -58,6 +58,24 @@ export function createCleanupDb(client) {
       return unwrap(await query, 'baca gambar tmp');
     },
 
+    async markImagesUsed(ids) {
+      if (ids.length === 0) return 0;
+      let marked = 0;
+      for (const batch of chunk(ids, 100)) {
+        const data = unwrap(
+          await client
+            .from('form_images')
+            .update({ state: 'used' })
+            .in('id', batch)
+            .eq('state', 'tmp')
+            .select('id'),
+          'tandai gambar used',
+        );
+        marked += data.length;
+      }
+      return marked;
+    },
+
     async deleteImageRows(ids) {
       if (ids.length === 0) return 0;
       let deleted = 0;

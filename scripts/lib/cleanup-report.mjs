@@ -13,6 +13,7 @@ export function formatCleanupSummary(summary) {
   );
   lines.push(
     `- Gambar tmp > TTL: ${summary.daily.tmpImages}` +
+      ` (dirujuk schema: ${summary.daily.tmpImagesInUse})` +
       (summary.apply ? ` (dihapus: ${summary.daily.deletedTmpImages})` : ' (akan dihapus)'),
   );
 

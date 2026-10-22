@@ -27,7 +27,13 @@ export async function runCleanup({ now, apply, mode, db, cloudinary, options }) 
     at: now.toISOString(),
     mode,
     apply,
-    daily: { expiredForms: 0, closedForms: 0, tmpImages: 0, deletedTmpImages: 0 },
+    daily: {
+      expiredForms: 0,
+      closedForms: 0,
+      tmpImages: 0,
+      tmpImagesInUse: 0,
+      deletedTmpImages: 0,
+    },
     weekly: null,
     errors: [],
   };

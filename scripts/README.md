@@ -53,6 +53,8 @@ Pengaman:
 - Aset tanpa `created_at` valid tidak dihapus.
 - Baris `form_images` hanya dihapus jika Cloudinary menyatakan aset `deleted`
   atau `not found`; kegagalan lain dicatat dan diulang pada jadwal berikutnya.
+- Gambar tmp yang ternyata masih dirujuk schema form **tidak dihapus**; barisnya
+  ditandai `state='used'` (pengaman sampai builder menandai used sendiri).
 - Form soft-deleted hanya dipurge jika **semua** asetnya sudah hilang.
 - Orphan dibatasi `--max-orphans` (default 500) dan listing `--max-pages`
   (default 10 × 500 aset) per run.

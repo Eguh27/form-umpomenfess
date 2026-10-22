@@ -4,7 +4,7 @@ import { CLEANUP_DEFAULTS, runCleanup } from './cleanup-run.mjs';
 const now = new Date('2026-10-22T12:00:00.000Z');
 
 function fakeDb(overrides = {}) {
-  const calls = { closed: [], deletedImages: [], deletedForms: [], sequence: [] };
+  const calls = { closed: [], deletedImages: [], deletedForms: [], markedUsed: [], sequence: [] };
   const base = {
     calls,
     listExpiredForms: async () => [],
@@ -14,6 +14,10 @@ function fakeDb(overrides = {}) {
       return ids.length;
     },
     listTmpImages: async () => [],
+    markImagesUsed: async (ids) => {
+      calls.markedUsed.push(ids);
+      return ids.length;
+    },
     deleteImageRows: async (ids) => {
       calls.deletedImages.push(ids);
       calls.sequence.push('images');
@@ -74,6 +78,7 @@ describe('cleanup harian', () => {
       expiredForms: 2,
       closedForms: 0,
       tmpImages: 1,
+      tmpImagesInUse: 0,
       deletedTmpImages: 0,
     });
     expect(db.calls.closed).toEqual([]);
@@ -101,6 +106,38 @@ describe('cleanup harian', () => {
     expect(db.calls.closed).toEqual([['f1']]);
     expect(summary.daily.deletedTmpImages).toBe(3);
     expect(db.calls.deletedImages.flat().sort()).toEqual(['i1', 'i2', 'i4']);
+  });
+
+  it('gambar tmp yang masih dirujuk schema ditandai used, bukan dihapus', async () => {
+    const db = fakeDb({
+      listTmpImages: async () => [{ id: 'i1', public_id: 'form/dipakai' }],
+      listAllFormSchemas: async () => [
+        { id: 'f1', schema: { theme: { bannerPublicId: 'form/dipakai' } } },
+      ],
+    });
+    const cloudinary = fakeCloudinary();
+    const summary = await run({ db, cloudinary, apply: true });
+
+    expect(summary.daily.tmpImagesInUse).toBe(1);
+    expect(summary.daily.deletedTmpImages).toBe(0);
+    expect(db.calls.markedUsed).toEqual([['i1']]);
+    expect(db.calls.deletedImages).toEqual([]);
+    expect(cloudinary.calls.deletes).toEqual([]);
+  });
+
+  it('keep-set gambar tmp gagal dimuat -> tidak menghapus apa pun', async () => {
+    const db = fakeDb({
+      listTmpImages: async () => [{ id: 'i1', public_id: 'form/x' }],
+      listAllFormSchemas: async () => {
+        throw new Error('DB down');
+      },
+    });
+    const cloudinary = fakeCloudinary();
+    const summary = await run({ db, cloudinary, apply: true });
+
+    expect(summary.errors.map((e) => e.step)).toContain('muat-keep-set-gambar-tmp');
+    expect(db.calls.deletedImages).toEqual([]);
+    expect(cloudinary.calls.deletes).toEqual([]);
   });
 
   it('kegagalan Cloudinary dicatat dan baris DB tidak dihapus', async () => {

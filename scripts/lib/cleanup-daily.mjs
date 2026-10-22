@@ -1,6 +1,7 @@
 /** Tugas cleanup harian: tutup form kedaluwarsa + hapus gambar tmp. */
 
 import { isDeletedStatus } from './cloudinary.mjs';
+import { buildKeepSet } from './cleanup-plan.mjs';
 import { isManagedPublicId } from './public-id.mjs';
 
 /**
@@ -31,10 +32,28 @@ export async function runDaily({ now, apply, db, cloudinary, options, result, re
     const cutoff = new Date(now.getTime() - options.tmpTtlHours * 3600_000).toISOString();
     const rows = await db.listTmpImages(cutoff, options.batchSize);
     result.tmpImages = rows.length;
-    if (!apply || rows.length === 0) return;
+    if (rows.length === 0) return;
 
-    const safeRows = rows.filter((row) => isManagedPublicId(row.public_id));
-    const invalidRows = rows.filter((row) => !isManagedPublicId(row.public_id));
+    // Fail-safe: jangan hapus gambar yang masih dirujuk schema (mis. banner
+    // tersimpan tetapi state belum sempat diubah menjadi 'used' oleh builder).
+    let keep;
+    try {
+      keep = buildKeepSet({ forms: await db.listAllFormSchemas() });
+    } catch (error) {
+      record('muat-keep-set-gambar-tmp', error);
+      return;
+    }
+    const inUse = rows.filter((row) => keep.has(row.public_id));
+    result.tmpImagesInUse = inUse.length;
+    if (apply && inUse.length > 0) {
+      await db.markImagesUsed(inUse.map((row) => row.id));
+    }
+
+    const removableRows = rows.filter((row) => !keep.has(row.public_id));
+    if (!apply || removableRows.length === 0) return;
+
+    const safeRows = removableRows.filter((row) => isManagedPublicId(row.public_id));
+    const invalidRows = removableRows.filter((row) => !isManagedPublicId(row.public_id));
     let statuses = new Map();
     if (safeRows.length > 0) {
       statuses = await cloudinary.deleteAssets(safeRows.map((row) => row.public_id));

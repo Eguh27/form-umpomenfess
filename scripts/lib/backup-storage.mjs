@@ -21,7 +21,14 @@ export function createBackupStorage({ client, bucket }) {
 
     async ensureBucket() {
       const existing = await storage.getBucket(bucket);
-      if (!existing.error) return;
+      if (!existing.error) {
+        if (existing.data?.public === true) {
+          throw new Error(
+            `bucket ${bucket} bersifat publik; ubah menjadi privat sebelum menyimpan backup`,
+          );
+        }
+        return;
+      }
       const created = await storage.createBucket(bucket, { public: false });
       if (created.error && !/already exists/i.test(created.error.message)) {
         fail('buat bucket backup', created.error);
