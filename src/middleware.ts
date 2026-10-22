@@ -27,5 +27,20 @@ export const onRequest = defineMiddleware(async (context, next) => {
     return context.redirect('/login');
   }
 
-  return next();
+  const response = await next();
+
+  // E-A4: Security Headers (defense-in-depth bersama Astro CSP)
+  response.headers.set('X-Content-Type-Options', 'nosniff');
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  response.headers.set('X-Frame-Options', 'DENY');
+
+  // HSTS untuk HTTPS atau environment produksi
+  if (context.url.protocol === 'https:' || import.meta.env.PROD) {
+    response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+  }
+
+
+  return response;
 });
+
