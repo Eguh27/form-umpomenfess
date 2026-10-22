@@ -32,7 +32,7 @@ Usulan awal: maks form aktif per user 20; maks gambar per form 5; maks ukuran ga
 
 ### 4.3 Tabel (cek schema nyata; Agent A finalkan nama di Fase 0/1)
 - `forms`: id, owner_id, slug (UNIQUE, huruf kecil/angka/-), title, status (`draft|published|closed`), schema jsonb, theme jsonb, schema_version int, version int, tier text default 'free', closes_at, max_responses, deleted_at, created_at, updated_at
-- `form_images`: id, form_id (nullable saat tmp), owner_id, public_id, bytes, state (`tmp|used`), created_at
+- `form_images`: id, form_id (nullable; sejak E-A1 dapat terisi sejak lahir bila pembuat mengirim formId saat sign), owner_id, public_id, bytes, state (`tmp|used`), created_at
 - `responses`: id, form_id, form_version, answers jsonb, client_token text null (idempoten; partial unique `(form_id, client_token) where client_token is not null`; tidak pernah tampil ke publik), created_at. INSERT lewat rpc `insert_response_guarded` (kuota atomik + fast-path duplikat) dengan fallback count→insert bila rpc belum dipush.
 - `reports`: id, form_id, reason, created_at
 - `templates`: id, name, preview_url, schema jsonb, theme jsonb, tier default 'free'

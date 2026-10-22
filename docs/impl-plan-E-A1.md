@@ -20,7 +20,8 @@
 
 | Story | Status | Date | Notes |
 |---|---|---|---|
-| E-A1 (Ticket Body di bawah) | Pending | — | Klaim di TODO.md dulu per protokol AGENTS |
+| E-A1 zona C (helper + endpoint + test) | Selesai | 2026-10-22 | lihat `docs/progress.md`; zona B tertunda — ThemePanel/Editor kotor oleh WIP T-67 @D (restyle), wiring menyusul begitu konsolidasi |
+| E-A1 zona B (klien) | Tertunda | — | tertutup WIP T-67; lanjutkan saat papan kerja bersih |
 
 ## Execution Order & Wave
 

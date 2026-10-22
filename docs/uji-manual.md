@@ -29,7 +29,9 @@
 ## 4. Banner (upload Cloudinary — uji live penuh T-42)
 - [ ] Upload JPG/PNG ≤ 2MB → preview banner muncul, autosave sukses
 - [ ] Upload > 2MB / file ≠ gambar → ditolak dengan pesan yang jelas
-- [ ] Cap: unggah lebih dari 2× batas gambar per form → 429 anti-orphan
+- [ ] Cap eksak (E-A1): lewat Editor (banner, kirim formId) unggah gambar ke-6 → 429 `terlalu_banyak_upload_form`
+- [ ] Cap legacy: sign POST manual tanpa formId lewat 2× batas per pemilik → 429 `terlalu_banyak_upload_tmp`
+- [ ] formId milik orang lain (POST manual) → 404 `form_tidak_dikenal` (anti-probing)
 - [ ] DevTools: `POST /api/uploads/sign` 200, `public_id` berawalan `form/`
   (dan TIDAK berbentuk `form/form/…`)
 - [ ] SQL Editor: baris `form_images` milik upload → `state='used'`,
