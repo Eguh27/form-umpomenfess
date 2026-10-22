@@ -19,9 +19,8 @@
 ## Completion Status
 
 | Story | Status | Date | Notes |
-|---|---|---|---|
-| E-A1 zona C (helper + endpoint + test) | Selesai | 2026-10-22 | lihat `docs/progress.md`; zona B tertunda — ThemePanel/Editor kotor oleh WIP T-67 @D (restyle), wiring menyusul begitu konsolidasi |
-| E-A1 zona B (klien) | Tertunda | — | tertutup WIP T-67; lanjutkan saat papan kerja bersih |
+| E-A1 zona C (helper + endpoint + test) | Selesai | 2026-10-22 | lihat `docs/progress.md`; helper imageSignGuard.ts, endpoint /api/uploads/sign, 11 unit test lulus |
+| E-A1 zona B (klien) | Selesai | 2026-10-22 | BannerUpload, ThemePanel, Editor meneruskan formId ke sign, pesan ramah 429 batas 5 gambar/form |
 
 ## Execution Order & Wave
 

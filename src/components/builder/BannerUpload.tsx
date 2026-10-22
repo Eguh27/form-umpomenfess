@@ -9,10 +9,11 @@ import { LIMITS } from '../../lib/config/limits';
 import { ACCEPTED_MIME, checkFile, parseSignResponse } from './uploadRules';
 
 interface Props {
+  formId?: string;
   onUploaded: (publicId: string) => void;
 }
 
-export default function BannerUpload({ onUploaded }: Props) {
+export default function BannerUpload({ formId, onUploaded }: Props) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -31,9 +32,24 @@ export default function BannerUpload({ onUploaded }: Props) {
       const signRes = await fetch('/api/uploads/sign', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ bytes: file.size, mime: file.type }),
+        body: JSON.stringify({
+          bytes: file.size,
+          mime: file.type,
+          ...(formId ? { formId } : {}),
+        }),
       });
       if (!signRes.ok) {
+        if (signRes.status === 429) {
+          try {
+            const errJson = (await signRes.json()) as { error?: string };
+            if (errJson.error === 'terlalu_banyak_upload_form') {
+              throw new Error('Batas 5 gambar per form tercapai.');
+            }
+          } catch (e) {
+            if (e instanceof Error && e.message.startsWith('Batas')) throw e;
+          }
+          throw new Error('Batas unggahan sementara tercapai. Coba beberapa saat lagi.');
+        }
         throw new Error(
           signRes.status === 404
             ? 'Endpoint /api/uploads/sign belum tersedia (dibuat @C). Banner menunggu itu.'
@@ -41,6 +57,7 @@ export default function BannerUpload({ onUploaded }: Props) {
         );
       }
       const sig = parseSignResponse(await signRes.json());
+
       if (sig === null) throw new Error('Respons tanda tangan tidak valid (schema berubah?).');
 
       const data = new FormData();

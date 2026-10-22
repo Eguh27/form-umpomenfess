@@ -449,6 +449,7 @@ export default function Editor({ formId, slug, status, version, initial, cloudNa
 
           {tab === 'theme' && (
             <ThemePanel
+              formId={formId}
               theme={state.theme}
               onChange={(patch) =>
                 apply({

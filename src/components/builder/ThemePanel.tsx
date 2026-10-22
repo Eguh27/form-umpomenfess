@@ -15,6 +15,7 @@ import BannerUpload from './BannerUpload';
 import { PRESET_THEMES, applyThemePreset, type ThemePreset } from './presetThemes';
 
 interface Props {
+  formId?: string;
   theme: ThemeDraft;
   onChange: (patch: Partial<ThemeDraft>) => void;
 }
@@ -25,7 +26,7 @@ const COLORS: Array<{ key: 'bg' | 'accent' | 'text'; label: string }> = [
   { key: 'text', label: 'Teks' },
 ];
 
-export default function ThemePanel({ theme, onChange }: Props) {
+export default function ThemePanel({ formId, theme, onChange }: Props) {
   const contrastOk = isReadable(theme.text, theme.bg);
 
   const handleSelectPreset = (preset: ThemePreset) => {
@@ -147,7 +148,7 @@ export default function ThemePanel({ theme, onChange }: Props) {
         </label>
 
         {theme.bannerPublicId === null && (
-          <BannerUpload onUploaded={(publicId) => onChange({ bannerPublicId: publicId })} />
+          <BannerUpload formId={formId} onUploaded={(publicId) => onChange({ bannerPublicId: publicId })} />
         )}
         {theme.bannerPublicId !== null && (
           <div style={{ fontSize: '0.85rem' }}>
