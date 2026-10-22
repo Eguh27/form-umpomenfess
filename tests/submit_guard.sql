@@ -25,8 +25,20 @@ begin
     raise exception 'tidak ada user di auth.users untuk test dummy';
   end if;
 
-  insert into public.forms (owner_id, slug, title, status, version, max_responses, closes_at)
-  values (uid, 'test-guard-r1', 'Test kuota atomik', 'published', 1, 2, now() + interval '1 hour')
+  -- schema & theme NOT NULL (init L25-26) → dummy minimal yang valid per
+  -- kontrak TASK 4.5 (RPC hanya cek jsonb object, isi tak diparso di sini).
+  insert into public.forms (owner_id, slug, title, status, version, max_responses, closes_at, schema, theme)
+  values (
+    uid,
+    'test-guard-r1',
+    'Test kuota atomik',
+    'published',
+    1,
+    2,
+    now() + interval '1 hour',
+    '{"schemaVersion":1,"blocks":[{"id":"b1","type":"divider"}]}'::jsonb,
+    '{"bg":"#ffffff","accent":"#ec4899","text":"#1f2937","font":"system-ui","radius":16,"cardStyle":"menfess","bannerPublicId":null}'::jsonb
+  )
   returning id into fid;
 
   -- 1) dua insert di bawah kuota → ok.
