@@ -15,6 +15,7 @@ import { serialize } from './serialize';
 import { sensitiveQuestionIds } from './sensitive';
 import { addBlock, moveBlock, removeBlock, updateBlock } from './state';
 import { getSupabaseBrowserClient } from './browserClient';
+import { markReferencedImagesUsed } from './imagesUsed';
 import BlockList from './BlockList';
 import BlockPanel from './BlockPanel';
 import ThemePanel from './ThemePanel';
@@ -91,6 +92,11 @@ export default function Editor({ formId, slug, status, version, initial, cloudNa
       setNotice(error.message);
       return false;
     }
+
+    // T-64 @B: gambar yang sekarang direferensi schema → state 'used'.
+    // Gagal menandai tidak membatalkan simpanan form.
+    await markReferencedImagesUsed(getSupabaseBrowserClient(), formId, result.data);
+
     savedRef.current = JSON.stringify(stateRef.current);
     setSaveState('saved');
     if (kind === 'publish') {

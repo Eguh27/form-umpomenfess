@@ -12,6 +12,10 @@ import { listForms, type FormRow, type TemplateRow } from '../../components/buil
 
 const user = Astro.locals.user;
 if (!user) return Astro.redirect('/login');
+
+// T-64 @B: halaman terautentikasi tidak boleh tersimpan cache (browser /
+// intermediary) — privat per-sesi.
+Astro.response.headers.set('cache-control', 'private, no-store');
 const supabase = Astro.locals.supabase;
 
 let forms: FormRow[] = [];

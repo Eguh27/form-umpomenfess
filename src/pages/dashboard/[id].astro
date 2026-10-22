@@ -12,6 +12,10 @@ import { stateFromRow } from '../../components/builder/defaults';
 const user = Astro.locals.user;
 if (!user) return Astro.redirect('/login');
 
+// T-64 @B: halaman terautentikasi tidak boleh tersimpan cache (browser /
+// intermediary) — privat per-sesi.
+Astro.response.headers.set('cache-control', 'private, no-store');
+
 const formId = Astro.params.id ?? '';
 const uuidLike = /^[0-9a-f-]{36}$/i.test(formId);
 if (!uuidLike) return Astro.redirect('/dashboard');
