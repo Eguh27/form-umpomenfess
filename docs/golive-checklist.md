@@ -33,9 +33,9 @@ Set **Production + Preview**. Nama sesuai TASK 4.1 (server-only TANPA prefix `PU
 2. □ `20261021123000_rls_and_public_view.sql` (policy + view)
 3. □ `20261021124000_seed_templates.sql` (5 template)
 4. □ `20261022174000_submit_guard.sql` (kolom `client_token` + index unik + rpc `insert_response_guarded`)
-5. □ `20261022190000_seed_font_update.sql` (Poppins→Quicksand, Inter→system-ui — **tanpa ini template seed gagal autosave**)
-6. □ Verifikasi human-run: `tests/rls.sql` 9/9 · `tests/submit_guard.sql` 8/8 · `tests/seed_font_check.sql` → 0 baris font liar
-7. □ Storage bucket `db-backups` dibuat **privat**
+5. [x] □ `20261022190000_seed_font_update.sql` (Poppins→Quicksand, Inter→system-ui) — **ekuivalen dieksekusi @L 2026-10-22 via REST** (4 baris PATCH, whitelist saat ini 0 font liar, verifikasi ulang PASS); berkas migrasi tetap boleh dijalankan manusia — idempoten, akan jadi no-op
+6. [x] □ Verifikasi: `tests/rls.sql` 9/9 · `tests/submit_guard.sql` 8/8 (manusia) · whitelist font 0 liar (@L via REST) · `responses.client_token` ada · rpc `insert_response_guarded` merespons 200 `"form_tidak_tersedia"` utk form acu (signature: uuid version, answers, token?) — @L REST 2026-10-22
+7. [x] □ Storage bucket `db-backups` dibuat **privat** — @L 2026-10-22 via storage API (public=false, verifikasi ulang PASS)
 
 ## 3. OAuth & domain
 
