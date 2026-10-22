@@ -1,15 +1,14 @@
 /**
  * defaults.ts — titik awal form baru & draft state builder (T-40/T-41).
  *
- * Tema default mengikuti token situs (design/tokens.css): kaca · blush.
- * Catatan: font default masih `system-ui` karena FONT_WHITELIST (schema.ts,
- * zona @C) belum memuat Quicksand/Baloo 2 — contract change sedang diproses
- * (lihat TODO.md Requests). Ubah DEFAULT_FONT di sini saja begitu whitelist baru.
+ * Tema default mengikuti palet Kaca · Blush (design/tokens.css): blush,
+ * coral, dan ink teal. Font default Quicksand; Baloo 2 tetap tersedia
+ * di ThemePanel lewat FONT_WHITELIST.
  */
 import type { CardStyle, FormFont } from '../../lib/forms/schema';
 
 /** Satu-satunya tempat font default; diubah saat whitelist diperbarui @C. */
-export const DEFAULT_FONT: FormFont = 'system-ui';
+export const DEFAULT_FONT: FormFont = 'Quicksand';
 
 export interface ThemeDraft {
   bg: string;
@@ -27,7 +26,7 @@ export function defaultTheme(): ThemeDraft {
     accent: '#e8604c',
     text: '#1f4d46',
     font: DEFAULT_FONT,
-    radius: 16,
+    radius: 18,
     cardStyle: 'menfess',
     bannerPublicId: null,
   };

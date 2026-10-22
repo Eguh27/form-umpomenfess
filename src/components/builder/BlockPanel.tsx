@@ -95,7 +95,7 @@ export default function BlockPanel({ block: b, onPatch }: Props) {
       </label>
       {isSensitiveLabel(b.label) && (
         <p role="alert" className="help" style={{ color: 'var(--danger)', fontWeight: 700 }}>
-          ⚠ Berisiko data sensitif (sandi/NIK/rekening dsb.) — mohon ganti.
+          Peringatan: berisiko data sensitif (sandi/NIK/rekening dsb.) — mohon ganti.
         </p>
       )}
       <label style={{ display: 'flex', gap: 8, marginTop: 8, fontSize: '0.9rem', fontWeight: 600 }}>

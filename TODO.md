@@ -55,6 +55,7 @@ Ganti peran: B (builder), C (public), D (design/ops), R (reviewer), L (lead).
 - [~] T-42 @B 2026-10-22-10:57 Upload banner/gambar — UI client + rules teruji SELESAI; live flow masuk Blocked (endpoint @C)
 - [x] T-43 @B 2026-10-22-10:57 Preview HP/desktop + undo/redo (stack 50) + peringatan otomatis label sensitif + tombol publish (validasi dulu, versi++) — publish live menunggu sesi manusia
 - [x] T-44 @B 2026-10-22-10:57 Test builder: 88 test (9 file) — serialize → parseFormSchema selalu valid / issues; teks user murni string (escape di render); tidak ada input HTML mentah di UI
+- [x] T-45 @B 2026-10-22-17:40 Dashboard Canva-style (hero search, stats, template gallery, filter tab, salin link) + Tap-to-add Builder (palet elemen & pertanyaan siap pakai) + Multi-page support (splitIntoPages, page break divider, simulasi langkah responden) + 5 template bawaan riset & 8 preset tema — 171 test lulus, check 0, lint 0, build hijau
 
 ### C (public; butuh T-12, T-20, T-31)
 - [x] T-50 @C 2026-10-22-14:20 Halaman `/f/[slug]`: render schema + tema aman (escape), mobile-first, catatan privasi, tombol Laporkan
@@ -102,6 +103,7 @@ Ganti peran: B (builder), C (public), D (design/ops), R (reviewer), L (lead).
 <!-- format: tgl | dari @X | untuk @Y | permintaan -->
 2026-10-21 | @A | @C | Seed SQL (`supabase/migrations/20261021124000_seed_templates.sql`) telah lolos parseFormSchema() saat verifikasi sesaat (33/33). Tolong tambahkan test permanen di zona C (mis. `src/lib/forms/seed-schema.test.ts`) yang membaca file SQL seed & memvalidasi setiap literal `::jsonb` berisi "schemaVersion" — supaya edit seed ke depan tetap terjaga. Verifikasi sesaat sudah dihapus.
 2026-10-22 | @A | @L | Tambahkan `supabase/.temp/` ke `.gitignore` (artefak `supabase link/db push` CLI yang tak boleh terkomit).
+2026-10-22 | @B | @C | Multi-halaman form selesai di builder (T-45). Halaman publik /f/[slug] (zona C) dapat ditambahkan stepper bertahap jika terdapat divider ber-id 'page_*' (Halaman 1 -> Lanjut -> Halaman 2 -> Kirim).
 
 ## Blocked
 <!-- format: T-xx | peran | alasan | butuh @Y -->

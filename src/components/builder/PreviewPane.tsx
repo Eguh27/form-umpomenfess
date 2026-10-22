@@ -31,21 +31,19 @@ export default function PreviewPane({ form, cloudName }: Props) {
       <div style={{ display: 'flex', gap: 'var(--space-2)', marginBottom: 'var(--space-3)' }}>
         <button
           type="button"
-          className={`btn ${device === 'hp' ? 'btn--accent' : 'btn--ghost'}`}
-          style={{ padding: '7px 14px', fontSize: '0.85rem' }}
+          className={`btn btn--sm ${device === 'hp' ? 'btn--accent' : 'btn--ghost'}`}
           onClick={() => setDevice('hp')}
           aria-pressed={device === 'hp'}
         >
-          📱 HP
+          HP
         </button>
         <button
           type="button"
-          className={`btn ${device === 'desktop' ? 'btn--accent' : 'btn--ghost'}`}
-          style={{ padding: '7px 14px', fontSize: '0.85rem' }}
+          className={`btn btn--sm ${device === 'desktop' ? 'btn--accent' : 'btn--ghost'}`}
           onClick={() => setDevice('desktop')}
           aria-pressed={device === 'desktop'}
         >
-          🖥 Desktop
+          Desktop
         </button>
       </div>
       <div
