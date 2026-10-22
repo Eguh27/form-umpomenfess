@@ -65,6 +65,12 @@ export interface FormInsertPayload {
   schema_version: 1;
   version: 1;
   tier: 'free';
+  /**
+   * `owner_id` SENGAJA tak ada di payload: nilainya diambil dari sesi user
+   * saat insert (lihat `insertForm`) sehingga tak ada jalur pemalsuan pemilik.
+   * Kolom `forms.owner_id` NOT NULL + policy `forms_insert_own` mewajibkan
+   * `owner_id = auth.uid()`.
+   */
 }
 
 function schemaFor(theme: unknown, blocks: unknown): Record<string, unknown> {
@@ -120,20 +126,43 @@ export function duplicatePayload(original: {
   };
 }
 
+/** Error Postgres mentah tak pernah ditampilkan ke user (bocor detail skema). */
+function friendlyError(error: { code?: string } | null, action: string): Error {
+  const code = error?.code ?? '';
+  if (code === '42501') return new Error('Sesi tidak diizinkan melakukan itu — masuk ulang lalu coba.');
+  if (code === '23503') return new Error('Sesi tidak valid lagi — masuk ulang lalu coba.');
+  if (code === '23514') return new Error('Data tidak valid — periksa isian lalu coba lagi.');
+  if (code === '23505') return new Error(`Gagal ${action} — nama sudah dipakai. Coba judul lain.`);
+  return new Error(`Gagal ${action} — coba lagi sebentar.`);
+}
+
 /**
  * Insert dengan perang unik slug lintas pengguna: setiap 23505 → suffix acak
  * baru (maks 5 percobaan). Batas form aktif dicek dulu dari klien.
+ *
+ * `owner_id` diambil dari SESI (`auth.getUser()`), bukan dari argumen —
+ * kolomnya NOT NULL dan policy RLS mewajibkan `owner_id = auth.uid()`.
  */
 export async function insertForm(
   supabase: SupabaseClient,
   payload: FormInsertPayload,
 ): Promise<{ id: string; slug: string }> {
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  if (userError) {
+    console.warn('[dashboard] getUser gagal:', userError.message);
+    throw new Error('Tidak bisa memastikan sesi — cek koneksi lalu coba lagi.');
+  }
+  const ownerId = userData?.user?.id;
+  if (ownerId === undefined || ownerId === '') {
+    throw new Error('Sesi habis — masuk ulang lalu buat form.');
+  }
+
   const { count, error } = await supabase
     .from('forms')
     .select('id', { count: 'exact', head: true })
     .is('deleted_at', null)
     .neq('status', 'closed');
-  if (error) throw new Error(error.message);
+  if (error) throw friendlyError(error, 'mengecek batas form');
   if ((count ?? 0) >= LIMITS.maxActiveFormsPerUser) {
     throw new Error(`Batas ${LIMITS.maxActiveFormsPerUser} form aktif — tutup/hapus yang lama dulu.`);
   }
@@ -142,12 +171,15 @@ export async function insertForm(
   for (let attempt = 0; attempt < 5; attempt++) {
     const { data, error: insertError } = await supabase
       .from('forms')
-      .insert({ ...payload, slug })
+      .insert({ ...payload, owner_id: ownerId, slug })
       .select('id, slug')
       .single();
     if (!insertError && data) return { id: String(data.id), slug: String(data.slug) };
     const code = (insertError as { code?: string } | null)?.code;
-    if (code !== '23505') throw new Error(insertError.message);
+    if (code !== '23505') {
+      console.warn('[dashboard] insert forms gagal:', insertError?.message);
+      throw friendlyError(insertError, 'membuat form');
+    }
     slug = withSuffix(slug);
   }
   throw new Error('Gagal menemukan slug unik — coba judul lain.');
@@ -156,7 +188,7 @@ export async function insertForm(
 /** Aksi status: tutup (published → closed). */
 export async function closeForm(supabase: SupabaseClient, id: string): Promise<void> {
   const { error } = await supabase.from('forms').update({ status: 'closed' }).eq('id', id);
-  if (error) throw new Error(error.message);
+  if (error) throw friendlyError(error, 'menutup form');
 }
 
 /** Soft delete: set deleted_at (row tetap utk cleanup >30 hari oleh @D). */
@@ -165,5 +197,5 @@ export async function deleteForm(supabase: SupabaseClient, id: string): Promise<
     .from('forms')
     .update({ deleted_at: new Date().toISOString() })
     .eq('id', id);
-  if (error) throw new Error(error.message);
+  if (error) throw friendlyError(error, 'menghapus form');
 }

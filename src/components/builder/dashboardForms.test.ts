@@ -3,6 +3,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import {
   blankPayload,
   duplicatePayload,
+  insertForm,
   mapFormRows,
   templatePayload,
   type TemplateRow,
@@ -99,5 +100,93 @@ describe('mapFormRows', () => {
 
   it('stub type-only tidak dipakai (hindari unused import)', () => {
     expect(typeof stub).toBe('object');
+  });
+});
+
+/** Fake klien Supabase untuk insertForm: auth.getUser + ranta insert. */
+function insertFake(opts: {
+  userId?: string | null;
+  userError?: unknown;
+  count?: number;
+  results?: Array<{ data: { id: string; slug: string } | null; error: { code?: string; message?: string } | null }>;
+}) {
+  const inserted: Record<string, unknown>[] = [];
+  let call = 0;
+  const client = {
+    auth: {
+      getUser: async () => ({
+        data: { user: opts.userId === null ? null : { id: opts.userId ?? 'user-1' } },
+        error: opts.userError ?? null,
+      }),
+    },
+    from: () => {
+      const chain: Record<string, unknown> = {};
+      const result = () => opts.results?.[call++] ?? { data: { id: 'f-new', slug: 'slug' }, error: null };
+      chain.select = () => chain;
+      chain.is = () => chain;
+      chain.neq = () => chain;
+      chain.eq = () => chain;
+      chain.insert = (payload: Record<string, unknown>) => {
+        inserted.push(payload);
+        return chain;
+      };
+      chain.single = async () => result();
+      chain.then = (res: (v: unknown) => unknown) =>
+        Promise.resolve({ data: null, error: null, count: opts.count ?? 0 }).then(res);
+      return chain;
+    },
+  };
+  return { client: client as unknown as SupabaseClient, inserted };
+}
+
+describe('insertForm — owner_id dari sesi (E1: form tak bisa dibuat tanpa owner)', () => {
+  it('menyertakan owner_id dari sesi saat insert', async () => {
+    const { client, inserted } = insertFake({ userId: 'user-abc' });
+    const created = await insertForm(client, blankPayload('Survei Kantin'));
+    expect(created.id).toBe('f-new');
+    expect(inserted).toHaveLength(1);
+    expect(inserted[0].owner_id).toBe('user-abc');
+  });
+
+  it('slug bentrok (23505) → percobaan ulang dengan suffix', async () => {
+    const { client, inserted } = insertFake({
+      userId: 'user-abc',
+      results: [
+        { data: null, error: { code: '23505', message: 'duplicate key' } },
+        { data: { id: 'f-2', slug: 'survei-kantin-2' }, error: null },
+      ],
+    });
+    const created = await insertForm(client, blankPayload('Survei Kantin'));
+    expect(created.slug).toBe('survei-kantin-2');
+    expect(inserted).toHaveLength(2);
+    expect(inserted[1].slug).not.toBe(inserted[0].slug);
+  });
+
+  it('galat lain → pesan ramah, BUKAN pesan Postgres mentah', async () => {
+    const { client } = insertFake({
+      userId: 'user-abc',
+      results: [
+        {
+          data: null,
+          error: { code: '23502', message: 'null value in column "owner_id" violates not-null constraint' },
+        },
+      ],
+    });
+    const err = (await insertForm(client, blankPayload('x')).catch((e: unknown) => e)) as Error;
+    expect(err).toBeInstanceOf(Error);
+    expect(err.message).toMatch(/Gagal membuat form/);
+    expect(err.message).not.toMatch(/not-null constraint/);
+  });
+
+  it('sesi tak ada → pesan ramah, tak ada insert', async () => {
+    const { client, inserted } = insertFake({ userId: null });
+    await expect(insertForm(client, blankPayload('x'))).rejects.toThrow(/Sesi habis/);
+    expect(inserted).toHaveLength(0);
+  });
+
+  it('batas form aktif → ditolak sebelum insert', async () => {
+    const { client, inserted } = insertFake({ userId: 'user-abc', count: 99 });
+    await expect(insertForm(client, blankPayload('x'))).rejects.toThrow(/Batas 20 form aktif/);
+    expect(inserted).toHaveLength(0);
   });
 });
