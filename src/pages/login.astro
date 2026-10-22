@@ -43,15 +43,6 @@ const successText = msg ? (SUCCESS_MESSAGES[msg] ?? decodeURIComponent(msg)) : n
 
     <section class="auth-center-container">
       <article class="auth-card">
-        <!-- Badge Ikon [→] di bagian atas (sesuai referensi) -->
-        <div class="auth-icon-badge" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
-            <polyline points="10 17 15 12 10 7" />
-            <line x1="15" y1="12" x2="3" y2="12" />
-          </svg>
-        </div>
-
         <!-- Tab Switcher (Masuk vs Daftar) -->
         <div class="auth-tab-pill">
           <button type="button" id="tab-btn-login" class={`tab-pill-item ${initialTab === 'login' ? 'is-active' : ''}`}>
@@ -393,62 +384,36 @@ const successText = msg ? (SUCCESS_MESSAGES[msg] ?? decodeURIComponent(msg)) : n
     position: relative;
     z-index: 10;
     width: 100%;
-    max-width: 440px;
+    max-width: 390px;
   }
 
   /* Kartu Mengambang Kaca (Glassmorphism Sesuai Referensi) */
   .auth-card {
-    background: rgba(255, 255, 255, 0.82);
+    background: rgba(255, 255, 255, 0.84);
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
     border: 1.5px solid rgba(255, 255, 255, 0.95);
-    border-radius: 28px;
-    padding: clamp(28px, 6vw, 38px) clamp(20px, 5vw, 32px);
+    border-radius: 22px;
+    padding: 26px 22px;
     box-shadow:
-      0 24px 50px -12px rgba(31, 77, 70, 0.14),
+      0 20px 40px -12px rgba(31, 77, 70, 0.12),
       0 0 0 1px rgba(255, 255, 255, 0.8),
       inset 0 1px 2px rgba(255, 255, 255, 0.9);
   }
 
   :global([data-theme="dark"]) .auth-card {
-    background: rgba(22, 32, 30, 0.86);
+    background: rgba(22, 32, 30, 0.88);
     border-color: rgba(255, 255, 255, 0.1);
-    box-shadow: 0 24px 50px -12px rgba(0, 0, 0, 0.5);
-  }
-
-  /* Badge Ikon Kotak Bulat di atas */
-  .auth-icon-badge {
-    width: 54px;
-    height: 54px;
-    margin: 0 auto 16px;
-    border-radius: 16px;
-    background: #ffffff;
-    border: 1px solid rgba(255, 255, 255, 0.95);
-    display: grid;
-    place-items: center;
-    color: var(--ink, #1f4d46);
-    box-shadow:
-      0 10px 22px -4px rgba(31, 77, 70, 0.12),
-      0 2px 6px rgba(0, 0, 0, 0.04);
-  }
-  .auth-icon-badge svg {
-    width: 24px;
-    height: 24px;
-  }
-
-  :global([data-theme="dark"]) .auth-icon-badge {
-    background: #1c2724;
-    border-color: rgba(255, 255, 255, 0.12);
-    color: var(--on-brand, #fff);
+    box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.5);
   }
 
   /* Tab Switcher Masuk / Daftar */
   .auth-tab-pill {
     display: flex;
     background: rgba(0, 0, 0, 0.04);
-    padding: 4px;
-    border-radius: 12px;
-    margin-bottom: 20px;
+    padding: 3.5px;
+    border-radius: 11px;
+    margin-bottom: 16px;
   }
   :global([data-theme="dark"]) .auth-tab-pill {
     background: rgba(255, 255, 255, 0.06);
@@ -457,18 +422,18 @@ const successText = msg ? (SUCCESS_MESSAGES[msg] ?? decodeURIComponent(msg)) : n
     flex: 1;
     border: none;
     background: transparent;
-    padding: 7px 12px;
-    font-size: 0.86rem;
+    padding: 6px 10px;
+    font-size: 0.82rem;
     font-weight: 600;
     color: var(--text-muted);
-    border-radius: 9px;
+    border-radius: 8px;
     cursor: pointer;
     transition: all 0.2s ease;
   }
   .tab-pill-item.is-active {
     background: #ffffff;
     color: var(--ink);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
     font-weight: 700;
   }
   :global([data-theme="dark"]) .tab-pill-item.is-active {
@@ -479,19 +444,19 @@ const successText = msg ? (SUCCESS_MESSAGES[msg] ?? decodeURIComponent(msg)) : n
   /* Judul & Subtitle */
   .auth-header-text {
     text-align: center;
-    margin-bottom: 20px;
+    margin-bottom: 16px;
   }
   .auth-title {
-    font-size: clamp(1.4rem, 4vw, 1.65rem);
+    font-size: 1.3rem;
     font-weight: 800;
     line-height: 1.25;
-    margin: 0 0 6px;
+    margin: 0 0 4px;
     color: var(--ink);
   }
   .auth-subtitle {
-    font-size: 0.88rem;
+    font-size: 0.82rem;
     color: var(--text-muted);
-    line-height: 1.45;
+    line-height: 1.4;
     margin: 0;
   }
 
@@ -499,12 +464,12 @@ const successText = msg ? (SUCCESS_MESSAGES[msg] ?? decodeURIComponent(msg)) : n
   .auth-alert {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 9px 12px;
-    border-radius: 10px;
-    font-size: 0.82rem;
+    gap: 7px;
+    padding: 7px 11px;
+    border-radius: 9px;
+    font-size: 0.78rem;
     font-weight: 600;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
   }
   .alert-error {
     background: rgba(239, 68, 68, 0.1);
@@ -520,21 +485,21 @@ const successText = msg ? (SUCCESS_MESSAGES[msg] ?? decodeURIComponent(msg)) : n
   /* Forms */
   .auth-form {
     display: grid;
-    gap: 12px;
+    gap: 10px;
   }
   .auth-form.is-hidden {
     display: none;
   }
 
-  /* Input Field Ber-Ikon (Sesuai Referensi Gambar) */
+  /* Input Field Ber-Ikon */
   .input-icon-field {
     position: relative;
     display: flex;
     align-items: center;
     background: rgba(0, 0, 0, 0.035);
     border: 1px solid rgba(31, 77, 70, 0.12);
-    border-radius: 14px;
-    padding: 0 12px;
+    border-radius: 12px;
+    padding: 0 11px;
     transition: all 0.2s ease;
   }
   :global([data-theme="dark"]) .input-icon-field {
@@ -553,16 +518,16 @@ const successText = msg ? (SUCCESS_MESSAGES[msg] ?? decodeURIComponent(msg)) : n
   .field-leading-icon {
     display: grid;
     place-items: center;
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
     color: var(--text-muted);
     opacity: 0.75;
     flex-shrink: 0;
-    margin-right: 8px;
+    margin-right: 7px;
   }
   .field-leading-icon svg {
-    width: 17px;
-    height: 17px;
+    width: 15px;
+    height: 15px;
   }
 
   .auth-input {
@@ -570,8 +535,8 @@ const successText = msg ? (SUCCESS_MESSAGES[msg] ?? decodeURIComponent(msg)) : n
     min-width: 0;
     border: none;
     background: transparent;
-    padding: 13px 0;
-    font-size: 0.92rem;
+    padding: 10px 0;
+    font-size: 0.86rem;
     font-weight: 500;
     color: var(--ink);
     outline: none;
@@ -584,7 +549,7 @@ const successText = msg ? (SUCCESS_MESSAGES[msg] ?? decodeURIComponent(msg)) : n
   .field-trailing-btn {
     border: none;
     background: transparent;
-    padding: 4px;
+    padding: 3px;
     cursor: pointer;
     color: var(--text-muted);
     display: grid;
@@ -596,15 +561,15 @@ const successText = msg ? (SUCCESS_MESSAGES[msg] ?? decodeURIComponent(msg)) : n
     opacity: 1;
   }
   .field-trailing-btn svg {
-    width: 18px;
-    height: 18px;
+    width: 16px;
+    height: 16px;
   }
 
   .auth-link-subtle {
     border: none;
     background: transparent;
     padding: 0;
-    font-size: 0.8rem;
+    font-size: 0.76rem;
     font-weight: 600;
     color: var(--text-muted);
     cursor: pointer;
@@ -615,37 +580,37 @@ const successText = msg ? (SUCCESS_MESSAGES[msg] ?? decodeURIComponent(msg)) : n
     text-decoration: underline;
   }
 
-  /* Tombol Utama (Pill Gelap Kuat ala Referensi Get Started) */
+  /* Tombol Utama */
   .auth-primary-btn {
     width: 100%;
-    margin-top: 6px;
-    padding: 13px 20px;
-    border-radius: 14px;
+    margin-top: 3px;
+    padding: 10.5px 16px;
+    border-radius: 12px;
     background: var(--ink, #1f4d46);
     color: #ffffff;
-    font-size: 0.95rem;
+    font-size: 0.88rem;
     font-weight: 700;
     border: none;
     cursor: pointer;
     transition: all 0.2s ease;
-    box-shadow: 0 4px 14px rgba(31, 77, 70, 0.25);
+    box-shadow: 0 3px 10px rgba(31, 77, 70, 0.2);
   }
   .auth-primary-btn:hover:not(:disabled) {
     background: var(--brand, #2f7263);
     transform: translateY(-1px);
-    box-shadow: 0 6px 18px rgba(31, 77, 70, 0.35);
+    box-shadow: 0 5px 14px rgba(31, 77, 70, 0.3);
   }
   .auth-primary-btn:disabled {
     opacity: 0.6;
     cursor: not-allowed;
   }
 
-  /* Pemisah Titik-titik (Or sign in with) */
+  /* Pemisah Titik-titik */
   .auth-dotted-divider {
     display: flex;
     align-items: center;
     text-align: center;
-    margin: 22px 0 18px;
+    margin: 16px 0 13px;
   }
   .auth-dotted-divider::before,
   .auth-dotted-divider::after {
@@ -658,23 +623,23 @@ const successText = msg ? (SUCCESS_MESSAGES[msg] ?? decodeURIComponent(msg)) : n
     border-bottom-color: rgba(255, 255, 255, 0.2);
   }
   .auth-dotted-divider span {
-    padding: 0 12px;
-    font-size: 0.78rem;
+    padding: 0 10px;
+    font-size: 0.74rem;
     color: var(--text-muted);
     font-weight: 600;
   }
 
-  /* Baris Tombol Sosial (Google, Facebook, Apple) */
+  /* Baris Tombol Sosial */
   .auth-social-row {
     display: flex;
     justify-content: center;
-    gap: 12px;
-    margin-bottom: 20px;
+    gap: 9px;
+    margin-bottom: 15px;
   }
   .social-btn {
     flex: 1;
-    height: 44px;
-    border-radius: 12px;
+    height: 38px;
+    border-radius: 10px;
     background: #ffffff;
     border: 1px solid rgba(0, 0, 0, 0.08);
     display: grid;
@@ -682,7 +647,7 @@ const successText = msg ? (SUCCESS_MESSAGES[msg] ?? decodeURIComponent(msg)) : n
     cursor: pointer;
     transition: all 0.15s ease;
     text-decoration: none;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
   }
   :global([data-theme="dark"]) .social-btn {
     background: rgba(255, 255, 255, 0.08);
@@ -690,26 +655,26 @@ const successText = msg ? (SUCCESS_MESSAGES[msg] ?? decodeURIComponent(msg)) : n
     color: #fff;
   }
   .social-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transform: translateY(-1.5px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.07);
     border-color: rgba(31, 77, 70, 0.2);
   }
   .social-svg {
-    width: 20px;
-    height: 20px;
+    width: 17px;
+    height: 17px;
   }
 
   /* Teks Switcher di bagian bawah */
   .auth-bottom-switch {
     text-align: center;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     color: var(--text-muted);
   }
   .auth-switch-link {
     border: none;
     background: transparent;
     padding: 0;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     font-weight: 700;
     color: var(--brand);
     cursor: pointer;
@@ -718,6 +683,94 @@ const successText = msg ? (SUCCESS_MESSAGES[msg] ?? decodeURIComponent(msg)) : n
   .auth-switch-link:hover {
     text-decoration: underline;
   }
+
+  /* Optimasi Tampilan Mobile: Pas, Kompak, & Nyaman di Layar HP */
+  @media (max-width: 480px) {
+    .auth-ambient-wrap {
+      padding: 14px 12px;
+      min-height: calc(100vh - 80px);
+    }
+    .auth-card {
+      border-radius: 18px;
+      padding: 18px 14px;
+      box-shadow: 0 12px 28px -8px rgba(31, 77, 70, 0.1);
+    }
+    .auth-tab-pill {
+      margin-bottom: 12px;
+      padding: 3px;
+      border-radius: 9px;
+    }
+    .tab-pill-item {
+      padding: 5px 8px;
+      font-size: 0.76rem;
+      border-radius: 7px;
+    }
+    .auth-header-text {
+      margin-bottom: 12px;
+    }
+    .auth-title {
+      font-size: 1.15rem;
+      margin-bottom: 3px;
+    }
+    .auth-subtitle {
+      font-size: 0.74rem;
+      line-height: 1.35;
+    }
+    .auth-alert {
+      padding: 6px 9px;
+      font-size: 0.72rem;
+      margin-bottom: 10px;
+    }
+    .auth-form {
+      gap: 8px;
+    }
+    .input-icon-field {
+      border-radius: 10px;
+      padding: 0 9px;
+    }
+    .field-leading-icon {
+      width: 16px;
+      height: 16px;
+      margin-right: 6px;
+    }
+    .field-leading-icon svg {
+      width: 14px;
+      height: 14px;
+    }
+    .auth-input {
+      padding: 8px 0;
+      font-size: 0.8rem;
+    }
+    .auth-primary-btn {
+      padding: 8.5px 12px;
+      font-size: 0.82rem;
+      border-radius: 10px;
+    }
+    .auth-dotted-divider {
+      margin: 12px 0 10px;
+    }
+    .auth-dotted-divider span {
+      font-size: 0.68rem;
+      padding: 0 6px;
+    }
+    .auth-social-row {
+      gap: 7px;
+      margin-bottom: 12px;
+    }
+    .social-btn {
+      height: 34px;
+      border-radius: 8px;
+    }
+    .social-svg {
+      width: 15px;
+      height: 15px;
+    }
+    .auth-bottom-switch,
+    .auth-switch-link {
+      font-size: 0.74rem;
+    }
+  }
+
 </style>
 
 <script is:inline>
