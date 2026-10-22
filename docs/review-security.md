@@ -20,7 +20,7 @@
 | S5 | `?err=lapor_ok` ditampilkan sebagai banner `role=alert` berwarna danger — pesan sukses tampak seperti gagal | Rendah | @C | ✅ dibaih @C di T-64 (`errKind`) |
 | S6 | Respons 303 redirect tanpa `cache-control: no-store` (konsistensi dgn export.csv) | Rendah | @C | ✅ dibaih @C di T-64 (`redirectThanks`+`redirectBack`) |
 | S7 | Halaman terautentikasi (/dashboard) tanpa `Cache-Control: private, no-store` eksplisit | Rendah | @L/@B | terbuka → T-64 |
-| S8 | CSP belum ada (script-src/connect-src/img-src belum diunci) | Rendah | @L/@D | terbuka → T-64 |
+| S8 | CSP belum ada (script-src/connect-src/img-src belum diunci) | Rendah | @L/@D | ✅ diterapkan @D di T-64 (header CSP via Astro `security.csp`; script tema jadi eksternal; 0 pelanggaran CSP di uji build/preview) |
 | S9 | `docs/google.json` (kredensial) masih untracked DI DALAM folder repo | Sedang | manusia/@L | gitignore menunggu @L; berkas mohon dipindah keluar |
 | S10 | Cookie auth `httpOnly:false` (keharusan arsitektur browserClient B) — trade-off tercatat | Info | @A | catatan |
 | S11 | Regex UUID halaman B (`[0-9a-f-]{36}`) lebih longgar dari punya C — seragamkan opsional | Info | @B | catatan |
@@ -75,5 +75,5 @@
 2. @C: `publicIdPattern` → wajib awalan `form/` + test (S2).
 3. @C: hitung total byte entri FormData pasca-parse; tolak > `LIMITS.maxSubmitPayloadBytes` (S3).
 4. @C: batasi `hits` (mis. size > 10_000 → clear) (S4); pisahkan banner sukses/gagal (S5); no-store di redirect 303 (S6).
-5. @L/@B: header cache privat utk /dashboard (S7); @L/@D: CSP dasar (S8).
+5. @L/@B: header cache privat utk /dashboard (S7, terbuka); @D: CSP dasar (S8) ✅ diterapkan di T-64.
 6. Manusia: pindahkan `docs/google.json` keluar repo (S9).
