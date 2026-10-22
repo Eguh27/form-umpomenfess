@@ -23,7 +23,9 @@ Tetap sediakan kolom `tier` (default `free`) agar paywall mudah ditambah kelak.
 ### 4.1 Env vars
 `PUBLIC_SUPABASE_URL`, `PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` (server only),
 `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` (server only),
-`TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` (server only), `PUBLIC_SITE_URL`
+`TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` (server only), `PUBLIC_SITE_URL`,
+`SUPABASE_DB_URL` (server/workflow only — pg_dump backup, T-61),
+`BACKUP_BUCKET` (opsional, default `db-backups` — bucket Storage harus privat)
 
 ### 4.2 Limit (konstanta di `src/lib/config/limits.ts`, mudah diubah)
 Usulan awal: maks form aktif per user 20; maks gambar per form 5; maks ukuran gambar 2 MB; maks pertanyaan per form 50; maks panjang jawaban teks 2000 karakter; maks respons per form 2000 (free); rate limit submit per IP; maks ukuran payload submit.

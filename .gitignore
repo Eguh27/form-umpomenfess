@@ -8,3 +8,5 @@ dist/
 *.dump
 *.sql.gz
 backups/
+supabase/.temp/
+client_secret_*.json
