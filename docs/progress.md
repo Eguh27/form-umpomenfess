@@ -1,6 +1,7 @@
 # Progress log
 Format: `YYYY-MM-DD HH:MM | @peran | T-xx | apa yang jadi | file utama | catatan untuk agent lain`
 
+2026-10-22 19:43 | @D | visual | Hapus tombol "Lihat tema" pada hero section landing page (src/pages/index.astro), menyisakan satu tombol CTA utama "Buat form pertama" | src/pages/index.astro | 177 test app + 34 test ops hijau, check 0, lint 0, build hijau.
 2026-10-22 19:55 | @L/@A/@C/@B | EPIC-B | Panel Admin Moderasi Laporan: skema kolom reports + test SQL, otorisasi isAdmin(user) + modul reports.ts + API /api/admin/reports/[id]/action + halaman /dashboard/admin/laporan (filter status, review form, tutup form, selesaikan/abaikan) + banner dashboard | src/lib/auth/admin.ts, src/lib/forms/reports.ts, src/pages/api/admin/reports/[id]/action.ts, src/pages/dashboard/admin/laporan.astro, src/components/builder/AdminReports.tsx | 193 unit test + 34 ops test lulus, check 0, lint 0, build sukses 3.67s. Migrasi 20261022200000_reports_moderation.sql siap dieksekusi manusia di SQL Editor.
 
 2026-10-21 | @L (scaffold awal, dikerjakan di chat) | T-01,T-02 | struktur folder, limits.ts, design/tokens.css sementara, layout Base + halaman awal, build lolos | astro.config.mjs, src/lib/config/limits.ts, design/tokens.css | T-00 belum tuntas: pilih framework island + lint/test. tokens.css masih SEMENTARA (hanya --brand dari situs utama).
