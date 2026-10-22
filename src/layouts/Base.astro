@@ -9,21 +9,61 @@ const main = 'https://umpomenfess.my.id';
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#BFE8EA" />
+    <meta name="theme-color" content="#FDEEEC" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#16201E" media="(prefers-color-scheme: dark)" />
     <meta name="description" content={description} />
     <title>{title}</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23E8604C'/%3E%3Cpath d='M8 9h16v11H14l-5 4z' fill='%23FFF6EA'/%3E%3C/svg%3E"
+    />
+
+    <script is:inline>
+      // Pola sama dengan situs utama: localStorage 'theme', fallback color scheme OS,
+      // di-set sebelum render supaya tidak ada flash gelap/terang.
+      (() => {
+        const stored = localStorage.getItem("theme");
+        const theme = stored ?? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        document.documentElement.dataset.theme = theme;
+      })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700&amp;family=Quicksand:wght@500;600;700&amp;display=swap"
+    />
   </head>
   <body>
-    <header class="container" style="display:flex;justify-content:space-between;align-items:center;padding-block:var(--space-4)">
-      <a href="/" style="text-decoration:none;font-weight:700">umpomenfess <span class="eyebrow">form</span></a>
-      <nav style="display:flex;gap:var(--space-4)">
-        <a href={main}>Menfess</a>
-        <a href="/dashboard">Dashboard</a>
-      </nav>
+    <div class="bg-blobs" aria-hidden="true"><i></i></div>
+    <div class="grain" aria-hidden="true"></div>
+
+    <header class="site-header">
+      <div class="site-header__row">
+        <a class="brand" href="/">
+          <span class="brand__mark" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M4 4h16v12H10l-6 5z" fill="currentColor" />
+            </svg>
+          </span>
+          <span>
+            <span class="brand__name">umpomenfess <span class="brand__sub">form</span></span>
+          </span>
+        </a>
+        <nav class="site-nav">
+          <a href={main}>Menfess</a>
+          <a href="/dashboard">Dashboard</a>
+        </nav>
+      </div>
     </header>
+
     <main><slot /></main>
-    <footer class="container" style="padding-block:var(--space-7);color:var(--text-muted)">
-      © 2026 umpomenfess ✦ Universitas Muhammadiyah Ponorogo · <a href={main}>Kembali ke menfess</a>
+
+    <footer class="site-footer">
+      <div class="site-footer__row">
+        <span>© 2026 umpomenfess ✦ Universitas Muhammadiyah Ponorogo</span>
+        <a href={main}>Kembali ke menfess ↗</a>
+      </div>
     </footer>
   </body>
 </html>

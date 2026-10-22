@@ -1,31 +1,73 @@
 /*
   design/tokens.css — satu sumber gaya untuk seluruh halaman form & dashboard.
 
-  STATUS: SEMENTARA. Hanya --brand (#BFE8EA, dari theme-color umpomenfess.my.id)
-  yang berasal dari situs utama. Nilai bertanda [GANTI] adalah tebakan netral.
-  TUGAS Agent D (T-30): ganti semuanya dengan nilai asli dari design/reference/.
+  Sumber nilai: referensi template "Kaca · Blush" (SVG dari manusia, 2026-10-22)
+  + BNBA situs utama umpomenfess.my.id. Light = default (:root),
+  Dark = [data-theme="dark"] yang di-set script pre-hydration di Base.astro
+  (localStorage 'theme' → fallback prefers-color-scheme — pola sama dgn situs utama).
+
+  Pemetaan token SVG → token di sini:
+    kbg #FDEEEC            -> --bg
+    blob1 #E8604C @30%     -> --blob-1 (radial kanan-atas, r320)
+    blob2 #F6A678 @34%     -> --blob-2 (radial kiri-bawah, r360)
+    blob3 #F6C96B @45%     -> --blob-3 (radial kiri-tengah, r230)
+    kartu rgba(255,255,255,.62) -> --surface-glass (backdrop blur 14px)
+    border rgba(255,255,255,.95) 1.5px, r32 -> --border-glass + --radius-lg
+    shadow rgba(31,77,70,.12), y+24, blur 52 -> --shadow
+    ink #1F4D46 -> --text ; muted #7C958D -> --text-muted* (digelapkan agar lolos WCAG 4.5)
+    aksen logo #E8604C -> --accent ; pill #4C9E8F/#FFF6EA -> --pill-bg/--on-pill
+    Quicksand 600/700 (isi) + Baloo 2 700 (brand) -> --font-sans / --font-display
+
+  * --text-muted digelapkan dari #7C958D (kontras 2.85:1, gagal) ke #4F6A62 (4.98:1)
+    supaya label kecil tetap terbaca. Nilai #7C958D tetap dipakai utk teks dekoratif
+    di preview kartu menfess (lihat .card--menfess di global.css).
 */
 :root {
-  /* Warna */
-  --brand: #bfe8ea;            /* dari situs utama */
-  --brand-strong: #7cc7cb;     /* [GANTI] */
-  --bg: #f7fcfc;               /* [GANTI] */
-  --surface: #ffffff;          /* [GANTI] */
-  --text: #1f2937;             /* [GANTI] */
-  --text-muted: #6b7280;       /* [GANTI] */
-  --border: #dbeff0;           /* [GANTI] */
-  --danger: #dc2626;
-  --success: #16a34a;
+  /* Warna — light (kaca · blush) */
+  --bg: #fdeeec;                       /* kbg blush */
+  --blob-1: rgba(232, 96, 76, 0.30);   /* #E8604C */
+  --blob-2: rgba(246, 166, 120, 0.34); /* #F6A678 */
+  --blob-3: rgba(246, 201, 107, 0.45); /* #F6C96B */
 
-  /* Tipografi: ganti dengan font situs utama */
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; /* [GANTI] */
-  --font-display: var(--font-sans);                                                       /* [GANTI] */
+  --surface: #ffffff;                  /* kartu solid (preset plain) */
+  --surface-glass: rgba(255, 255, 255, 0.62); /* kartu kaca (preset menfess) */
+  --surface-soft: rgba(255, 255, 255, 0.45);  /* kartu lembut (preset soft) */
+
+  --border: rgba(31, 77, 70, 0.12);
+  --border-glass: rgba(255, 255, 255, 0.95);
+
+  --text: #1f4d46;                     /* ink */
+  --text-muted: #4f6a62;               /* digelapkan agar ≥4.5:1 di atas --bg */
+
+  --brand: #2f7263;                    /* teal interaktif (tombol, link) — teks --on-brand lolos 4.5:1 */
+  --brand-strong: #245b4f;             /* hover/tekan */
+  --brand-soft: #4a9a8b;               /* pill/dekorasi — digeser ±1 langkah dari #4C9E8F (SVG) agar teks pill ≥3:1 */
+  --on-brand: #fff6ea;
+
+  --pill-bg: #4a9a8b;
+  --on-pill: #fff6ea;
+
+  --accent: #e8604c;                   /* logo kiri header */
+  --accent-strong: #c74532;
+  --accent-soft: rgba(232, 96, 76, 0.12);
+
+  --code: rgba(31, 77, 70, 0.62);      /* kode fess footer kartu */
+
+  --danger: #c73a25;
+  --success: #2e7c57;
+
+  /* Bayangan */
+  --shadow: 0 24px 52px rgba(31, 77, 70, 0.12);   /* box-shadow kartu kaca */
+  --shadow-sm: 0 10px 24px rgba(31, 77, 70, 0.08);
+
+  /* Tipografi */
+  --font-sans: "Quicksand", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Baloo 2", "Quicksand", sans-serif;
 
   /* Bentuk */
-  --radius-sm: 8px;
-  --radius: 16px;              /* [GANTI] */
-  --radius-lg: 24px;
-  --shadow: 0 6px 24px rgb(0 0 0 / 0.06);
+  --radius-sm: 12px;
+  --radius: 16px;
+  --radius-lg: 32px;                   /* kartu kaca rx=32 di referensi */
 
   /* Spasi */
   --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
@@ -33,3 +75,45 @@
 
   --container: 1080px;
 }
+
+/* ===== Dark — dipilih lewat [data-theme="dark"] (script Base.astro) ===== */
+[data-theme="dark"] {
+  --bg: #16201e;                        /* teal-charcoal hangat, tetap nuansa "kaca" */
+  --blob-1: rgba(232, 96, 76, 0.20);
+  --blob-2: rgba(246, 166, 120, 0.22);
+  --blob-3: rgba(246, 201, 107, 0.28);
+
+  --surface: #1d2b27;
+  --surface-glass: rgba(255, 255, 255, 0.08);
+  --surface-soft: rgba(255, 255, 255, 0.05);
+
+  --border: rgba(255, 255, 255, 0.10);
+  --border-glass: rgba(255, 255, 255, 0.14);
+
+  --text: #f3efe6;
+  --text-muted: #9db5ad;               /* 7.7:1 di atas --bg dark */
+
+  --brand: #2f7263;                    /* tombol tetap lolos kontras dgn --on-brand (5.3:1) */
+  --brand-strong: #3b8a78;             /* hover di dark lebih terang, bukan lebih gelap */
+  --brand-soft: rgba(74, 154, 139, 0.34);
+  --on-brand: #fff6ea;
+
+  --pill-bg: rgba(74, 154, 139, 0.34);
+  --on-pill: #d7efe8;
+
+  --accent: #e8604c;                   /* 4.9:1 di atas --bg dark — boleh jadi teks */
+  --accent-strong: #f3836f;
+  --accent-soft: rgba(232, 96, 76, 0.16);
+
+  --code: rgba(243, 239, 230, 0.60);
+
+  --danger: #f2897a;
+  --success: #6fce9f;
+
+  --shadow: 0 24px 52px rgba(0, 0, 0, 0.45);
+  --shadow-sm: 0 10px 24px rgba(0, 0, 0, 0.32);
+}
+
+/* Warna bilah browser mengikuti tema (dipakai meta theme-color di Base.astro) */
+:root { --meta-theme: #fdeeec; }
+[data-theme="dark"] { --meta-theme: #16201e; }

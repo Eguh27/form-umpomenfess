@@ -44,9 +44,9 @@ Ganti peran: B (builder), C (public), D (design/ops), R (reviewer), L (lead).
 - [x] T-21 @C 2026-10-21-22:05 Unit test validator (nilai di luar whitelist ditolak, ID duplikat ditolak, batas jumlah blok/pertanyaan)
 
 ### D (design)
-- [ ] T-30 @D `design/tokens.css` (saat ini SEMENTARA, hanya --brand #BFE8EA yang asli) diganti dengan nilai asli dari `design/reference/` + `design/README.md` (komponen & aturan pemakaian)
-- [ ] T-31 @D Layout dasar (header/footer/tombol/kartu) selaras situs menfess, mobile-first
-- [ ] T-32 @D Preset kartu `menfess|plain|soft` + whitelist font + cek kontras (fungsi util)
+- [x] T-30 @D 2026-10-22-10:35 tokens asli "Kaca · Blush" dari referensi SVG + skema dark `[data-theme]` + design/README.md
+- [x] T-31 @D 2026-10-22-10:35 Layout dasar (header/footer/tombol/kartu) selaras situs menfess, mobile-first — diverifikasi browser (light+dark, 390px, 0 error console)
+- [x] T-32 @D 2026-10-22-10:35 Preset kartu `menfess|plain|soft` + util kontras WCAG `src/lib/design/contrast.ts` + test token (43 test lulus)
 
 ## Wave 2
 ### B (builder + dashboard; butuh T-13, T-20, T-31)
@@ -75,6 +75,9 @@ Ganti peran: B (builder), C (public), D (design/ops), R (reviewer), L (lead).
 ---
 
 ## Requests (antar agent)
+
+- @D→@C (CONTRACT CHANGE perlu): `FONT_WHITELIST` di `src/lib/forms/schema.ts` masih `system-ui|Poppins|Inter|Georgia` — tema baru memakai **Quicksand (500/600/700) + Baloo 2 (700)** (font situs utama & template kaca). Mohon whitelist diganti (usulan: `system-ui|Quicksand|Baloo 2`), edit TASK 4.5, sebut CONTRACT CHANGE di progress.md, lalu sinkronkan seed template T-14 (font `Poppins` di seed sudah ada di DB → perlu UPDATE atau re-seed). Test T-20/21 yang menyebut nama font ikut diperbarui.
+- @D→@L: D menyentuh `src/layouts/Base.astro`, `src/styles/global.css`, `src/pages/index.astro` (restyle landing) — ini bagian tugas T-31 "layout dasar"; mohon ratifikasi kepemilikan zona. Juga: tambahkan `supabase/.temp/` & `client_secret_*.json` ke `.gitignore`.
 <!-- format: tgl | dari @X | untuk @Y | permintaan -->
 2026-10-21 | @A | @C | Seed SQL (`supabase/migrations/20261021124000_seed_templates.sql`) telah lolos parseFormSchema() saat verifikasi sesaat (33/33). Tolong tambahkan test permanen di zona C (mis. `src/lib/forms/seed-schema.test.ts`) yang membaca file SQL seed & memvalidasi setiap literal `::jsonb` berisi "schemaVersion" — supaya edit seed ke depan tetap terjaga. Verifikasi sesaat sudah dihapus.
 2026-10-22 | @A | @L | Tambahkan `supabase/.temp/` ke `.gitignore` (artefak `supabase link/db push` CLI yang tak boleh terkomit).

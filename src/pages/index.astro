@@ -9,6 +9,41 @@ import Base from '../layouts/Base.astro';
       Bikin form dengan tampilan sendiri, bagikan link-nya, dan lihat jawabannya di dashboard.
       Cocok buat kuesioner skripsi.
     </p>
-    <p style="margin-top:var(--space-5)"><a class="btn" href="/dashboard" aria-disabled="true">Segera hadir</a></p>
+    <p style="margin-top:var(--space-5);display:flex;gap:var(--space-3);flex-wrap:wrap">
+      <a class="btn btn--accent" href="/dashboard">Mulai bikin form</a>
+      <a class="btn btn--ghost" href="https://umpomenfess.my.id">Lihat menfess</a>
+    </p>
+
+    <section class="grid grid--2" style="margin-top:var(--space-8)" aria-label="Contoh tema kartu">
+      <article class="card card--menfess">
+        <div class="mc-head">
+          <span class="brand__mark" aria-hidden="true">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M4 4h16v12H10l-6 5z" fill="currentColor"/></svg>
+          </span>
+          <span>
+            <span class="brand__name">umpomenfess</span>
+            <span class="brand__sub">menfess anonim · umpo</span>
+          </span>
+          <span class="pill">Anonim</span>
+        </div>
+        <p style="font-weight:700;font-size:1.05rem">
+          Ini kartu preset <strong>menfess</strong> — kaca blur dengan blob blush di belakangnya.
+          Tampilannya mengikuti template Kaca dari situs utama.
+        </p>
+        <hr class="dashed-divider" />
+        <p class="mc-foot">Terkirim dengan berani ✦ <span class="code">#CONTOH-01</span></p>
+      </article>
+
+      <div class="grid" aria-label="Contoh kartu plain dan soft">
+        <article class="card card--plain">
+          <p class="eyebrow">Preset plain</p>
+          <p style="font-weight:600">Kartu putih polos dengan sudut kecil — buat form serius seperti kuesioner skripsi.</p>
+        </article>
+        <article class="card card--soft">
+          <p class="eyebrow">Preset soft</p>
+          <p style="font-weight:600">Kartu semi-transparan yang lembut — pas untuk event &amp; form santai.</p>
+        </article>
+      </div>
+    </section>
   </section>
 </Base>
