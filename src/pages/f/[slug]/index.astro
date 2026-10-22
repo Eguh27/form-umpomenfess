@@ -218,6 +218,19 @@ const headingSizeRem: Record<string, string> = { s: '1.1rem', m: '1.4rem', l: '1
                 }
               })();
             </script>
+            <script is:inline>
+              // R2b-c: cegah klik ganda — tombol Kirim nonaktif setelah submit
+              // pertama. Penegakan utama tetap server (cek replay + index unik).
+              (function () {
+                const f = document.querySelector('form[action$="/submit"]');
+                if (f !== null) {
+                  f.addEventListener('submit', function () {
+                    const b = f.querySelector('button[type="submit"]');
+                    if (b !== null) b.disabled = true;
+                  });
+                }
+              })();
+            </script>
 
             <button type="submit" class="btn btn--accent" style="margin-top:var(--space-4);width:100%">
               Kirim jawaban
