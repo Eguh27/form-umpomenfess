@@ -1,256 +1,390 @@
 @import '../../design/tokens.css';
+@import './components.css';
 
 /* =========================================================
-   umpomenfess form — global stylesheet (T-31/T-32)
-   Selaras situs utama: glassmorphism "kaca", blob blush,
-   Baloo 2 untuk brand, Quicksand untuk isi, dark via
-   [data-theme="dark"]. Mobile-first.
+   global.css — dasar halaman, header kaca, footer blush,
+   kanvas titik, dan tipografi Kaca Blush Studio.
 ========================================================= */
 
-*, *::before, *::after { box-sizing: border-box; }
-html { scroll-behavior: smooth; }
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; scroll-padding-top: 108px; -webkit-text-size-adjust: 100%; }
 
 body {
   margin: 0;
+  min-height: 100dvh;
+  overflow-x: hidden;
   font-family: var(--font-sans);
   font-weight: 500;
+  line-height: 1.65;
   color: var(--text);
   background: var(--bg);
-  line-height: 1.6;
-  min-height: 100dvh;
 }
 
-::selection { background: var(--accent-soft); }
+::selection {
+  background: var(--accent-soft);
+  color: var(--ink);
+}
 
 a { color: inherit; }
 img, svg { display: block; max-width: 100%; }
+button { font: inherit; cursor: pointer; }
+input, textarea, select { font-family: inherit; }
 
-h1, h2, h3 {
+h1, h2, h3, h4 {
+  margin: 0 0 0.5em;
   font-family: var(--font-display);
   font-weight: 700;
-  line-height: 1.25;
+  line-height: 1.08;
+  letter-spacing: -0.015em;
   color: var(--text);
 }
+h1 { font-size: clamp(2.2rem, 5vw, 3.5rem); }
+h2 { font-size: clamp(1.7rem, 3.4vw, 2.5rem); }
+h3 { font-size: 1.2rem; }
+p { margin: 0 0 1em; }
+p:last-child { margin-bottom: 0; }
 
-/* ===== Latar blob (addon referensi SVG) ===== */
-/* <div class="bg-blobs" aria-hidden="true"></div> di Base, fixed di belakang konten.
-   Blur via filter — padanan backdrop-filter pada kartu di referensi. */
+/* ===== Kanvas blush + blob + titik ===== */
 .bg-blobs {
-  position: fixed;
-  inset: 0;
+  position: absolute;
+  inset: 0 0 auto;
+  height: min(980px, 92vh);
   z-index: -1;
   overflow: hidden;
-  background: var(--bg);
   pointer-events: none;
+  background:
+    radial-gradient(560px 440px at 88% 4%, var(--blob-peach), transparent 70%),
+    radial-gradient(520px 420px at 2% 26%, var(--blob-gold), transparent 72%),
+    radial-gradient(680px 460px at 56% -2%, var(--blob-coral), transparent 70%);
 }
-.bg-blobs::before,
 .bg-blobs::after {
   content: "";
   position: absolute;
-  border-radius: 50%;
-  filter: blur(90px);
-}
-.bg-blobs::before {
-  top: -18%; right: -14%; width: 60vmax; height: 60vmax;
-  background: radial-gradient(closest-side, var(--blob-1), transparent 70%);
-}
-.bg-blobs::after {
-  bottom: -24%; left: -16%; width: 66vmax; height: 66vmax;
-  background:
-    radial-gradient(closest-side, var(--blob-2), transparent 70%),
-    radial-gradient(closest-side, var(--blob-3), transparent 60%) ;
-}
-/* blob kecil kiri-tengah (b3) terpisah supaya posisinya bebas */
-.bg-blobs > i {
-  position: absolute;
-  top: 45%; left: -8%; width: 34vmax; height: 34vmax;
-  border-radius: 50%;
-  filter: blur(70px);
-  background: radial-gradient(closest-side, var(--blob-3), transparent 70%);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; }
+  inset: 0;
+  background-image: radial-gradient(circle, var(--dot-color) 1px, transparent 1.2px);
+  background-size: 26px 26px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.55), transparent 82%);
+  -webkit-mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.55), transparent 82%);
+  opacity: 0.55;
 }
 
 /* ===== Struktur ===== */
-.container { max-width: var(--container); margin: 0 auto; padding-inline: var(--space-4); }
-@media (min-width: 720px) { .container { padding-inline: var(--space-5); } }
+.container {
+  max-width: var(--container);
+  margin: 0 auto;
+  padding-inline: var(--space-4);
+}
+@media (min-width: 720px) {
+  .container { padding-inline: var(--space-5); }
+}
 
+main { display: block; min-height: 62dvh; padding-top: 108px; }
+
+.skip-link {
+  position: absolute;
+  top: -96px;
+  left: 12px;
+  z-index: 1000;
+  padding: 10px 16px;
+  border-radius: 0 0 12px 12px;
+  background: var(--text);
+  color: var(--bg);
+  font-weight: 700;
+  text-decoration: none;
+  transition: top 0.15s ease;
+}
+.skip-link:focus { top: 12px; }
+
+:where(a, button, summary, [tabindex]):focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+/* ===== Header kaca mengambang — pola navbar referensi ===== */
 .site-header {
-  position: sticky; top: 0; z-index: 10;
-  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-  background: color-mix(in srgb, var(--bg) 72%, transparent);
-  border-bottom: 1px solid var(--border);
+  position: fixed;
+  top: 18px;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  width: 100%;
+  padding-inline: 20px;
+  pointer-events: none;
 }
 .site-header__row {
-  display: flex; justify-content: space-between; align-items: center;
-  gap: var(--space-3); padding-block: var(--space-3);
-  max-width: var(--container); margin: 0 auto; padding-inline: var(--space-4);
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  width: min(1240px, 100%);
+  min-height: 72px;
+  margin: 0 auto;
+  padding: 8px 10px 8px 18px;
+  border: 1px solid var(--border-glass);
+  border-radius: 26px;
+  background: var(--nav-bg);
+  box-shadow: 0 12px 40px rgba(40, 70, 57, 0.08);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }
-@media (min-width: 720px) { .site-header__row { padding-inline: var(--space-5); } }
+[data-theme="dark"] .site-header__row { box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35); }
+.site-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+}
 
 .brand {
-  display: inline-flex; align-items: center; gap: var(--space-3);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
   text-decoration: none;
 }
 .brand__mark {
-  width: 36px; height: 36px; border-radius: 12px;
-  display: grid; place-items: center;
-  background: var(--accent); color: var(--on-pill);
+  display: grid;
+  place-items: center;
+  width: 43px;
+  height: 43px;
+  padding: 9px;
   flex: none;
+  border-radius: 14px;
+  background: var(--coral);
+  color: #fff6ea;
+  box-shadow: 0 8px 18px rgba(232, 96, 76, 0.22);
+  transform: rotate(-4deg);
 }
+[data-theme="dark"] .brand__mark { color: #10201c; }
+.brand__mark svg { width: 100%; height: 100%; }
 .brand__name {
-  font-family: var(--font-display); font-weight: 700;
-  font-size: 1.05rem; line-height: 1.1;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.25rem;
+  line-height: 1;
+  color: var(--text);
+  letter-spacing: -0.02em;
+  white-space: nowrap;
 }
+.brand__divider { width: 1px; height: 18px; background: var(--border); }
 .brand__sub {
-  display: block;
-  font-size: 0.55rem; font-weight: 700;
-  letter-spacing: 0.16em; text-transform: uppercase;
-  color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 0.65rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent);
 }
 
-.site-nav { display: flex; gap: var(--space-4); align-items: center; }
+.site-nav { display: flex; align-items: center; gap: 26px; }
 .site-nav a {
-  font-weight: 600; font-size: 0.95rem;
-  text-decoration: none; border-radius: 10px;
-  padding: var(--space-2) var(--space-3);
-}
-.site-nav a:hover, .site-nav a:focus-visible { background: var(--surface-soft); }
-.site-nav a:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
-
-.site-footer { border-top: 1px dashed var(--border); margin-top: var(--space-8); }
-.site-footer__row {
-  max-width: var(--container); margin: 0 auto; padding-block: var(--space-5);
-  padding-inline: var(--space-4);
-  color: var(--text-muted); font-size: 0.9rem;
-  display: flex; flex-wrap: wrap; gap: var(--space-3); justify-content: space-between;
-}
-@media (min-width: 720px) { .site-footer__row { padding-inline: var(--space-5); } }
-
-main { display: block; min-height: 60dvh; }
-
-/* ===== Komponen kecil ===== */
-.eyebrow {
-  font-size: 0.72rem; font-weight: 700;
-  letter-spacing: 0.14em; text-transform: uppercase;
-  color: var(--text-muted);
-}
-
-.pill {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 4px 12px; border-radius: 999px;
-  background: var(--pill-bg); color: var(--on-pill);
-  font-size: 0.7rem; font-weight: 700;
-  letter-spacing: 0.16em; text-transform: uppercase; text-decoration: none;
-}
-
-.dashed-divider {
-  border: 0; border-top: 1.5px dashed color-mix(in srgb, var(--text) 24%, transparent);
-  margin-block: var(--space-4);
-}
-
-/* ===== Tombol ===== */
-.btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  padding: 11px 22px;
-  border-radius: 999px;
-  background: var(--brand); color: var(--on-brand);
-  border: 1px solid transparent;
-  font: 700 0.95rem/1.2 var(--font-sans);
+  color: var(--ink-soft);
+  font-size: 13px;
+  font-weight: 700;
   text-decoration: none;
-  cursor: pointer;
-  transition: transform 0.06s ease, background 0.15s ease;
+  transition: color 0.2s ease;
 }
-.btn:hover { background: var(--brand-strong); }
-.btn:active { transform: translateY(1px); }
-.btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.btn[aria-disabled="true"], .btn:disabled { opacity: 0.55; pointer-events: none; }
+.site-nav a:hover,
+.site-nav a:focus-visible { color: var(--accent); }
 
-.btn--ghost {
-  background: transparent; color: var(--brand);
-  border-color: color-mix(in srgb, var(--brand) 45%, transparent);
+.nav-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 10px 17px;
+  border-radius: 16px;
+  background: var(--brand);
+  color: var(--on-brand);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  box-shadow: 0 8px 18px rgba(31, 77, 70, 0.14);
+  transition: transform 0.2s ease, background 0.2s ease;
 }
-.btn--ghost:hover { background: var(--surface-soft); }
+.nav-cta:hover { transform: translateY(-1px); background: var(--brand-strong); }
+.nav-cta svg { width: 16px; height: 16px; flex: none; }
 
-.btn--accent { background: var(--accent); }
-.btn--accent:hover { background: var(--accent-strong); }
-
-/* ===== Kartu ===== */
-.card {
-  padding: var(--space-5);
-  color: var(--text);
-}
-.card > :first-child { margin-top: 0; }
-.card > :last-child { margin-bottom: 0; }
-
-/* Preset T-32: data-card="menfess|plain|soft" (default jika tanpa klas) */
-.card--plain,
-.card[data-card="plain"] {
-  background: var(--surface);
+.theme-toggle {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
   border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-sm);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--surface) 54%, transparent);
+  color: var(--ink);
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
 }
-
-.card--soft,
-.card[data-card="soft"] {
-  background: var(--surface-soft);
-  border: 1px solid var(--border-glass);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-sm);
-}
-
-/* Kartu menfess: tiruan kartu kaca referensi, dipakai untuk preview & isian */
-.card--menfess,
-.card[data-card="menfess"] {
-  position: relative;
-  background: var(--surface-glass);
-  border: 1.5px solid var(--border-glass);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow);
-  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
-  padding: var(--space-6) var(--space-5);
-}
-
-/* Head kartu menfess: logo + nama + pill (pola referensi) */
-.mc-head { display: flex; align-items: center; gap: 10px; margin-bottom: var(--space-4); }
-.mc-head .brand__mark { width: 34px; height: 34px; border-radius: 11px; }
-.mc-head .brand__name { font-size: 0.95rem; }
-.mc-head .brand__sub { letter-spacing: 0.16em; }
-.mc-head .pill { margin-left: auto; }
-.mc-foot { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.16em; color: var(--text-muted); }
-.mc-foot .code { float: right; font-weight: 700; color: var(--code); }
-
-/* ===== Form dasar (dipakai builder & halaman isi) ===== */
-.field { display: block; margin-bottom: var(--space-4); }
-.field > span { display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 6px; }
-.input, .textarea, .select {
-  width: 100%;
-  padding: 10px 14px;
-  border-radius: 10px;
-  border: 1.5px solid var(--border);
+.theme-toggle:hover {
+  transform: translateY(-1px);
+  border-color: var(--mint);
   background: var(--surface);
+}
+.theme-toggle:active { transform: translateY(1px); }
+.theme-toggle svg { width: 18px; height: 18px; }
+.theme-toggle .icon-sun { color: var(--coral); }
+.theme-toggle .icon-moon { display: none; color: var(--gold); }
+[data-theme="dark"] .theme-toggle .icon-sun { display: none; }
+[data-theme="dark"] .theme-toggle .icon-moon { display: block; }
+
+/* Menu mobile tanpa JS: <details> + <summary>. */
+.nav-mobile { display: none; position: relative; }
+.menu-button {
+  display: grid;
+  place-content: center;
+  gap: 6px;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--brand);
+  cursor: pointer;
+  list-style: none;
+}
+.menu-button::-webkit-details-marker { display: none; }
+.menu-button span {
+  display: block;
+  width: 19px;
+  height: 2px;
+  border-radius: 5px;
+  background: var(--on-brand);
+  transition: transform 0.2s ease;
+}
+.nav-mobile[open] .menu-button span:first-child { transform: translateY(4px) rotate(45deg); }
+.nav-mobile[open] .menu-button span:last-child { transform: translateY(-4px) rotate(-45deg); }
+.mobile-menu {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  z-index: 60;
+  width: min(280px, calc(100vw - 40px));
+  padding: 14px;
+  display: grid;
+  gap: 2px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+.mobile-menu a {
+  padding: 10px 12px;
+  border-radius: 10px;
   color: var(--text);
-  font: 600 0.95rem/1.5 var(--font-sans);
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
 }
-.input:focus-visible, .textarea:focus-visible, .select:focus-visible {
-  outline: 2px solid var(--brand); outline-offset: 1px; border-color: var(--brand);
-}
-.textarea { min-height: 96px; resize: vertical; }
-.help { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; }
+.mobile-menu a:hover { background: var(--surface-soft); color: var(--accent); }
 
-/* ===== Grid util ===== */
-.grid { display: grid; gap: var(--space-4); }
+/* ===== Footer blush ===== */
+.site-footer {
+  margin-top: var(--space-7);
+  border-top: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg) 48%, var(--surface-soft));
+  color: var(--text);
+}
+.site-footer__inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-5);
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-4) var(--space-5);
+}
+.site-footer__brand { max-width: 44ch; }
+.site-footer__brand .brand { margin-bottom: var(--space-2); }
+.site-footer__brand .brand__mark {
+  width: 34px;
+  height: 34px;
+  padding: 7px;
+  border-radius: 11px;
+  box-shadow: 0 6px 14px rgba(232, 96, 76, 0.18);
+}
+.site-footer__brand .brand__name { font-size: 1.05rem; }
+.site-footer__brand p { margin: 0; color: var(--text-muted); font-size: 0.9rem; }
+.site-footer__links { display: flex; flex-wrap: wrap; gap: var(--space-4); }
+.site-footer__links a {
+  color: var(--text);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+.site-footer__links a:hover {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.site-footer__bottom {
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px dashed var(--border);
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
 @media (min-width: 720px) {
-  .grid--2 { grid-template-columns: repeat(2, 1fr); gap: var(--space-5); }
+  .site-footer__inner,
+  .site-footer__bottom { padding-inline: var(--space-5); }
 }
 
-/* Grain halus ala situs utama (opsional, pasang .grain di Base) */
-.grain {
-  position: fixed; inset: 0; z-index: -1;
-  pointer-events: none; opacity: 0.05;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.9'/%3E%3C/svg%3E");
+@media (max-width: 900px) {
+  html { scroll-padding-top: 104px; }
+  main { padding-top: 104px; }
+  .site-nav,
+  .nav-cta { display: none; }
+  .nav-mobile { display: block; }
+  .site-header__row { gap: 12px; }
 }
-[data-theme="dark"] .grain { opacity: 0.08; }
+
+@media (max-width: 640px) {
+  html { scroll-padding-top: 72px; }
+  main { padding-top: 72px; }
+  .container { padding-inline: 14px; }
+  h1 { font-size: clamp(1.6rem, 6.5vw, 2.1rem); }
+  h2 { font-size: clamp(1.25rem, 4.5vw, 1.6rem); }
+  h3 { font-size: 1.05rem; }
+  .site-header { top: 8px; padding-inline: 10px; }
+  .site-header__row {
+    min-height: 52px;
+    padding: 5px 8px 5px 12px;
+    border-radius: 16px;
+    gap: 8px;
+  }
+  .site-header__actions { gap: 6px; }
+  .brand__mark { width: 32px; height: 32px; padding: 6px; border-radius: 10px; }
+  .brand__name { font-size: 0.98rem; }
+  .brand__divider { height: 12px; }
+  .brand__sub { font-size: 0.54rem; }
+  .theme-toggle { width: 34px; height: 34px; border-radius: 10px; }
+  .theme-toggle svg { width: 15px; height: 15px; }
+  .menu-button { width: 34px; height: 34px; border-radius: 10px; gap: 4px; }
+  .menu-button span { width: 16px; height: 2px; }
+  .mobile-menu { width: min(250px, calc(100vw - 28px)); padding: 10px; border-radius: 14px; }
+  .mobile-menu a { padding: 8px 10px; font-size: 13px; }
+  .site-footer { margin-top: var(--space-5); }
+  .site-footer__inner { flex-direction: column; gap: var(--space-3); padding: var(--space-4) 14px; }
+  .site-footer__bottom { padding: var(--space-2) 14px; font-size: 0.72rem; }
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

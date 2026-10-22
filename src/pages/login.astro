@@ -686,90 +686,98 @@ const successText = msg ? (SUCCESS_MESSAGES[msg] ?? decodeURIComponent(msg)) : n
 
   /* Optimasi Tampilan Mobile: Pas, Kompak, & Nyaman di Layar HP */
   @media (max-width: 480px) {
+    .arc-1 { width: 320px; height: 320px; }
+    .arc-2 { width: 460px; height: 460px; }
+    .arc-3 { width: 600px; height: 600px; }
     .auth-ambient-wrap {
-      padding: 14px 12px;
-      min-height: calc(100vh - 80px);
+      padding: 10px 10px 20px;
+      min-height: calc(100vh - 72px);
+    }
+    .auth-center-container {
+      max-width: 350px;
     }
     .auth-card {
-      border-radius: 18px;
-      padding: 18px 14px;
-      box-shadow: 0 12px 28px -8px rgba(31, 77, 70, 0.1);
+      border-radius: 16px;
+      padding: 16px 13px;
+      box-shadow: 0 10px 24px -6px rgba(31, 77, 70, 0.09);
     }
     .auth-tab-pill {
-      margin-bottom: 12px;
-      padding: 3px;
-      border-radius: 9px;
+      margin-bottom: 11px;
+      padding: 2.5px;
+      border-radius: 8px;
     }
     .tab-pill-item {
-      padding: 5px 8px;
-      font-size: 0.76rem;
-      border-radius: 7px;
+      padding: 4.5px 7px;
+      font-size: 0.74rem;
+      border-radius: 6px;
     }
     .auth-header-text {
-      margin-bottom: 12px;
+      margin-bottom: 11px;
     }
     .auth-title {
-      font-size: 1.15rem;
-      margin-bottom: 3px;
+      font-size: 1.1rem;
+      margin-bottom: 2px;
     }
     .auth-subtitle {
-      font-size: 0.74rem;
-      line-height: 1.35;
+      font-size: 0.72rem;
+      line-height: 1.32;
     }
     .auth-alert {
-      padding: 6px 9px;
-      font-size: 0.72rem;
-      margin-bottom: 10px;
+      padding: 5px 8px;
+      font-size: 0.7rem;
+      margin-bottom: 9px;
     }
     .auth-form {
-      gap: 8px;
+      gap: 7px;
     }
     .input-icon-field {
-      border-radius: 10px;
-      padding: 0 9px;
+      border-radius: 9px;
+      padding: 0 8px;
+      min-height: 36px;
     }
     .field-leading-icon {
-      width: 16px;
-      height: 16px;
-      margin-right: 6px;
+      width: 15px;
+      height: 15px;
+      margin-right: 5px;
     }
     .field-leading-icon svg {
-      width: 14px;
-      height: 14px;
+      width: 13px;
+      height: 13px;
     }
     .auth-input {
-      padding: 8px 0;
-      font-size: 0.8rem;
+      padding: 7px 0;
+      font-size: 0.78rem;
     }
     .auth-primary-btn {
-      padding: 8.5px 12px;
-      font-size: 0.82rem;
-      border-radius: 10px;
+      padding: 8px 12px;
+      font-size: 0.8rem;
+      border-radius: 9px;
     }
     .auth-dotted-divider {
-      margin: 12px 0 10px;
+      margin: 11px 0 9px;
     }
     .auth-dotted-divider span {
-      font-size: 0.68rem;
-      padding: 0 6px;
+      font-size: 0.66rem;
+      padding: 0 5px;
     }
     .auth-social-row {
-      gap: 7px;
-      margin-bottom: 12px;
+      gap: 6px;
+      margin-bottom: 11px;
     }
     .social-btn {
-      height: 34px;
+      height: 33px;
       border-radius: 8px;
     }
     .social-svg {
-      width: 15px;
-      height: 15px;
+      width: 14px;
+      height: 14px;
     }
     .auth-bottom-switch,
     .auth-switch-link {
-      font-size: 0.74rem;
+      font-size: 0.72rem;
     }
   }
+
 
 </style>
 

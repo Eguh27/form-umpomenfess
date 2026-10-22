@@ -1,0 +1,272 @@
+/* =========================================================
+   components.css — primitif UI Kaca Blush Studio.
+   Semua warna/bentuk dari design/tokens.css.
+========================================================= */
+
+/* ===== Label kecil & badge ===== */
+.eyebrow {
+  margin: 0 0 var(--space-2);
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.eyebrow a { color: inherit; text-decoration: none; }
+.eyebrow a:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--pill-bg);
+  color: var(--on-pill);
+  font-family: var(--font-sans);
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.pill--ghost {
+  background: var(--surface);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+.pill--coral {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.dashed-divider {
+  border: 0;
+  border-top: 1.5px dashed color-mix(in srgb, var(--ink) 22%, transparent);
+  margin-block: var(--space-4);
+}
+
+.code,
+code {
+  font-family: var(--font-mono);
+  font-size: 0.78em;
+  background: var(--surface-soft);
+  border-radius: 6px;
+  padding: 2px 6px;
+  color: var(--code);
+}
+
+/* ===== Tombol — bentuk dari navbar/tombol referensi ===== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 54px;
+  padding: 0 25px;
+  border: 0;
+  border-radius: 18px;
+  background: var(--accent-strong);
+  color: var(--on-accent);
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.15;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: 0 11px 25px rgba(184, 66, 46, 0.25);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+.btn:hover {
+  transform: translateY(-2px);
+  background: var(--accent-hover);
+  box-shadow: 0 15px 30px rgba(184, 66, 46, 0.3);
+}
+.btn:active {
+  transform: translateY(0);
+  box-shadow: 0 6px 14px rgba(184, 66, 46, 0.22);
+}
+.btn:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+.btn[aria-disabled="true"],
+.btn:disabled { opacity: 0.55; pointer-events: none; transform: none; }
+.btn svg { width: 18px; height: 18px; flex: none; }
+
+.btn--accent { background: var(--accent-strong); color: var(--on-accent); }
+.btn--brand {
+  background: var(--brand);
+  color: var(--on-brand);
+  box-shadow: 0 11px 25px rgba(31, 77, 70, 0.18);
+}
+.btn--brand:hover {
+  background: var(--brand-strong);
+  box-shadow: 0 15px 30px rgba(31, 77, 70, 0.24);
+}
+
+.btn--ghost {
+  background: transparent;
+  border: 1.5px solid var(--ink);
+  color: var(--ink);
+  box-shadow: none;
+}
+.btn--ghost:hover {
+  background: var(--accent-soft);
+  border-color: var(--ink);
+  box-shadow: none;
+}
+[data-theme="dark"] .btn {
+  box-shadow: 0 11px 25px rgba(0, 0, 0, 0.32);
+}
+[data-theme="dark"] .btn:hover {
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+}
+[data-theme="dark"] .btn--brand {
+  box-shadow: 0 11px 25px rgba(0, 0, 0, 0.3);
+}
+
+.btn--sm {
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 12px;
+  gap: 6px;
+  font-size: 0.85rem;
+}
+.btn--sm svg { width: 15px; height: 15px; }
+
+/* ===== Kartu & preset tema form ===== */
+.card { padding: var(--space-5); color: var(--ink); }
+.card > :first-child { margin-top: 0; }
+.card > :last-child { margin-bottom: 0; }
+
+.card--plain,
+.card[data-card="plain"] {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.card--soft,
+.card[data-card="soft"] {
+  background: linear-gradient(180deg, var(--surface), var(--surface-soft));
+  border: 1px solid color-mix(in srgb, var(--coral) 20%, var(--border));
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Kartu kaca: padanan template Kaca · Blush. */
+.card--menfess,
+.card[data-card="menfess"] {
+  position: relative;
+  overflow: hidden;
+  background: var(--surface-glass);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  padding: var(--space-6) var(--space-5);
+}
+
+.mc-head { display: flex; align-items: center; gap: 10px; margin-bottom: var(--space-4); }
+.mc-head .brand__mark { width: 32px; height: 32px; }
+.mc-head .brand__name { font-size: 0.95rem; }
+.mc-head .pill { margin-left: auto; }
+.mc-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.mc-foot .code { background: transparent; padding: 0; color: inherit; }
+
+/* ===== Form dasar (builder & halaman isi) ===== */
+.field { display: block; margin-bottom: var(--space-4); }
+.field > span { display: block; font-weight: 700; font-size: 0.9rem; margin-bottom: 6px; }
+
+.input,
+.textarea,
+.select {
+  width: 100%;
+  padding: 11px 13px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink);
+  font: 500 0.95rem/1.5 var(--font-sans);
+}
+.input::placeholder,
+.textarea::placeholder { color: var(--text-muted); opacity: 0.75; }
+.input:focus-visible,
+.textarea:focus-visible,
+.select:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+  border-color: var(--focus);
+  box-shadow: 0 0 0 4px var(--accent-soft);
+}
+.textarea { min-height: 104px; resize: vertical; }
+.help { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; }
+
+input[type="color"] {
+  width: 44px;
+  height: 34px;
+  padding: 2px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--surface);
+  cursor: pointer;
+}
+input[type="range"] { width: 100%; accent-color: var(--brand); }
+input[type="checkbox"],
+input[type="radio"] { accent-color: var(--brand); }
+
+/* ===== Login ===== */
+.container.login-shell {
+  max-width: 460px;
+  padding-block: clamp(32px, 8vh, 72px);
+}
+.login-card { padding: var(--space-6); }
+.login-mark {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  margin-bottom: var(--space-4);
+  border-radius: 14px;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.login-mark svg { width: 22px; height: 22px; }
+
+/* ===== Grid util ===== */
+.grid { display: grid; gap: var(--space-4); }
+@media (min-width: 720px) {
+  .grid--2 { grid-template-columns: repeat(2, 1fr); gap: var(--space-5); }
+}
+
+@media (max-width: 640px) {
+  .btn {
+    min-height: 42px;
+    padding: 0 16px;
+    border-radius: 12px;
+    font-size: 0.88rem;
+    gap: 8px;
+    box-shadow: 0 6px 16px rgba(184, 66, 46, 0.2);
+  }
+  .btn svg { width: 15px; height: 15px; }
+  .btn--sm { min-height: 32px; padding: 0 10px; font-size: 0.78rem; border-radius: 9px; }
+  .input, .select, .textarea {
+    padding: 9px 12px;
+    font-size: 0.88rem;
+    border-radius: 10px;
+  }
+  .pill { padding: 3px 8px; font-size: 0.6rem; }
+  .eyebrow { font-size: 0.64rem; }
+}
+
