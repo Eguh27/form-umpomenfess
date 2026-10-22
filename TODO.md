@@ -84,6 +84,13 @@ Ganti peran: B (builder), C (public), D (design/ops), R (reviewer), L (lead).
 - [x] T-68 @R 2026-10-22 14:10 Uji E2E dummy otomatis (headless) terhadap app + DB nyata — bagian agent dari T-65: login → builder → publish → form publik → submit (Turnstile test key) → respons → CSV → moderasi §9; hasil di `docs/review-e2e-T68.md` — **3 temuan**: E1 blocker "Buat form/Duplikat" gagal (`owner_id` NULL), E2 blocker migrasi seed font belum dieksekusi, E3 KRITIS `PUBLIC_SUPABASE_ANON_KEY` = `SUPABASE_SERVICE_ROLE_KEY` (key bocor ke bundle client); 12 tes endpoint + 20 cek UI LULUS, 145 test app hijau, data dummy dibersihkan
 - [x] T-69 @B 2026-10-22 14:45 Remediasi blocker T-68: **E1** `insertForm` menyertakan `owner_id` dari SESI (`auth.getUser()`) — "Buat form"/"Duplikat" tak bisa dipakai sebelumnya; galat Postgres mentah diganti pesan ramah (`friendlyError`); 5 test baru — verifikasi browser+DB nyata: Form kosong ✅, template ✅, Duplikat ✅ (1→3 form). **E2** seed font: @L patch kolom `theme` via REST 14:46, @R melengkapi `schema.theme` (sumber kebenaran) 14:55 → 0 font liar → "Buat dari template" preview merender + Publish ✅. 161 test + check 0 + build hijau; data dummy dibersihkan
 
+## Stories EPIC-B (Panel Admin Moderasi Laporan, docs/impl-plan-epic-b.md)
+- [x] E-B1 @A 2026-10-22 19:50 Migrasi reports (`status`, `resolved_at`, `resolved_by`, `action_taken`, `notes`) + SQL test
+- [x] E-B2 @A/@C 2026-10-22 19:50 Otorisasi `isAdmin(user)` + modul data moderasi laporan `src/lib/forms/reports.ts` + unit tests
+- [x] E-B3 @C 2026-10-22 19:50 Endpoint aksi moderasi `POST /api/admin/reports/[id]/action` (resolve, dismiss, close_form) + test
+- [x] E-B4 @B/@D 2026-10-22 19:50 Halaman `/dashboard/admin/laporan` (filter status, review detail form, tindakan cepat) + navigasi dashboard
+
+
 ---
 
 ## Requests (antar agent)
