@@ -64,10 +64,10 @@ Ganti peran: B (builder), C (public), D (design/ops), R (reviewer), L (lead).
 - [x] T-54 @C 2026-10-22-14:20 Test 125 lulus: submit nakal, replay token, IDOR export (404 prosaik), CSV injection, rate limit, Turnstile mock, sign SHA-1
 
 ## Wave 3
-- [ ] T-60 @D Workflow cleanup harian/mingguan (tmp, orphan, soft-deleted > 30 hari) dengan mode dry-run
+- [~] T-60 @D 2026-10-22 12:32 Workflow cleanup harian/mingguan (tmp, orphan, soft-deleted > 30 hari) dengan mode dry-run
 - [ ] T-61 @D Backup mingguan di luar repo + `docs/restore.md`
-- [ ] T-62 @R Review keamanan -> `docs/review-security.md` (daftar di TASK 9 WS-R)
-- [ ] T-63 @R Review race condition batas respons & idempotensi submit
+- [x] T-62 @R 2026-10-22-16:05 Review keamanan -> `docs/review-security.md` — 1 TINGGI (Turnstile script hilang), 2 SEDANG (publicIdPattern lsp., payload chunked), 6 RENDAH; 7 area WS-R senantiasa aman dgn bukti
+- [x] T-63 @R 2026-10-22-16:05 Review race -> `docs/review-race-T63.md` — R1 TOCTOU kuota (rpc @A), R2 idempotensi 3-lapis + urutan replay (sebelum captcha), R3/R4 map memori; R6-R8 info/oke
 - [ ] T-64 @A/@B/@C/@D Perbaiki temuan T-62/T-63 di zona masing-masing
 - [ ] T-65 @L Uji end-to-end dummy lalu uji di HP dengan beberapa teman
 - [ ] T-66 @L Checklist go-live (manusia): env production, domain, Turnstile production, backup aktif, cron dari dry-run ke nyata
