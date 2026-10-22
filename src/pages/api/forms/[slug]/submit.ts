@@ -25,6 +25,7 @@ import {
   validateSubmit,
   type PublicFormRow,
 } from '../../../../lib/forms/publicForm';
+import { tryGuardedInsert } from '../../../../lib/forms/guardedInsert';
 
 /** idempotensi lembut: `${ip}:${token}` → waktu terakhir terlihat. */
 const seen = new Map<string, number>();
@@ -93,7 +94,29 @@ export const POST = async (ctx: { params: Record<string, string | undefined>; re
   const parsed = parsePublicSchema(pub);
   if (parsed === null) return redirectBack(slug, 'tidak_tersedia');
 
-  // Kuota: hitung responses lewat service role (anon tidak boleh).
+  const answers = validateSubmit(parsed, form);
+  if (!answers.ok) return redirectBack(slug, answers.code);
+
+  const guarded = await tryGuardedInsert(service, pub, answers.answers, token);
+  if (guarded.ok === true) {
+    if (token !== null) remember(ip, token, Date.now());
+    return redirectThanks(slug);
+  }
+  switch (guarded.reason) {
+    case 'duplikat':
+      return redirectThanks(slug);
+    case 'sudah_tutup':
+    case 'penuh':
+      return redirectBack(slug, guarded.reason);
+    case 'form_tidak_tersedia':
+      return redirectBack(slug, 'tidak_tersedia');
+    case 'backend_belum_siap':
+      break; // rpc belum dipush → fallback legacy di bawah
+    default:
+      return redirectBack(slug, 'kirim');
+  }
+  // FALLBACK legacy (migrasi submit_guard.sql belum dijalankan manusia):
+  // count → cek tutup → insert. Sisa window TOCTOU kecil diterima MVP.
   const { count, error: quotaError } = await service
     .from('responses')
     .select('id', { count: 'exact', head: true })
@@ -101,9 +124,6 @@ export const POST = async (ctx: { params: Record<string, string | undefined>; re
   if (quotaError !== null) return redirectBack(slug, 'kirim');
   const state = closedState(pub, count ?? 0);
   if (state.closed) return redirectBack(slug, state.code);
-
-  const answers = validateSubmit(parsed, form);
-  if (!answers.ok) return redirectBack(slug, answers.code);
 
   const { error: insertError } = await service.from('responses').insert({
     form_id: pub.id,
