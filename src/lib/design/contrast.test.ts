@@ -14,18 +14,20 @@ const LIGHT = {
   muted: '#4F6A62',
   brand: '#2F7263',
   onBrand: '#FFF6EA',
-  pillBg: '#4A9A8B',
+  pillBg: '#2F7263',
   onPill: '#FFF6EA',
-  accent: '#E8604C',
+  accent: '#B8422E',
+  onAccent: '#FFF6EA',
 };
 // Token dark.
 const DARK = {
-  bg: '#16201E',
+  bg: '#131C1A',
   text: '#F3EFE6',
-  muted: '#9DB5AD',
-  brand: '#2F7263',
-  onBrand: '#FFF6EA',
-  accent: '#E8604C',
+  muted: '#A9BDB5',
+  brand: '#7FD0BE',
+  onBrand: '#10201C',
+  accent: '#F08A73',
+  onAccent: '#10201C',
 };
 
 describe('parseHex / relativeLuminance', () => {
@@ -56,12 +58,12 @@ describe('contrastRatio', () => {
 });
 
 describe('token light lolos WCAG', () => {
-  it('teks utama di atas kbg blush (≥4.5)', () => {
+  it('teks utama di atas latar blush (≥4.5)', () => {
     expect(contrastRatio(LIGHT.text, LIGHT.bg)).toBeGreaterThan(4.5);
     expect(isReadable(LIGHT.text, LIGHT.bg)).toBe(true);
   });
 
-  it('teks sekunder (muted) di atas kbg (≥4.5)', () => {
+  it('teks sekunder (muted) di atas latar blush (≥4.5)', () => {
     expect(contrastRatio(LIGHT.muted, LIGHT.bg)).toBeGreaterThan(4.5);
   });
 
@@ -69,8 +71,13 @@ describe('token light lolos WCAG', () => {
     expect(contrastRatio(LIGHT.onBrand, LIGHT.brand)).toBeGreaterThan(4.5);
   });
 
-  it('pill dekoratif tetap minimal 3:1 (style referensi template)', () => {
-    expect(contrastRatio(LIGHT.onPill, LIGHT.pillBg)).toBeGreaterThan(3);
+  it('teks aksen & teks tombol coral (≥4.5)', () => {
+    expect(contrastRatio(LIGHT.accent, LIGHT.bg)).toBeGreaterThan(4.5);
+    expect(contrastRatio(LIGHT.onAccent, LIGHT.accent)).toBeGreaterThan(4.5);
+  });
+
+  it('pill tetap terbaca (≥4.5)', () => {
+    expect(contrastRatio(LIGHT.onPill, LIGHT.pillBg)).toBeGreaterThan(4.5);
   });
 });
 
@@ -82,10 +89,11 @@ describe('token dark lolos WCAG', () => {
 
   it('tombol tetap terbaca (≥4.5)', () => {
     expect(contrastRatio(DARK.onBrand, DARK.brand)).toBeGreaterThan(4.5);
+    expect(contrastRatio(DARK.onAccent, DARK.accent)).toBeGreaterThan(4.5);
   });
 
-  it('aksen terbaca sebagai teks di latar gelap (≥3, teks besar/ikon)', () => {
-    expect(contrastRatio(DARK.accent, DARK.bg)).toBeGreaterThan(3);
+  it('aksen terbaca sebagai teks di latar gelap (≥4.5)', () => {
+    expect(contrastRatio(DARK.accent, DARK.bg)).toBeGreaterThan(4.5);
   });
 });
 

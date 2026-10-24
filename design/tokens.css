@@ -1,119 +1,149 @@
 /*
   design/tokens.css — satu sumber gaya untuk seluruh halaman form & dashboard.
 
-  Sumber nilai: referensi template "Kaca · Blush" (SVG dari manusia, 2026-10-22)
-  + BNBA situs utama umpomenfess.my.id. Light = default (:root),
-  Dark = [data-theme="dark"] yang di-set script pre-hydration di Base.astro
-  (localStorage 'theme' → fallback prefers-color-scheme — pola sama dgn situs utama).
+  Arah: "Kaca Blush Studio" — studio alat tulis berbahan kaca.
+  Palet diambil dari template Kaca · Blush (SVG referensi manusia):
+    kbg #FDEEEC            -> --bg / --blush
+    blob coral #E8604C     -> --blob-coral / --coral
+    blob peach #F6A678     -> --blob-peach / --peach
+    blob gold  #F6C96B     -> --blob-gold / --gold
+    kartu kaca rgba(255,255,255,.62) -> --surface-glass
+    ink #1F4D46            -> --ink / --text
+    muted #7C958D          -> --text-muted (digelapkan ke #4F6A62 agar ≥4.5:1)
+    aksen tombol #E8604C   -> --coral (dekorasi), --accent-strong #B8422E (teks/tombol)
+    pill #4C9E8F           -> --pill-bg (digelapkan ke #2F7263 agar teks ≥4.5:1)
+    Baloo 2 700 (display) + Quicksand 600/700 (isi) -> --font-display / --font-sans
 
-  Pemetaan token SVG → token di sini:
-    kbg #FDEEEC            -> --bg
-    blob1 #E8604C @30%     -> --blob-1 (radial kanan-atas, r320)
-    blob2 #F6A678 @34%     -> --blob-2 (radial kiri-bawah, r360)
-    blob3 #F6C96B @45%     -> --blob-3 (radial kiri-tengah, r230)
-    kartu rgba(255,255,255,.62) -> --surface-glass (backdrop blur 14px)
-    border rgba(255,255,255,.95) 1.5px, r32 -> --border-glass + --radius-lg
-    shadow rgba(31,77,70,.12), y+24, blur 52 -> --shadow
-    ink #1F4D46 -> --text ; muted #7C958D -> --text-muted* (digelapkan agar lolos WCAG 4.5)
-    aksen logo #E8604C -> --accent ; pill #4C9E8F/#FFF6EA -> --pill-bg/--on-pill
-    Quicksand 600/700 (isi) + Baloo 2 700 (brand) -> --font-sans / --font-display
-
-  * --text-muted digelapkan dari #7C958D (kontras 2.85:1, gagal) ke #4F6A62 (4.98:1)
-    supaya label kecil tetap terbaca. Nilai #7C958D tetap dipakai utk teks dekoratif
-    di preview kartu menfess (lihat .card--menfess di global.css).
+  Light = default (:root). Dark = [data-theme="dark"] yang di-set
+  theme-init.js sebelum render. Semua halaman wajib memakai token ini.
 */
 :root {
-  /* Warna — light (kaca · blush) */
-  --bg: #fdeeec;                       /* kbg blush */
-  --blob-1: rgba(232, 96, 76, 0.30);   /* #E8604C */
-  --blob-2: rgba(246, 166, 120, 0.34); /* #F6A678 */
-  --blob-3: rgba(246, 201, 107, 0.45); /* #F6C96B */
+  color-scheme: light;
 
-  --surface: #ffffff;                  /* kartu solid (preset plain) */
-  --surface-glass: rgba(255, 255, 255, 0.62); /* kartu kaca (preset menfess) */
-  --surface-soft: rgba(255, 255, 255, 0.45);  /* kartu lembut (preset soft) */
+  /* Palet Kaca · Blush */
+  --blush: #fdeeec;
+  --blush-2: #fbe4df;
+  --paper: #fff9f4;
+  --ink: #1f4d46;
+  --ink-soft: #4f6a62;
+  --coral: #e8604c;
+  --coral-deep: #b8422e;
+  --peach: #f6a678;
+  --gold: #f6c96b;
+  --mint: #4c9e8f;
+  --teal: #2f7263;
+  --teal-deep: #245c50;
 
-  --border: rgba(31, 77, 70, 0.12);
-  --border-glass: rgba(255, 255, 255, 0.95);
+  /* Peran permukaan */
+  --bg: var(--blush);
+  --surface: var(--paper);
+  --surface-soft: #fbe9e4;
+  --surface-glass: rgba(255, 255, 255, 0.62);
+  --nav-bg: rgba(253, 250, 243, 0.82);
+  --border: rgba(31, 77, 70, 0.14);
+  --border-glass: rgba(255, 255, 255, 0.9);
+  --dot-color: rgba(31, 77, 70, 0.12);
+  --blob-coral: rgba(232, 96, 76, 0.13);
+  --blob-peach: rgba(246, 166, 120, 0.38);
+  --blob-gold: rgba(246, 201, 107, 0.34);
 
-  --text: #1f4d46;                     /* ink */
-  --text-muted: #4f6a62;               /* digelapkan agar ≥4.5:1 di atas --bg */
+  /* Teks */
+  --text: var(--ink);
+  --text-muted: var(--ink-soft);
+  --code: #5b6e67;
 
-  --brand: #2f7263;                    /* teal interaktif (tombol, link) — teks --on-brand lolos 4.5:1 */
-  --brand-strong: #245b4f;             /* hover/tekan */
-  --brand-soft: #4a9a8b;               /* pill/dekorasi — digeser ±1 langkah dari #4C9E8F (SVG) agar teks pill ≥3:1 */
+  /* Aksi */
+  --brand: var(--teal);
+  --brand-strong: var(--teal-deep);
   --on-brand: #fff6ea;
-
-  --pill-bg: #4a9a8b;
+  --accent: var(--coral-deep);
+  --accent-strong: var(--coral-deep);
+  --accent-hover: #a83a26;
+  --accent-soft: rgba(232, 96, 76, 0.13);
+  --on-accent: #fff6ea;
+  --pill-bg: var(--teal);
   --on-pill: #fff6ea;
+  --focus: var(--teal);
 
-  --accent: #e8604c;                   /* logo kiri header */
-  --accent-strong: #c74532;
-  --accent-soft: rgba(232, 96, 76, 0.12);
-
-  --code: rgba(31, 77, 70, 0.62);      /* kode fess footer kartu */
-
-  --danger: #c73a25;
-  --success: #2e7c57;
+  /* Status */
+  --danger: #a83a26;
+  --success: #2e6b4f;
 
   /* Bayangan */
-  --shadow: 0 24px 52px rgba(31, 77, 70, 0.12);   /* box-shadow kartu kaca */
+  --shadow: 0 24px 60px rgba(31, 77, 70, 0.12);
   --shadow-sm: 0 10px 24px rgba(31, 77, 70, 0.08);
 
   /* Tipografi */
-  --font-sans: "Quicksand", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-display: "Baloo 2", "Quicksand", sans-serif;
+  --font-sans: "Quicksand", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "Space Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 
   /* Bentuk */
+  --radius-xs: 8px;
   --radius-sm: 12px;
   --radius: 16px;
-  --radius-lg: 32px;                   /* kartu kaca rx=32 di referensi */
+  --radius-lg: 22px;
+  --radius-pill: 999px;
 
   /* Spasi */
-  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
-  --space-5: 24px; --space-6: 32px; --space-7: 48px; --space-8: 72px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 72px;
 
-  --container: 1080px;
+  --container: 1160px;
+  --header-h: 60px;
+  --meta-theme: #fdeeec;
 }
 
 /* ===== Dark — dipilih lewat [data-theme="dark"] (script Base.astro) ===== */
 [data-theme="dark"] {
-  --bg: #16201e;                        /* teal-charcoal hangat, tetap nuansa "kaca" */
-  --blob-1: rgba(232, 96, 76, 0.20);
-  --blob-2: rgba(246, 166, 120, 0.22);
-  --blob-3: rgba(246, 201, 107, 0.28);
+  color-scheme: dark;
 
-  --surface: #1d2b27;
-  --surface-glass: rgba(255, 255, 255, 0.08);
-  --surface-soft: rgba(255, 255, 255, 0.05);
+  --bg: #131c1a;
+  --surface: #1c2724;
+  --surface-soft: #202c29;
+  --surface-glass: rgba(28, 39, 36, 0.68);
+  --nav-bg: rgba(28, 39, 36, 0.82);
+  --border: rgba(243, 239, 230, 0.14);
+  --border-glass: rgba(255, 255, 255, 0.18);
+  --dot-color: rgba(243, 239, 230, 0.1);
+  --blob-coral: rgba(232, 96, 76, 0.1);
+  --blob-peach: rgba(246, 166, 120, 0.12);
+  --blob-gold: rgba(246, 201, 107, 0.08);
 
-  --border: rgba(255, 255, 255, 0.10);
-  --border-glass: rgba(255, 255, 255, 0.14);
-
+  --ink: #f3efe6;
+  --ink-soft: #a9bdb5;
   --text: #f3efe6;
-  --text-muted: #9db5ad;               /* 7.7:1 di atas --bg dark */
+  --text-muted: #a9bdb5;
+  --code: #a9bdb5;
 
-  --brand: #2f7263;                    /* tombol tetap lolos kontras dgn --on-brand (5.3:1) */
-  --brand-strong: #3b8a78;             /* hover di dark lebih terang, bukan lebih gelap */
-  --brand-soft: rgba(74, 154, 139, 0.34);
-  --on-brand: #fff6ea;
+  --brand: #7fd0be;
+  --brand-strong: #5cb7a5;
+  --on-brand: #10201c;
+  --accent: #f08a73;
+  --accent-strong: #f08a73;
+  --accent-hover: #ff9b85;
+  --accent-soft: rgba(240, 138, 115, 0.16);
+  --on-accent: #10201c;
+  --pill-bg: #2a3b37;
+  --on-pill: #f3efe6;
+  --focus: #7fd0be;
 
-  --pill-bg: rgba(74, 154, 139, 0.34);
-  --on-pill: #d7efe8;
+  --danger: #f08a73;
+  --success: #7fd0be;
 
-  --accent: #e8604c;                   /* 4.9:1 di atas --bg dark — boleh jadi teks */
-  --accent-strong: #f3836f;
-  --accent-soft: rgba(232, 96, 76, 0.16);
+  --coral: #f07a63;
+  --peach: #f6a678;
+  --gold: #f6c96b;
+  --mint: #4c9e8f;
 
-  --code: rgba(243, 239, 230, 0.60);
+  --shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+  --shadow-sm: 0 10px 24px rgba(0, 0, 0, 0.35);
 
-  --danger: #f2897a;
-  --success: #6fce9f;
-
-  --shadow: 0 24px 52px rgba(0, 0, 0, 0.45);
-  --shadow-sm: 0 10px 24px rgba(0, 0, 0, 0.32);
+  --meta-theme: #131c1a;
 }
-
-/* Warna bilah browser mengikuti tema (dipakai meta theme-color di Base.astro) */
-:root { --meta-theme: #fdeeec; }
-[data-theme="dark"] { --meta-theme: #16201e; }

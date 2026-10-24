@@ -29,8 +29,6 @@ import '../styles/showcase.css';
 
         <p class="hero-note">
           <span>Gratis</span>
-          <span>Login Google</span>
-          <span>Responden tanpa akun</span>
         </p>
         <div class="hero-usecases" aria-label="Contoh penggunaan">
           <span class="usecase-chip">Kuesioner skripsi</span>
@@ -40,62 +38,15 @@ import '../styles/showcase.css';
       </div>
 
       <div class="hero-stage" aria-hidden="true">
-        <div class="paper-stack paper-stack--back"></div>
-        <div class="paper-stack paper-stack--mid"></div>
-
-        <article class="form-mock">
-          <div class="form-mock__head">
-            <span class="form-mock__icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="4.5" y="3" width="15" height="18" rx="3" />
-                <path d="M8.5 8.5h7M8.5 12h7M8.5 15.5h4" />
-              </svg>
-            </span>
-            <span class="form-mock__title">
-              <strong>Survei Kantin</strong>
-              <span>5 pertanyaan · ±2 menit</span>
-            </span>
-            <span class="pill pill--ghost">2/5</span>
-          </div>
-
-          <div class="progress"><span></span></div>
-
-          <p class="form-mock__q">Seberapa puas dengan pilihan menu kantin?</p>
-          <div class="scale-row">
-            <span>1</span>
-            <span>2</span>
-            <span>3</span>
-            <span class="is-selected">4</span>
-            <span>5</span>
-          </div>
-
-          <p class="form-mock__q form-mock__q--small">Menu yang paling sering kamu beli?</p>
-          <div class="choice-row is-selected"><i></i>Mie jebew</div>
-          <div class="choice-row"><i></i>Nasi ayam geprek</div>
-
-          <span class="form-mock__submit">Kirim jawaban</span>
-        </article>
-
-        <div class="float-chip float-chip--theme">
-          <span class="swatch-dots"><i></i><i></i><i></i></span>
-          Tema: Blush
-        </div>
-
-        <div class="float-chip float-chip--responses">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
-            <path d="M4 20V11M10 20V5M16 20v-6M22 20H2" />
-          </svg>
-          <span><strong>12</strong> respons</span>
-          <small>+3 hari ini</small>
-        </div>
-
-        <div class="float-chip float-chip--link">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M10 13a5 5 0 0 0 7.5.5l2-2a5 5 0 0 0-7-7l-1.2 1.2" />
-            <path d="M14 11a5 5 0 0 0-7.5-.5l-2 2a5 5 0 0 0 7 7l1.2-1.2" />
-          </svg>
-          <span>form.umpomenfess.my.id/f/kantin</span>
-        </div>
+        <img
+          class="hero-stage__art"
+          src="/illustrasi-riset.svg"
+          alt="Ilustrasi mahasiswa dan dosen melakukan riset"
+          width="445"
+          height="440"
+          loading="eager"
+          decoding="async"
+        />
       </div>
     </div>
   </section>
@@ -302,3 +253,36 @@ import '../styles/showcase.css';
     </div>
   </section>
 </Base>
+
+<style>
+  /* T-70: visual mockup di panggung hero diganti ilustrasi SVG (mockup + chip
+     mengambang dipindah ke aset). Dirender apa adanya tanpa bingkai/kartu
+     tambahan karena palet SVG sudah selaras dengan latar blush landing.
+     Skala proporsional mengikuti pola hero stage (showcase.css) yang tidak diubah. */
+  .hero-stage__art {
+    position: relative;
+    z-index: 1;
+    display: block;
+    width: min(100%, 500px);
+    height: auto;
+    /* Fade-in sekali, lalu bobbing lembut berulang mulai setelah fade selesai */
+    animation: hero-art-in .55s ease-out both, hero-art-float 5s ease-in-out .55s infinite alternate;
+  }
+
+  @keyframes hero-art-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes hero-art-float {
+    from { transform: translateY(0); }
+    to { transform: translateY(-9px); }
+  }
+
+  /* Hormati pengguna yang menonaktifkan animasi di sistemnya */
+  @media (prefers-reduced-motion: reduce) {
+    .hero-stage__art {
+      animation: none;
+    }
+  }
+</style>

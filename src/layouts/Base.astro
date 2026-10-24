@@ -1,63 +1,141 @@
 ---
 import '../styles/global.css';
 import themeInitUrl from '../styles/theme-init.js?url&no-inline';
+import themeToggleUrl from '../styles/theme-toggle.js?url&no-inline';
+import navMenuUrl from '../styles/nav-menu.js?url&no-inline';
+
 interface Props { title?: string; description?: string }
-const { title = 'umpomenfess form', description = 'Bikin form cantik untuk cari responden, gratis.' } = Astro.props;
+const {
+  title = 'umpomenfess form — form yang enak diisi',
+  description = 'Form builder untuk civitas UMPO: susun pertanyaan, pilih tampilan, sebar satu tautan, baca jawaban di dashboard.',
+} = Astro.props;
 const main = 'https://umpomenfess.my.id';
 ---
+
 <!doctype html>
 <html lang="id">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#FDEEEC" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#16201E" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#131C1A" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#FDEEEC" />
     <meta name="description" content={description} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="umpomenfess form" />
     <title>{title}</title>
     <link
       rel="icon"
-      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23E8604C'/%3E%3Cpath d='M8 9h16v11H14l-5 4z' fill='%23FFF6EA'/%3E%3C/svg%3E"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23FDEEEC'/%3E%3Crect x='6' y='5' width='20' height='22' rx='6' fill='%23E8604C'/%3E%3Cpath d='M11 12h10M11 16h10M11 20h6' stroke='%23FFF6EA' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='26' cy='6' r='3' fill='%23F6C96B'/%3E%3C/svg%3E"
     />
 
     <!-- Script klasik blocking: tema di-set sebelum render (CSP: script-src 'self'). -->
     <script is:inline src={themeInitUrl}></script>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🫰</text></svg>" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700&amp;family=Quicksand:wght@500;600;700&amp;display=swap"
+      href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700&amp;family=Quicksand:wght@400;500;600;700&amp;family=Space+Mono:wght@700&amp;display=swap"
     />
   </head>
   <body>
-    <div class="bg-blobs" aria-hidden="true"><i></i></div>
-    <div class="grain" aria-hidden="true"></div>
+    <a class="skip-link" href="#main">Lompat ke konten</a>
+    <div class="bg-blobs" aria-hidden="true"></div>
 
     <header class="site-header">
       <div class="site-header__row">
-        <a class="brand" href="/">
+        <a class="brand" href="/" aria-label="umpomenfess form — beranda">
           <span class="brand__mark" aria-hidden="true">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-              <path d="M4 4h16v12H10l-6 5z" fill="currentColor" />
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="4.5" y="3" width="15" height="18" rx="3" />
+              <path d="M8.5 8.5h7M8.5 12h7M8.5 15.5h4" />
+              <circle cx="18.5" cy="5.5" r="2.6" fill="#F6C96B" stroke="none" />
             </svg>
           </span>
-          <span>
-            <span class="brand__name">umpomenfess <span class="brand__sub">form</span></span>
-          </span>
+          <span class="brand__name">umpomenfess</span>
+          <span class="brand__divider" aria-hidden="true"></span>
+          <span class="brand__sub">form</span>
         </a>
-        <nav class="site-nav">
-          <a href={main}>Menfess</a>
-          <a href="/dashboard">Dashboard</a>
-        </nav>
+
+        <div class="site-header__actions">
+          <nav class="site-nav" aria-label="Navigasi utama">
+            <a href="/#cara">Cara kerja</a>
+            <a href="/#tema">Tema</a>
+            <a href={main} aria-label="Menfess, situs utama">Menfess ↗</a>
+          </nav>
+          <a class="nav-cta" href="/dashboard">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="3" y="3" width="7" height="7" rx="2" />
+              <rect x="14" y="3" width="7" height="7" rx="2" />
+              <rect x="3" y="14" width="7" height="7" rx="2" />
+              <rect x="14" y="14" width="7" height="7" rx="2" />
+            </svg>
+            Dashboard
+          </a>
+          <button
+            class="theme-toggle"
+            type="button"
+            data-theme-toggle
+            aria-label="Aktifkan tema gelap"
+            aria-pressed="false"
+          >
+            <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="4.2" />
+              <path d="M12 2v2.4M12 19.6V22M4.9 4.9l1.7 1.7M17.4 17.4l1.7 1.7M2 12h2.4M19.6 12H22M4.9 19.1l1.7-1.7M17.4 6.6l1.7-1.7" />
+            </svg>
+            <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M20.3 14.2A8.4 8.4 0 0 1 9.8 3.7a8.5 8.5 0 1 0 10.5 10.5z" />
+            </svg>
+          </button>
+          <details class="nav-mobile" data-nav-menu>
+            <summary class="menu-button" aria-label="Buka menu">
+              <span></span>
+              <span></span>
+            </summary>
+            <nav class="mobile-menu" aria-label="Navigasi mobile">
+              <a href="/#cara">Cara kerja</a>
+              <a href="/#tema">Tema</a>
+              <a href="/dashboard">Dashboard</a>
+              <a href={main} aria-label="Menfess, situs utama">Menfess ↗</a>
+            </nav>
+          </details>
+        </div>
       </div>
     </header>
 
-    <main><slot /></main>
+    <main id="main"><slot /></main>
 
     <footer class="site-footer">
-      <div class="site-footer__row">
-        <span>© 2026 umpomenfess ✦ Universitas Muhammadiyah Ponorogo</span>
-        <a href={main}>Kembali ke menfess ↗</a>
+      <div class="site-footer__inner">
+        <div class="site-footer__brand">
+          <a class="brand" href="/" aria-label="umpomenfess form — beranda">
+            <span class="brand__mark" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="4.5" y="3" width="15" height="18" rx="3" />
+                <path d="M8.5 8.5h7M8.5 12h7M8.5 15.5h4" />
+                <circle cx="18.5" cy="5.5" r="2.6" fill="#F6C96B" stroke="none" />
+              </svg>
+            </span>
+            <span class="brand__name">umpomenfess</span>
+            <span class="brand__divider" aria-hidden="true"></span>
+            <span class="brand__sub">form</span>
+          </a>
+          <p>Form builder untuk civitas UMPO. Susun pertanyaan, sebar tautan, baca jawaban di dashboard.</p>
+        </div>
+        <nav class="site-footer__links" aria-label="Navigasi footer">
+          <a href="/#cara">Cara kerja</a>
+          <a href="/#tema">Tema</a>
+          <a href="/dashboard">Dashboard</a>
+          <a href={main} aria-label="Menfess, situs utama">Menfess ↗</a>
+        </nav>
       </div>
+      <div class="site-footer__bottom">© 2026 umpomenfess · Universitas Muhammadiyah Ponorogo</div>
     </footer>
+
+    <script is:inline src={themeToggleUrl}></script>
+    <script is:inline src={navMenuUrl}></script>
   </body>
 </html>

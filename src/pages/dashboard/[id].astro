@@ -33,7 +33,8 @@ const state = stateFromRow(row as unknown as { title: string; schema: unknown })
 <Base title={`Edit: ${state.title} — umpomenfess form`}>
   <section class="container" style="padding-block:var(--space-5)">
     <p class="eyebrow">
-      <a href="/dashboard" style="text-decoration:none">← Dashboard</a> ✦ Builder ✦
+      <a href="/dashboard" style="text-decoration:none">← Dashboard</a>
+      <span aria-hidden="true"> · </span>Builder<span aria-hidden="true"> · </span>
       <a href={`/dashboard/${String(row.id)}/respons`} style="text-decoration:none">Respons</a>
     </p>
     <Editor

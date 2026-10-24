@@ -168,7 +168,7 @@ export default function ThemePanel({ formId, theme, onChange }: Props) {
 
       {!contrastOk && (
         <p role="alert" className="help" style={{ color: 'var(--danger)', fontWeight: 700 }}>
-          ⚠ Kontras teks &lt; 4.5:1 — kombinasi ini akan DITOLAK saat dipublikasikan.
+          Peringatan: kontras teks &lt; 4.5:1 — kombinasi ini akan DITOLAK saat dipublikasikan.
         </p>
       )}
     </section>
