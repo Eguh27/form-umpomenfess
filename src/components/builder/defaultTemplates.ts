@@ -36,7 +36,6 @@ export const PREBUILT_TEMPLATES: PrebuiltTemplate[] = [
         bannerPublicId: null,
       },
       blocks: [
-        // Halaman 1: Perkenalan & Demografi
         { id: 'b_intro', type: 'heading', text: 'Survei Penelitian Skripsi', size: 'xl', align: 'center' },
         {
           id: 'b_desc',
@@ -60,8 +59,6 @@ export const PREBUILT_TEMPLATES: PrebuiltTemplate[] = [
           required: true,
           options: ['Teknik', 'Ekonomi & Bisnis', 'Ilmu Sosial & Politik', 'Keguruan & Ilmu Pendidikan', 'Kesehatan', 'Lainnya'],
         },
-
-        // Page Break -> Halaman 2: Kuesioner Inti
         { id: 'page_survei', type: 'divider' },
         { id: 'b_h2', type: 'heading', text: 'Bagian II: Kuesioner Pengalaman', size: 'l', align: 'left' },
         {
@@ -90,8 +87,6 @@ export const PREBUILT_TEMPLATES: PrebuiltTemplate[] = [
           min: 1,
           max: 5,
         },
-
-        // Page Break -> Halaman 3: Penutup & Masukan
         { id: 'page_penutup', type: 'divider' },
         { id: 'b_h3', type: 'heading', text: 'Bagian III: Saran & Masukan Akhir', size: 'l', align: 'left' },
         {
@@ -136,107 +131,6 @@ export const PREBUILT_TEMPLATES: PrebuiltTemplate[] = [
         { id: 'q_l3', type: 'question', kind: 'scale', label: 'Saya merasa aman saat bertransaksi / berinteraksi di platform', required: true, min: 1, max: 5 },
         { id: 'q_l4', type: 'question', kind: 'scale', label: 'Secara keseluruhan, saya puas dengan kualitas layanan', required: true, min: 1, max: 5 },
         { id: 'q_crit', type: 'question', kind: 'paragraph', label: 'Kritik dan saran perbaikan', required: false, maxLength: 500 },
-      ],
-    },
-  },
-  {
-    id: 'tpl-partisipan-wawancara',
-    name: 'Undangan Partisipan Wawancara',
-    tag: 'Pendaftaran',
-    description: 'Rekrutmen narasumber untuk penelitian kualitatif, focus group discussion, atau wawancara mendalam.',
-    pagesCount: 1,
-    questionCount: 4,
-    schema: {
-      schemaVersion: 1,
-      theme: {
-        bg: '#f5f3ff',
-        accent: '#7c3aed',
-        text: '#2e1065',
-        font: 'Quicksand',
-        radius: 16,
-        cardStyle: 'soft',
-        bannerPublicId: null,
-      },
-      blocks: [
-        { id: 'b_h', type: 'heading', text: 'Dicari: Partisipan Wawancara Penelitian', size: 'xl', align: 'center' },
-        {
-          id: 'b_t',
-          type: 'text',
-          text: 'Wawancara santai berdurasi 15-20 menit via Google Meet/WhatsApp call. Kompensasi pulsa / saldo e-wallet Rp25.000 untuk partisipan terpilih.',
-        },
-        { id: 'b_div', type: 'divider' },
-        { id: 'q_nama', type: 'question', kind: 'short_text', label: 'Nama Lengkap & Panggilan', required: true },
-        { id: 'q_kontak', type: 'question', kind: 'short_text', label: 'Nomor WhatsApp / ID Telegram', required: true },
-        {
-          id: 'q_jadwal',
-          type: 'question',
-          kind: 'multiple_choice',
-          label: 'Ketersediaan Waktu (bisa pilih lebih dari 1)',
-          required: true,
-          options: ['Pagi (09.00 - 12.00 WIB)', 'Siang (13.00 - 15.00 WIB)', 'Sore (15.30 - 18.00 WIB)', 'Malam (19.00 - 21.00 WIB)'],
-        },
-        {
-          id: 'q_profesi',
-          type: 'question',
-          kind: 'single_choice',
-          label: 'Status Pekerjaan / Studi Saat Ini',
-          required: true,
-          options: ['Mahasiswa Aktif', 'Fresh Graduate / Pencari Kerja', 'Karyawan Swasta / BUMN', 'Wirausaha / Freelancer'],
-        },
-      ],
-    },
-  },
-  {
-    id: 'tpl-kepuasan-fasilitas-multipage',
-    name: 'Survei Fasilitas Kampus (Multi-Halaman)',
-    tag: 'Evaluasi',
-    description: 'Survei fasilitas berjenjang: Page 1 Data Mahasiswa, Page 2 Penilaian Fasilitas, Page 3 Harapan.',
-    pagesCount: 3,
-    questionCount: 6,
-    schema: {
-      schemaVersion: 1,
-      theme: {
-        bg: '#f0fdfa',
-        accent: '#0d9488',
-        text: '#134e4a',
-        font: 'system-ui',
-        radius: 14,
-        cardStyle: 'plain',
-        bannerPublicId: null,
-      },
-      blocks: [
-        { id: 'b_h1', type: 'heading', text: 'Survei Kepuasan Fasilitas Kampus', size: 'xl', align: 'center' },
-        {
-          id: 'b_t1',
-          type: 'text',
-          text: 'Bantu kami mengevaluasi kenyamanan fasilitas kampus untuk bahan advokasi kemahasiswaan.',
-        },
-        { id: 'q_jur', type: 'question', kind: 'short_text', label: 'Jurusan / Angkatan', required: true },
-        {
-          id: 'q_sering',
-          type: 'question',
-          kind: 'single_choice',
-          label: 'Fasilitas yang paling sering Anda gunakan?',
-          required: true,
-          options: ['Perpustakaan & Ruang Baca', 'Laboratorium Komputer', 'Kantin Kampus', 'Masjid / Tempat Ibadah', 'Area Parkir & Lapangan'],
-        },
-        // Halaman 2
-        { id: 'page_eval', type: 'divider' },
-        { id: 'b_h2', type: 'heading', text: 'Bagian II: Penilaian Fasilitas', size: 'l', align: 'left' },
-        { id: 'q_wifi', type: 'question', kind: 'scale', label: 'Kecepatan dan kestabilan koneksi Wi-Fi kampus', required: true, min: 1, max: 5 },
-        { id: 'q_bersih', type: 'question', kind: 'scale', label: 'Kebersihan toilet dan kenyamanan ruang kuliah', required: true, min: 1, max: 5 },
-        { id: 'q_parkir', type: 'question', kind: 'scale', label: 'Keamanan dan keteraturan area parkir kendaraan', required: true, min: 1, max: 5 },
-        // Halaman 3
-        { id: 'page_aspirasi', type: 'divider' },
-        { id: 'b_h3', type: 'heading', text: 'Bagian III: Aspirasi & Usulan Perbaikan', size: 'l', align: 'left' },
-        {
-          id: 'q_usulan',
-          type: 'question',
-          kind: 'paragraph',
-          label: 'Tuliskan fasilitas apa yang paling mendesak untuk diperbaiki / ditambah?',
-          required: true,
-          maxLength: 1000,
-        },
       ],
     },
   },
