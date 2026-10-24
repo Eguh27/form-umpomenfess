@@ -4,10 +4,18 @@ import themeInitUrl from '../styles/theme-init.js?url&no-inline';
 import themeToggleUrl from '../styles/theme-toggle.js?url&no-inline';
 import navMenuUrl from '../styles/nav-menu.js?url&no-inline';
 
-interface Props { title?: string; description?: string }
+interface Props {
+  title?: string;
+  description?: string;
+  /** false = chrome responden: tanpa header navigasi & footer situs (halaman isi form). */
+  nav?: boolean;
+  footer?: boolean;
+}
 const {
   title = 'umpomenfess form — form yang enak diisi',
   description = 'Form builder untuk civitas UMPO: susun pertanyaan, pilih tampilan, sebar satu tautan, baca jawaban di dashboard.',
+  nav = true,
+  footer = true,
 } = Astro.props;
 const main = 'https://umpomenfess.my.id';
 ---
@@ -45,7 +53,8 @@ const main = 'https://umpomenfess.my.id';
     <a class="skip-link" href="#main">Lompat ke konten</a>
     <div class="bg-blobs" aria-hidden="true"></div>
 
-    <header class="site-header">
+    {nav && (
+      <header class="site-header">
       <div class="site-header__row">
         <a class="brand" href="/" aria-label="umpomenfess form — beranda">
           <span class="brand__mark" aria-hidden="true">
@@ -104,11 +113,13 @@ const main = 'https://umpomenfess.my.id';
           </details>
         </div>
       </div>
-    </header>
+      </header>
+    )}
 
     <main id="main"><slot /></main>
 
-    <footer class="site-footer">
+    {footer && (
+      <footer class="site-footer">
       <div class="site-footer__inner">
         <div class="site-footer__brand">
           <a class="brand" href="/" aria-label="umpomenfess form — beranda">
@@ -133,9 +144,10 @@ const main = 'https://umpomenfess.my.id';
         </nav>
       </div>
       <div class="site-footer__bottom">© 2026 umpomenfess · Universitas Muhammadiyah Ponorogo</div>
-    </footer>
+      </footer>
+    )}
 
-    <script is:inline src={themeToggleUrl}></script>
-    <script is:inline src={navMenuUrl}></script>
+    {nav && <script is:inline src={themeToggleUrl}></script>}
+    {nav && <script is:inline src={navMenuUrl}></script>}
   </body>
 </html>

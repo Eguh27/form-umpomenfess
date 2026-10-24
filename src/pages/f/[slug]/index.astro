@@ -70,7 +70,7 @@ const isPublishedOpen = form !== null && state.closed === false;
 
 const headingSizeRem: Record<string, string> = { s: '1.1rem', m: '1.4rem', l: '1.85rem', xl: '2.3rem' };
 ---
-<Base title={row === null ? 'Form tidak tersedia' : `${String(row.title)} — umpomenfess form`} description={row === null ? 'Form tidak tersedia.' : `Isi form ${String(row.title)}`}>
+<Base title={row === null ? 'Form tidak tersedia' : `${String(row.title)} — umpomenfess form`} description={row === null ? 'Form tidak tersedia.' : `Isi form ${String(row.title)}`} nav={false} footer={false}>
   <section class="container" style="padding-block:var(--space-6);max-width:640px">
     {notFound && (
       <article class="card card--plain" style="text-align:center;padding:var(--space-7) var(--space-5)">
