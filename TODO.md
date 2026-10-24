@@ -57,7 +57,7 @@ Ganti peran: B (builder), C (public), D (design/ops), R (reviewer), L (lead).
 - [x] T-43 @B 2026-10-22-10:57 Preview HP/desktop + undo/redo (stack 50) + peringatan otomatis label sensitif + tombol publish (validasi dulu, versi++) — publish live menunggu sesi manusia
 - [x] T-44 @B 2026-10-22-10:57 Test builder: 88 test (9 file) — serialize → parseFormSchema selalu valid / issues; teks user murni string (escape di render); tidak ada input HTML mentah di UI
 - [x] T-45 @B 2026-10-22-17:40 Dashboard Canva-style (hero search, stats, template gallery, filter tab, salin link) + Tap-to-add Builder (palet elemen & pertanyaan siap pakai) + Multi-page support (splitIntoPages, page break divider, simulasi langkah responden) + 5 template bawaan riset & 8 preset tema — 171 test lulus, check 0, lint 0, build hijau
-- [~] T-70 @B 2026-10-24-16:12 Hero LANDING page menampilkan ilustrasi SVG dari folder design (index.astro, tanpa pembungkus; dark mode dievaluasi visual) — klarifikasi user: BUKAN dashboard; perubahan dashboard sudah dikembalikan, aset public/illustrasi-riset.svg tetap terpakai
+- [x] T-70 @B 2026-10-24-16:27 Hero LANDING menampilkan ilustrasi SVG dari folder design (tanpa pembungkus, max 500px, animasi halus + guard prefers-reduced-motion; dark mode approved visual user) — kode hero terserap commit T-67 @D (b506f91) lewat sweep working-tree; aset public/ + sisa copy tercommit @B; ratifikasi @L/D di Requests
 - [~] T-71 @B 2026-10-24-16:13 Pembersihan slop hasil redesign dashboard (remove-ai-slop: komentar berlebih, defensive checks, any, style tak konsisten) — target: src/components/builder/dashboard/** + DashboardForms.tsx + dashboard/index.astro; tanpa perubahan perilaku
 
 ### C (public; butuh T-12, T-20, T-31)
@@ -116,6 +116,7 @@ Ganti peran: B (builder), C (public), D (design/ops), R (reviewer), L (lead).
 2026-10-21 | @A | @C | Seed SQL (`supabase/migrations/20261021124000_seed_templates.sql`) telah lolos parseFormSchema() saat verifikasi sesaat (33/33). Tolong tambahkan test permanen di zona C (mis. `src/lib/forms/seed-schema.test.ts`) yang membaca file SQL seed & memvalidasi setiap literal `::jsonb` berisi "schemaVersion" — supaya edit seed ke depan tetap terjaga. Verifikasi sesaat sudah dihapus.
 2026-10-22 | @A | @L | Tambahkan `supabase/.temp/` ke `.gitignore` (artefak `supabase link/db push` CLI yang tak boleh terkomit).
 2026-10-22 | @B | @C | Multi-halaman form selesai di builder (T-45). Halaman publik /f/[slug] (zona C) dapat ditambahkan stepper bertahap jika terdapat divider ber-id 'page_*' (Halaman 1 -> Lanjut -> Halaman 2 -> Kirim).
+2026-10-24 | @B | @L/@D | Ratifikasi T-70: (1) `src/pages/index.astro` disunting atas izin manusia sesi ini — ilustrasi SVG design/ di hero, tanpa pembungkus, animasi halus + guard prefers-reduced-motion, hero-note sisanya "Gratis"; kode hero ikut terserap commit T-67 @D (b506f91) saat in-flight, mohon diketahui @D. (2) Tweak copy landing (badge "Form Builder", kalimat hero-sub dipangkas) dilakukan pihak lain pasca-commit T-67 — dilepas apa adanya di commit @B tanpa direvert, mohon pemiliknya mengakui. (3) Folder `public/` baru (aset statis) berisi `public/illustrasi-riset.svg` — salinan `design/Mahasiswa dan dosen melakukan riset.svg` (file sumber zona manusia, tidak disentuh).
 
 ## Blocked
 <!-- format: T-xx | peran | alasan | butuh @Y -->
