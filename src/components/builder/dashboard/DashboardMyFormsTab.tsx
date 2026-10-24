@@ -1,22 +1,22 @@
 /**
- * DashboardMyFormsTab.tsx — Tampilan tab utama "Formulir Saya" (Zona B).
- * Layout 2 kolom ala E-Tutor: kolom kartu formulir & kolom analitik/aktivitas.
+ * DashboardMyFormsTab.tsx — tab "Formulir Saya".
+ * Ringkasan metrik, pencarian kontekstual, satu filter status, daftar kartu,
+ * dan rail aktivitas terbaru.
  */
 import type { FormRow } from '../dashboardForms';
 import type { StatusFilter } from './types';
 import DashboardFormCard from './DashboardFormCard';
 import DashboardStatSummary from './DashboardStatSummary';
-import DashboardFeaturedCard from './DashboardFeaturedCard';
 import DashboardRecentActivity from './DashboardRecentActivity';
-import { PREBUILT_TEMPLATES, type PrebuiltTemplate } from '../defaultTemplates';
 import { summarizeForms } from './templateHelper';
 
 interface MyFormsTabProps {
   forms: FormRow[];
   filteredForms: FormRow[];
   statusFilter: StatusFilter;
-  onStatusFilterChange: (s: StatusFilter) => void;
+  onStatusFilterChange: (status: StatusFilter) => void;
   searchQuery: string;
+  onSearchChange: (query: string) => void;
   onCopyLink: (slug: string) => void;
   copiedSlug: string | null;
   onDuplicate: (form: FormRow) => void;
@@ -24,7 +24,6 @@ interface MyFormsTabProps {
   onDeleteForm: (form: FormRow) => void;
   onOpenCreateModal: () => void;
   onGoToTemplates: () => void;
-  onUseTemplate: (tpl: PrebuiltTemplate) => void;
   isBusy: boolean;
 }
 
@@ -34,6 +33,7 @@ export default function DashboardMyFormsTab({
   statusFilter,
   onStatusFilterChange,
   searchQuery,
+  onSearchChange,
   onCopyLink,
   copiedSlug,
   onDuplicate,
@@ -41,132 +41,129 @@ export default function DashboardMyFormsTab({
   onDeleteForm,
   onOpenCreateModal,
   onGoToTemplates,
-  onUseTemplate,
   isBusy,
 }: MyFormsTabProps) {
   const summary = summarizeForms(forms);
-  const { publishedCount, draftCount, closedCount, totalResponses } = summary;
-  // Template andalan: cari by id agar urutan array tak mengubah tampilan.
-  const featuredTemplate =
-    PREBUILT_TEMPLATES.find((t) => t.id === 'tpl-skripsi-multipage') ?? PREBUILT_TEMPLATES[0];
+  const filters: Array<{ id: StatusFilter; label: string; count: number }> = [
+    { id: 'all', label: 'Semua', count: summary.total },
+    { id: 'published', label: 'Aktif', count: summary.publishedCount },
+    { id: 'draft', label: 'Draft', count: summary.draftCount },
+    { id: 'closed', label: 'Ditutup', count: summary.closedCount },
+  ];
+
+  const emptyTitle = searchQuery
+    ? 'Tidak ada formulir yang cocok'
+    : statusFilter === 'all'
+      ? 'Belum ada formulir'
+      : 'Belum ada formulir di bagian ini';
 
   return (
-    <div className="db-grid-main">
-      {/* ================= KOLOM KIRI: DAFTAR FORMULIR ================= */}
-      <section className="db-col-primary">
-        <div className="db-section-head">
-          <h2>
-            <span>📁</span> Formulir Kamu ({filteredForms.length})
-          </h2>
+    <div className="db-myforms">
+      <DashboardStatSummary
+        totalForms={summary.total}
+        publishedCount={summary.publishedCount}
+        draftCount={summary.draftCount}
+        totalResponses={summary.totalResponses}
+      />
 
-          <div className="db-filter-pills">
-            <button
-              type="button"
-              className={`db-filter-pill ${statusFilter === 'all' ? 'is-active' : ''}`}
-              onClick={() => onStatusFilterChange('all')}
-            >
-              Semua ({summary.total})
-            </button>
-            <button
-              type="button"
-              className={`db-filter-pill ${statusFilter === 'published' ? 'is-active' : ''}`}
-              onClick={() => onStatusFilterChange('published')}
-            >
-              🟢 Aktif ({publishedCount})
-            </button>
-            <button
-              type="button"
-              className={`db-filter-pill ${statusFilter === 'draft' ? 'is-active' : ''}`}
-              onClick={() => onStatusFilterChange('draft')}
-            >
-              🟡 Draft ({draftCount})
-            </button>
-            {closedCount > 0 && (
-              <button
-                type="button"
-                className={`db-filter-pill ${statusFilter === 'closed' ? 'is-active' : ''}`}
-                onClick={() => onStatusFilterChange('closed')}
-              >
-                ⚪ Tutup ({closedCount})
-              </button>
-            )}
+      <div className={`db-grid-main ${forms.length === 0 ? 'db-grid-main--single' : ''}`}>
+        <section className="db-col-primary" aria-labelledby="db-myforms-title">
+          <div className="db-tab-head">
+            <h2 id="db-myforms-title" className="db-section-title">
+              Formulir kamu
+              <span className="db-section-count">{filteredForms.length}</span>
+            </h2>
           </div>
-        </div>
 
-        {/* Daftar Kartu Form */}
-        {filteredForms.length > 0 ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            {filteredForms.map((form) => (
-              <DashboardFormCard
-                key={form.id}
-                form={form}
-                onCopyLink={onCopyLink}
-                copiedSlug={copiedSlug}
-                onDuplicate={onDuplicate}
-                onCloseForm={onCloseForm}
-                onDeleteForm={onDeleteForm}
-                isBusy={isBusy}
+          <div className="db-toolbar">
+            <div className="db-search">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                aria-hidden="true"
+              >
+                <circle cx="11" cy="11" r="7" />
+                <path d="m20 20-3.5-3.5" />
+              </svg>
+              <input
+                type="search"
+                value={searchQuery}
+                onChange={(event) => onSearchChange(event.target.value)}
+                placeholder="Cari judul atau tautan"
+                aria-label="Cari formulir"
               />
-            ))}
-          </div>
-        ) : (
-          /* Empty State Ramah Pemula */
-          <div
-            className="db-card"
-            style={{
-              padding: '36px 24px',
-              textAlign: 'center',
-              borderStyle: 'dashed',
-            }}
-          >
-            <div style={{ fontSize: '2.5rem', marginBottom: 12 }}>📋</div>
-            <h3 style={{ fontSize: '1.15rem', margin: '0 0 6px' }}>
-              {searchQuery
-                ? `Tidak ada formulir yang cocok dengan "${searchQuery}".`
-                : 'Belum ada formulir di bagian ini.'}
-            </h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', maxWidth: 420, margin: '0 auto 20px' }}>
-              Mulai kumpulkan respons sekarang! Kamu bisa pilih template siap pakai dengan pertanyaan terstruktur atau buat dari awal.
-            </p>
-            <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-              <button
-                type="button"
-                className="btn btn--accent btn--sm"
-                onClick={onGoToTemplates}
-              >
-                ✨ Lihat Katalog Template ➔
-              </button>
-              <button
-                type="button"
-                className="btn btn--ghost btn--sm"
-                onClick={onOpenCreateModal}
-              >
-                + Buat Form Kosong
-              </button>
+              {searchQuery && (
+                <button
+                  type="button"
+                  className="db-search-clear"
+                  onClick={() => onSearchChange('')}
+                  aria-label="Hapus kata kunci"
+                >
+                  ×
+                </button>
+              )}
+            </div>
+
+            <div className="db-segmented" role="group" aria-label="Filter status formulir">
+              {filters.map((filter) => (
+                <button
+                  key={filter.id}
+                  type="button"
+                  className={statusFilter === filter.id ? 'is-active' : ''}
+                  aria-pressed={statusFilter === filter.id}
+                  onClick={() => onStatusFilterChange(filter.id)}
+                >
+                  {filter.label}
+                  <span>{filter.count}</span>
+                </button>
+              ))}
             </div>
           </div>
+
+          {filteredForms.length > 0 ? (
+            <div className="db-form-list">
+              {filteredForms.map((form) => (
+                <DashboardFormCard
+                  key={form.id}
+                  form={form}
+                  onCopyLink={onCopyLink}
+                  copiedSlug={copiedSlug}
+                  onDuplicate={onDuplicate}
+                  onCloseForm={onCloseForm}
+                  onDeleteForm={onDeleteForm}
+                  isBusy={isBusy}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="db-empty">
+              <h3>{emptyTitle}</h3>
+              <p>
+                {searchQuery
+                  ? 'Coba kata kunci lain, atau mulai formulir baru.'
+                  : 'Mulai dari template siap pakai atau rancang sendiri dari lembar kosong.'}
+              </p>
+              <div className="db-empty-actions">
+                <button type="button" className="db-btn db-btn--primary" onClick={onGoToTemplates}>
+                  Lihat template
+                </button>
+                <button type="button" className="db-btn db-btn--soft" onClick={onOpenCreateModal}>
+                  Buat kosong
+                </button>
+              </div>
+            </div>
+          )}
+        </section>
+
+        {forms.length > 0 && (
+          <aside className="db-col-secondary" aria-label="Aktivitas terbaru">
+            <DashboardRecentActivity forms={forms} />
+          </aside>
         )}
-      </section>
-
-      {/* ================= KOLOM KANAN: STATISTIK & REKOMENDASI ================= */}
-      <aside className="db-col-secondary">
-        <DashboardStatSummary
-          totalForms={summary.total}
-          publishedCount={publishedCount}
-          draftCount={draftCount}
-          totalResponses={totalResponses}
-        />
-
-        {featuredTemplate && (
-          <DashboardFeaturedCard
-            template={featuredTemplate}
-            onUseTemplate={onUseTemplate}
-            isBusy={isBusy}
-          />
-        )}
-
-        <DashboardRecentActivity forms={forms} />
-      </aside>
+      </div>
     </div>
   );
 }

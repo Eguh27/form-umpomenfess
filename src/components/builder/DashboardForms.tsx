@@ -1,9 +1,14 @@
 /**
- * DashboardForms.tsx — Island dashboard pengguna (tab Formulir Saya, Buat & Template,
- * Statistik, Panduan). Menerima data awal dari halaman server Astro via props.
+ * DashboardForms.tsx — island dashboard pengguna.
+ * Navigasi desktop lewat sidebar, mobile lewat drawer + tab bar ringkas.
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { DashboardProps, DashboardTab, StatusFilter } from './dashboard/types';
+import {
+  DASHBOARD_TABS,
+  type DashboardProps,
+  type DashboardTab,
+  type StatusFilter,
+} from './dashboard/types';
 import DashboardSidebar from './dashboard/DashboardSidebar';
 import DashboardTopbar from './dashboard/DashboardTopbar';
 import DashboardMyFormsTab from './dashboard/DashboardMyFormsTab';
@@ -23,6 +28,7 @@ import {
   type FormRow,
   type TemplateRow,
 } from './dashboardForms';
+import { summarizeForms } from './dashboard/templateHelper';
 import { getSupabaseBrowserClient } from './browserClient';
 import type { PrebuiltTemplate } from './defaultTemplates';
 
@@ -45,6 +51,8 @@ export default function DashboardForms({
   const toastTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => () => clearTimeout(toastTimer.current), []);
+
+  const summary = useMemo(() => summarizeForms(forms), [forms]);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -107,7 +115,7 @@ export default function DashboardForms({
         }),
       );
       await refresh();
-      showToast(`Formulir "${row.title}" berhasil diduplikasi!`);
+      showToast(`Formulir "${row.title}" berhasil diduplikasi.`);
     });
 
   const close = (row: FormRow) =>
@@ -129,19 +137,18 @@ export default function DashboardForms({
     const url = `${window.location.origin}/f/${slug}`;
     navigator.clipboard.writeText(url);
     setCopiedSlug(slug);
-    showToast('Tautan formulir disalin! Siap dibagikan ke responden.');
+    showToast('Tautan formulir disalin.');
     setTimeout(() => setCopiedSlug(null), 2500);
   };
 
-  // Filter Formulir Berdasarkan Tab Status & Pencarian
   const filteredForms = useMemo(() => {
-    return forms.filter((f) => {
-      if (statusFilter === 'published' && f.status !== 'published') return false;
-      if (statusFilter === 'draft' && f.status !== 'draft') return false;
-      if (statusFilter === 'closed' && f.status !== 'closed') return false;
+    return forms.filter((form) => {
+      if (statusFilter !== 'all' && form.status !== statusFilter) return false;
       if (search.trim()) {
-        const q = search.toLowerCase();
-        return f.title.toLowerCase().includes(q) || f.slug.toLowerCase().includes(q);
+        const query = search.toLowerCase();
+        return (
+          form.title.toLowerCase().includes(query) || form.slug.toLowerCase().includes(query)
+        );
       }
       return true;
     });
@@ -151,50 +158,47 @@ export default function DashboardForms({
 
   return (
     <div className="db-app">
-      {/* 1. Sidebar Navigasi ala E-Tutor */}
       <DashboardSidebar
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
         activeTab={mainTab}
         onSelectTab={setMainTab}
-        formsCount={forms.length}
+        formsCount={summary.total}
         isAdmin={user?.isAdmin}
         pendingReportsCount={pendingReportsCount}
       />
 
-      {/* 2. Area Konten Utama */}
       <main className="db-main" id="main">
         <DashboardTopbar
           onOpenSidebar={() => setSidebarOpen(true)}
+          sidebarOpen={sidebarOpen}
           displayName={displayName}
           userEmail={user?.email}
-          isAdmin={user?.isAdmin}
-          searchQuery={search}
-          onSearchChange={setSearch}
-          statusFilter={statusFilter}
-          onStatusFilterChange={setStatusFilter}
+          formsCount={summary.total}
+          totalResponses={summary.totalResponses}
           onOpenCreateModal={() => setCreateModalOpen(true)}
         />
 
+        <nav className="db-mobile-tabs" aria-label="Tab dashboard">
+          {DASHBOARD_TABS.map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              className={mainTab === tab.id ? 'is-active' : ''}
+              aria-current={mainTab === tab.id ? 'page' : undefined}
+              onClick={() => setMainTab(tab.id)}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </nav>
+
         {error && (
-          <div
-            role="alert"
-            style={{
-              background: 'rgba(239, 68, 68, 0.1)',
-              border: '1.5px solid var(--danger, #ef4444)',
-              color: 'var(--danger, #ef4444)',
-              borderRadius: 14,
-              padding: '12px 16px',
-              fontWeight: 600,
-              fontSize: '0.88rem',
-              marginBottom: 20,
-            }}
-          >
+          <div role="alert" className="db-alert">
             {error}
           </div>
         )}
 
-        {/* 3. Tampilan Konten Sesuai Tab Aktif */}
         {mainTab === 'my-forms' && (
           <DashboardMyFormsTab
             forms={forms}
@@ -202,6 +206,7 @@ export default function DashboardForms({
             statusFilter={statusFilter}
             onStatusFilterChange={setStatusFilter}
             searchQuery={search}
+            onSearchChange={setSearch}
             onCopyLink={handleCopyLink}
             copiedSlug={copiedSlug}
             onDuplicate={duplicate}
@@ -209,7 +214,6 @@ export default function DashboardForms({
             onDeleteForm={remove}
             onOpenCreateModal={() => setCreateModalOpen(true)}
             onGoToTemplates={() => setMainTab('templates')}
-            onUseTemplate={createFromPrebuilt}
             isBusy={busy !== null}
           />
         )}
@@ -227,14 +231,10 @@ export default function DashboardForms({
         {mainTab === 'stats' && <DashboardStatsTab forms={forms} />}
 
         {mainTab === 'guide' && (
-          <DashboardGuideTab
-            onGoToTemplates={() => setMainTab('templates')}
-            onOpenCreateModal={() => setCreateModalOpen(true)}
-          />
+          <DashboardGuideTab onOpenCreateModal={() => setCreateModalOpen(true)} />
         )}
       </main>
 
-      {/* 4. Modal Buat Formulir Cepat */}
       <DashboardCreateModal
         isOpen={createModalOpen}
         onClose={() => setCreateModalOpen(false)}
@@ -249,7 +249,6 @@ export default function DashboardForms({
         isBusy={busy !== null}
       />
 
-      {/* 5. Notifikasi Melayang Ramah */}
       <DashboardToast message={toastMessage} />
     </div>
   );

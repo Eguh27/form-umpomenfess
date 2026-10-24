@@ -159,3 +159,24 @@ describe('TITLE_SUGGESTIONS', () => {
     }
   });
 });
+
+describe('anti-regresi emoji dashboard', () => {
+  const EMOJI = /\p{Extended_Pictographic}/u;
+
+  it('STATUS_LABELS bebas emoji di semua teks yang tampil', () => {
+    for (const meta of Object.values(STATUS_LABELS)) {
+      for (const text of [meta.label, meta.short, meta.desc]) {
+        expect(text).not.toMatch(EMOJI);
+      }
+    }
+  });
+
+  it('TITLE_SUGGESTIONS bebas emoji dan memakai kunci ikon teks', () => {
+    for (const suggestion of TITLE_SUGGESTIONS) {
+      expect(suggestion.title).not.toMatch(EMOJI);
+      expect(suggestion.icon).not.toMatch(EMOJI);
+      expect(suggestion.icon).toMatch(/^[a-z]+$/);
+      expect(suggestion.icon.length).toBeGreaterThan(0);
+    }
+  });
+});

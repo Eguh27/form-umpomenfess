@@ -1,9 +1,8 @@
 /**
- * DashboardCreateModal.tsx — Dialog pop-up buat formulir baru (Zona B).
- * Menyediakan dua jalur jelas: Template Siap Pakai (pemula) atau Lembar Kosong.
- * Contoh judul cepat menyisipkan teks bersih (tanpa emoji di judul tersimpan).
+ * DashboardCreateModal.tsx — dialog dua jalur: template atau lembar kosong.
+ * Tanpa border, gradien, atau pemisah; fokus terkurung dan Escape menutup.
  */
-import { useState, type SyntheticEvent } from 'react';
+import { useEffect, useRef, useState, type SyntheticEvent } from 'react';
 
 interface CreateModalProps {
   isOpen: boolean;
@@ -13,13 +12,17 @@ interface CreateModalProps {
   isBusy: boolean;
 }
 
+/** `icon` adalah kunci ikon, bukan emoji; tidak dirender di UI. */
 export const TITLE_SUGGESTIONS = [
-  { icon: '🎓', title: 'Kuesioner Penelitian Skripsi', category: 'Skripsi' },
-  { icon: '📋', title: 'Formulir Pendaftaran Kegiatan', category: 'Pendaftaran' },
-  { icon: '⭐', title: 'Survei Kepuasan Mahasiswa', category: 'Evaluasi' },
-  { icon: '💬', title: 'Kotak Masukan & Saran', category: 'Feedback' },
-  { icon: '🏆', title: 'Pendaftaran Lomba Kampus', category: 'Kompetisi' },
+  { icon: 'graduation', title: 'Kuesioner Penelitian Skripsi', category: 'Skripsi' },
+  { icon: 'clipboard', title: 'Formulir Pendaftaran Kegiatan', category: 'Pendaftaran' },
+  { icon: 'star', title: 'Survei Kepuasan Mahasiswa', category: 'Evaluasi' },
+  { icon: 'chat', title: 'Kotak Masukan & Saran', category: 'Feedback' },
+  { icon: 'trophy', title: 'Pendaftaran Lomba Kampus', category: 'Kompetisi' },
 ] as const;
+
+const FOCUSABLE =
+  'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 export default function DashboardCreateModal({
   isOpen,
@@ -29,140 +32,136 @@ export default function DashboardCreateModal({
   isBusy,
 }: CreateModalProps) {
   const [title, setTitle] = useState('');
+  const modalRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const previousFocus = document.activeElement;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const focusTimer = window.setTimeout(() => inputRef.current?.focus(), 0);
+
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeRef.current();
+        return;
+      }
+      if (event.key !== 'Tab') return;
+
+      const nodes = modalRef.current?.querySelectorAll<HTMLElement>(FOCUSABLE);
+      if (!nodes || nodes.length === 0) return;
+      const first = nodes[0];
+      const last = nodes[nodes.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener('keydown', handleKey);
+    return () => {
+      window.clearTimeout(focusTimer);
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener('keydown', handleKey);
+      if (previousFocus instanceof HTMLElement) previousFocus.focus();
+    };
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: SyntheticEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleSubmit = (event: SyntheticEvent<HTMLFormElement>) => {
+    event.preventDefault();
     onCreateBlank(title.trim());
   };
 
   return (
     <div
       className="db-modal-backdrop"
-      role="dialog"
-      aria-modal="true"
-      onClick={onClose}
+      onClick={(event) => {
+        if (event.target === event.currentTarget) closeRef.current();
+      }}
     >
-      <div className="db-modal" onClick={(e) => e.stopPropagation()}>
-        {/* Header Modal */}
+      <div
+        className="db-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="db-create-title"
+        ref={modalRef}
+      >
         <div className="db-modal-head">
           <div>
-            <h3>Buat Formulir Baru ✨</h3>
-            <p style={{ margin: '2px 0 0', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-              Pilih cara termudah untuk memulai formulir barumu:
-            </p>
+            <h2 id="db-create-title">Buat formulir</h2>
+            <p className="db-muted">Pilih titik mulai yang paling nyaman.</p>
           </div>
           <button
             type="button"
-            className="btn btn--ghost btn--sm"
-            style={{ minHeight: 32, width: 32, padding: 0, borderRadius: 8 }}
+            className="db-icon-btn"
             onClick={onClose}
             aria-label="Tutup dialog"
           >
-            ✕
+            ×
           </button>
         </div>
 
-        {/* Pilihan 1 (Rekomendasi Pemula): Template Siap Pakai */}
-        <div
-          style={{
-            background: 'linear-gradient(135deg, color-mix(in srgb, var(--coral) 12%, var(--surface)), var(--surface-soft))',
-            border: '1.5px solid color-mix(in srgb, var(--coral) 30%, var(--border))',
-            borderRadius: 16,
-            padding: '14px 16px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 12,
-            flexWrap: 'wrap',
-          }}
-        >
-          <div>
-            <span className="pill pill--coral" style={{ fontSize: '0.66rem', marginBottom: 4 }}>
-              ⭐ Disarankan untuk Pemula
-            </span>
-            <strong style={{ display: 'block', fontSize: '0.94rem', margin: '4px 0 2px' }}>
-              Pilih dari Template Siap Pakai
-            </strong>
-            <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.35 }}>
-              Ada contoh pertanyaan terstruktur (skripsi, pendaftaran, kepuasan). Tinggal pakai dalam 1-klik!
-            </p>
-          </div>
+        <section className="db-modal-section" aria-labelledby="db-template-choice">
+          <h3 id="db-template-choice">Mulai dari template</h3>
+          <p className="db-muted">
+            Pertanyaan inti sudah tersusun. Kamu bisa menyesuaikannya setelah dibuat.
+          </p>
           <button
             type="button"
-            className="btn btn--accent btn--sm"
-            style={{ fontWeight: 700, whiteSpace: 'nowrap' }}
+            className="db-btn db-btn--soft"
             onClick={onGoToTemplates}
             disabled={isBusy}
           >
-            Buka Katalog Template ➔
+            Lihat template
           </button>
-        </div>
+        </section>
 
-        {/* Pemisah atau */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '2px 0' }}>
-          <div style={{ flex: 1, borderTop: '1px dashed var(--border)' }} />
-          <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', fontWeight: 600 }}>
-            atau rancang dari nol
-          </span>
-          <div style={{ flex: 1, borderTop: '1px dashed var(--border)' }} />
-        </div>
+        <form className="db-modal-section" onSubmit={handleSubmit}>
+          <h3>Mulai dari kosong</h3>
+          <label className="sr-only" htmlFor="db-form-title">
+            Judul formulir
+          </label>
+          <input
+            id="db-form-title"
+            ref={inputRef}
+            className="input"
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+            placeholder="Judul formulir"
+            disabled={isBusy}
+          />
 
-        {/* Pilihan 2: Mulai dari Lembar Kosong */}
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <div>
-            <label style={{ display: 'block', fontSize: '0.84rem', fontWeight: 700, marginBottom: 6 }}>
-              Judul Formulir Kosong
-            </label>
-            <input
-              className="input"
-              style={{ width: '100%', fontSize: '0.9rem' }}
-              placeholder="Contoh: Kuesioner Kepuasan Mahasiswa UMPO..."
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              autoFocus
-              disabled={isBusy}
-            />
+          <div className="db-suggestions">
+            <span className="db-muted">Contoh judul</span>
+            {TITLE_SUGGESTIONS.map((suggestion) => (
+              <button
+                key={suggestion.title}
+                type="button"
+                className="db-suggestion"
+                onClick={() => setTitle(suggestion.title)}
+                disabled={isBusy}
+              >
+                {suggestion.title}
+              </button>
+            ))}
           </div>
 
-          <div>
-            <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', fontWeight: 600 }}>
-              💡 Contoh judul cepat (klik untuk mengisi otomatis):
-            </span>
-            <div className="db-suggestion-chips">
-              {TITLE_SUGGESTIONS.map((sug) => (
-                <button
-                  key={sug.title}
-                  type="button"
-                  className="db-chip"
-                  onClick={() => setTitle(sug.title)}
-                  disabled={isBusy}
-                  title={`Gunakan judul: ${sug.title}`}
-                >
-                  <span>{sug.icon}</span> {sug.title}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Tombol Aksi Bawah */}
-          <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 8, flexWrap: 'wrap' }}>
-            <button
-              type="button"
-              className="btn btn--ghost btn--sm"
-              onClick={onClose}
-              disabled={isBusy}
-            >
+          <div className="db-modal-actions">
+            <button type="button" className="db-btn db-btn--ghost" onClick={onClose}>
               Batal
             </button>
-            <button
-              type="submit"
-              className="btn btn--accent btn--sm"
-              disabled={isBusy}
-              style={{ fontWeight: 700 }}
-            >
-              + Buat Lembar Kosong ➔
+            <button type="submit" className="db-btn db-btn--primary" disabled={isBusy}>
+              Buat
             </button>
           </div>
         </form>

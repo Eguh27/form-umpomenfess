@@ -1,10 +1,10 @@
 /**
- * DashboardFormCard.tsx — Kartu form individual ala E-Tutor (Zona B).
- * Menyediakan tombol aksi yang jelas dengan teks ramah pemula (bukan simbol abstrak).
+ * DashboardFormCard.tsx — kartu formulir tanpa garis: status, progres, dan aksi.
+ * Judul kartu langsung menuju builder.
  */
-import { useState, useRef, useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { FormRow } from '../dashboardForms';
-import { STATUS_LABELS } from './types';
+import { statusMeta } from './types';
 import { calculateProgress } from './templateHelper';
 
 interface FormCardProps {
@@ -15,6 +15,14 @@ interface FormCardProps {
   onCloseForm: (form: FormRow) => void;
   onDeleteForm: (form: FormRow) => void;
   isBusy: boolean;
+}
+
+function formatDate(value: string): string {
+  return new Date(value).toLocaleDateString('id-ID', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
 }
 
 export default function DashboardFormCard({
@@ -28,10 +36,14 @@ export default function DashboardFormCard({
 }: FormCardProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const meta = statusMeta(form.status);
+  const isCopied = copiedSlug === form.slug;
+  const isPublished = form.status === 'published';
+  const progress = calculateProgress(form.responses, form.maxResponses);
 
   useEffect(() => {
-    const handleOutside = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+    const handleOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setMenuOpen(false);
       }
     };
@@ -39,126 +51,84 @@ export default function DashboardFormCard({
     return () => document.removeEventListener('click', handleOutside);
   }, []);
 
-  const statusMeta = STATUS_LABELS[form.status] ?? {
-    label: form.status,
-    badgeClass: 'status-closed',
-    desc: 'Status formulir',
-  };
-
-  const isCopied = copiedSlug === form.slug;
-  const isPublished = form.status === 'published';
-  const progress = calculateProgress(form.responses, form.maxResponses);
-
   return (
     <article className="db-form-card">
-      {/* Bagian Atas: Ikon status, Judul & Tautan Publik */}
-      <div className="db-fc-top">
-        <div className={`db-fc-icon icon-${form.status}`} aria-hidden="true">
-          {form.status === 'published' ? (
-            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-              <polyline points="22 4 12 14.01 9 11.01" />
-            </svg>
-          ) : form.status === 'draft' ? (
-            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 20h9" />
-              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-            </svg>
-          ) : (
-            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10" />
-              <line x1="10" y1="15" x2="10" y2="9" />
-              <line x1="14" y1="15" x2="14" y2="9" />
-            </svg>
-          )}
-        </div>
-
+      <div className="db-fc-head">
         <div className="db-fc-info">
           <h3 className="db-fc-title">
-            <a href={`/dashboard/${form.id}`} title="Buka editor form">
-              {form.title}
-            </a>
+            <a href={`/dashboard/${form.id}`}>{form.title}</a>
           </h3>
-
-          <div className="db-fc-slug-row">
-            <span>Tautan:</span>
+          <div className="db-fc-meta">
             <code>/f/{form.slug}</code>
-            {isPublished && (
-              <a
-                href={`/f/${form.slug}`}
-                target="_blank"
-                rel="noreferrer"
-                title="Buka form publik di tab baru"
-                style={{ color: 'var(--brand)', textDecoration: 'none', fontWeight: 700 }}
-              >
-                ↗
-              </a>
-            )}
+            <span>Diperbarui {formatDate(form.updatedAt)}</span>
           </div>
         </div>
-      </div>
-
-      {/* Baris Status & Indikator Respons */}
-      <div className="db-fc-meta-row">
-        <span className={`db-fc-status ${statusMeta.badgeClass}`} title={statusMeta.desc}>
-          {statusMeta.label}
-        </span>
-        <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
-          Diperbarui {new Date(form.updatedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+        <span className={`db-status db-status--${meta.tone}`} title={meta.desc}>
+          {meta.short}
         </span>
       </div>
 
-      {/* Indikator Visual Progres Respons */}
-      <div className="db-fc-progress-wrap">
-        {progress.hasQuota ? (
-          <>
-            <div className="db-fc-progress-bar">
-              <div className="db-fc-progress-fill" style={{ width: `${Math.max(4, progress.ratio)}%` }} />
-            </div>
-            <span className="db-fc-progress-text">
-              {progress.label}
-            </span>
-          </>
-        ) : (
-          <span className="db-fc-progress-text" style={{ width: '100%' }}>
-            {progress.label}
-          </span>
+      <div className="db-fc-progress">
+        {progress.hasQuota && (
+          <div className="db-fc-progress-track" aria-hidden="true">
+            <div
+              className="db-fc-progress-fill"
+              style={{ width: `${Math.max(2, progress.ratio)}%` }}
+            />
+          </div>
         )}
+        <span className="db-fc-progress-text">
+          {progress.hasQuota
+            ? `${form.responses} / ${form.maxResponses} respons`
+            : `${form.responses} respons`}
+        </span>
       </div>
 
-      {/* Tombol Aksi Ramah Pemula */}
       <div className="db-fc-actions">
-        <a href={`/dashboard/${form.id}`} className="db-action-btn db-btn-primary" title="Edit pertanyaan dan tema form">
-          ✏️ Edit Form
+        <a href={`/dashboard/${form.id}`} className="db-btn db-btn--primary db-btn--sm">
+          Edit
         </a>
-
-        <a href={`/dashboard/${form.id}/respons`} className="db-action-btn db-btn-secondary" title="Lihat hasil jawaban responden">
-          📊 Jawaban ({form.responses})
+        <a
+          href={`/dashboard/${form.id}/respons`}
+          className="db-btn db-btn--ghost db-btn--sm"
+        >
+          Jawaban
         </a>
-
+        {isPublished && (
+          <a
+            href={`/f/${form.slug}`}
+            target="_blank"
+            rel="noreferrer"
+            className="db-btn db-btn--ghost db-btn--sm"
+            aria-label={`Buka ${form.title} di tab baru`}
+          >
+            Buka
+          </a>
+        )}
         <button
           type="button"
-          className="db-action-btn db-btn-secondary"
+          className="db-btn db-btn--ghost db-btn--sm"
           onClick={() => onCopyLink(form.slug)}
-          title="Salin tautan formulir untuk dibagikan ke responden"
+          title="Salin tautan form"
+          aria-label={isCopied ? `Tautan ${form.title} tersalin` : `Salin tautan ${form.title}`}
         >
-          {isCopied ? '✓ Tersalin!' : '🔗 Salin Link'}
+          {isCopied ? 'Tersalin' : 'Salin link'}
         </button>
 
-        <div style={{ position: 'relative', marginLeft: 'auto' }} ref={menuRef}>
+        <div className="db-fc-menu" ref={menuRef}>
           <button
             type="button"
-            className="db-action-btn db-btn-ghost"
+            className="db-icon-btn"
             onClick={() => setMenuOpen((prev) => !prev)}
-            aria-label="Pilihan aksi lainnya"
-            title="Aksi lainnya"
-            style={{ padding: '7px 10px' }}
+            aria-label="Aksi lainnya"
+            aria-haspopup="menu"
+            aria-expanded={menuOpen}
           >
             ⋯
           </button>
 
           {menuOpen && (
-            <div className="db-dropdown" style={{ right: 0, minWidth: 230 }} role="menu">
+            <div className="db-dropdown" role="menu" aria-label={`Aksi untuk ${form.title}`}>
               <button
                 type="button"
                 onClick={() => {
@@ -168,25 +138,15 @@ export default function DashboardFormCard({
                 disabled={isBusy}
                 role="menuitem"
               >
-                <span>⎘</span>
-                <div>
-                  <strong>Duplikat Form</strong>
-                  <small style={{ display: 'block', color: 'var(--text-muted)' }}>Buat salinan baru form ini</small>
-                </div>
+                Duplikat
               </button>
-
               <a
                 href={`/api/forms/${form.id}/export.csv`}
                 onClick={() => setMenuOpen(false)}
                 role="menuitem"
               >
-                <span>📥</span>
-                <div>
-                  <strong>Unduh Jawaban (Excel / CSV)</strong>
-                  <small style={{ display: 'block', color: 'var(--text-muted)' }}>Format file untuk Excel & Spreadsheet</small>
-                </div>
+                Unduh CSV
               </a>
-
               {isPublished && (
                 <button
                   type="button"
@@ -197,16 +157,9 @@ export default function DashboardFormCard({
                   disabled={isBusy}
                   role="menuitem"
                 >
-                  <span>⏸️</span>
-                  <div>
-                    <strong>Tutup Penerimaan</strong>
-                    <small style={{ display: 'block', color: 'var(--text-muted)' }}>Hentikan pengisian baru</small>
-                  </div>
+                  Tutup form
                 </button>
               )}
-
-              <div style={{ borderTop: '1px solid var(--border)', margin: '4px 0' }} />
-
               <button
                 type="button"
                 className="is-danger"
@@ -217,11 +170,7 @@ export default function DashboardFormCard({
                 disabled={isBusy}
                 role="menuitem"
               >
-                <span>🗑️</span>
-                <div>
-                  <strong>Hapus Form</strong>
-                  <small style={{ display: 'block', color: 'var(--danger)' }}>Pindahkan ke kotak sampah</small>
-                </div>
+                Hapus
               </button>
             </div>
           )}
