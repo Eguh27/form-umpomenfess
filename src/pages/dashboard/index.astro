@@ -2,6 +2,7 @@
 import '../../styles/global.css';
 import themeInitUrl from '../../styles/theme-init.js?url&no-inline';
 import themeToggleUrl from '../../styles/theme-toggle.js?url&no-inline';
+import '../../components/builder/dashboard/dashboard.css';
 
 /*
   Dashboard index (Zona B). Middleware (@A) sudah menahan anonim.
@@ -52,7 +53,7 @@ if (supabase) {
       .map((t) => ({
         id: String(t.id),
         name: String(t.name),
-        title: '',
+        title: String(t.name),
         schemaJson: t.schema as Record<string, unknown>,
         previewUrl: (t.preview_url as string | null) ?? null,
       }));
@@ -66,7 +67,6 @@ if (supabase) {
 
 const displayName = user?.user_metadata?.full_name ?? user?.email ?? 'Pengguna';
 const userSummary = {
-  id: user.id,
   email: user.email,
   name: displayName,
   isAdmin: userIsAdmin,
@@ -80,6 +80,7 @@ const userSummary = {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#FDEEEC" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#131C1A" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#FDEEEC" />
     <title>Dashboard — umpomenfess form</title>
     <link
       rel="icon"

@@ -34,7 +34,7 @@ export default function DashboardCreateModal({
 
   const handleSubmit = (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
-    onCreateBlank(title.trim() || 'Formulir Baru');
+    onCreateBlank(title.trim());
   };
 
   return (
@@ -126,7 +126,6 @@ export default function DashboardCreateModal({
             />
           </div>
 
-          {/* Chip Saran Judul Ramah Pemula */}
           <div>
             <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', fontWeight: 600 }}>
               💡 Contoh judul cepat (klik untuk mengisi otomatis):

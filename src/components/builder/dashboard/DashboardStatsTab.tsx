@@ -3,16 +3,22 @@
  * Memberikan gambaran performa formulir dan akses cepat unduh respons.
  */
 import type { FormRow } from '../dashboardForms';
+import { summarizeForms } from './templateHelper';
 
 interface StatsTabProps {
   forms: FormRow[];
 }
 
+/** Badge status tabel: label & class persis satu sumber, status tak dikenal jatuh ke Ditutup. */
+const STATUS_BADGES: Record<string, { label: string; badgeClass: string }> = {
+  published: { label: '🟢 Aktif', badgeClass: 'status-published' },
+  draft: { label: '🟡 Draft', badgeClass: 'status-draft' },
+};
+const STATUS_BADGES_FALLBACK = { label: '⚪ Tutup', badgeClass: 'status-closed' };
+
 export default function DashboardStatsTab({ forms }: StatsTabProps) {
-  const publishedCount = forms.filter((f) => f.status === 'published').length;
-  const draftCount = forms.filter((f) => f.status === 'draft').length;
-  const closedCount = forms.filter((f) => f.status === 'closed').length;
-  const totalResponses = forms.reduce((acc, f) => acc + (f.responses || 0), 0);
+  const summary = summarizeForms(forms);
+  const { publishedCount, draftCount, closedCount, totalResponses } = summary;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
@@ -25,7 +31,7 @@ export default function DashboardStatsTab({ forms }: StatsTabProps) {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 14 }}>
           <div className="db-card" style={{ padding: 18 }}>
             <span className="db-stat-label">Total Formulir</span>
-            <strong className="db-stat-number">{forms.length}</strong>
+            <strong className="db-stat-number">{summary.total}</strong>
             <small style={{ color: 'var(--text-muted)', fontSize: '0.74rem' }}>Seluruh form yang pernah dibuat</small>
           </div>
 
@@ -92,16 +98,8 @@ export default function DashboardStatsTab({ forms }: StatsTabProps) {
                       </span>
                     </td>
                     <td>
-                      <span
-                        className={`db-fc-status ${
-                          f.status === 'published'
-                            ? 'status-published'
-                            : f.status === 'draft'
-                            ? 'status-draft'
-                            : 'status-closed'
-                        }`}
-                      >
-                        {f.status === 'published' ? '🟢 Aktif' : f.status === 'draft' ? '🟡 Draft' : '⚪ Tutup'}
+                      <span className={`db-fc-status ${(STATUS_BADGES[f.status] ?? STATUS_BADGES_FALLBACK).badgeClass}`}>
+                        {(STATUS_BADGES[f.status] ?? STATUS_BADGES_FALLBACK).label}
                       </span>
                     </td>
                     <td>

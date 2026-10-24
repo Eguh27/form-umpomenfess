@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { extractSampleQuestions, calculateProgress } from './templateHelper';
+import { extractSampleQuestions, calculateProgress, summarizeForms } from './templateHelper';
 import { STATUS_LABELS } from './types';
 import { TITLE_SUGGESTIONS } from './DashboardCreateModal';
 import { PREBUILT_TEMPLATES } from '../defaultTemplates';
+import type { FormRow } from '../dashboardForms';
 
 describe('extractSampleQuestions', () => {
   it('mengekstrak pertanyaan dari array blocks dan mengubah jenis pertanyaan ke teks ramah', () => {
@@ -97,17 +98,54 @@ describe('calculateProgress', () => {
   });
 });
 
+describe('summarizeForms', () => {
+  const row = (overrides: Partial<FormRow> & { id: string }): FormRow => ({
+    slug: 'form-contoh',
+    title: 'Formulir Contoh',
+    status: 'draft',
+    responses: 0,
+    maxResponses: null,
+    closesAt: null,
+    updatedAt: '2026-10-22T00:00:00Z',
+    ...overrides,
+  });
+
+  it('form kosong menghasilkan semua rekap nol', () => {
+    expect(summarizeForms([])).toEqual({
+      total: 0,
+      publishedCount: 0,
+      draftCount: 0,
+      closedCount: 0,
+      totalResponses: 0,
+    });
+  });
+
+  it('rekap status campuran & total respons terhitung benar', () => {
+    const summary = summarizeForms([
+      row({ id: 'f1', status: 'published', responses: 12 }),
+      row({ id: 'f2', status: 'draft', responses: 3 }),
+      row({ id: 'f3', status: 'closed', responses: 5 }),
+      row({ id: 'f4', status: 'published', responses: 0 }),
+    ]);
+    expect(summary.total).toBe(4);
+    expect(summary.publishedCount).toBe(2);
+    expect(summary.draftCount).toBe(1);
+    expect(summary.closedCount).toBe(1);
+    expect(summary.totalResponses).toBe(20);
+  });
+});
+
 describe('STATUS_LABELS', () => {
   it('menyediakan status ramah untuk published, draft, dan closed', () => {
     expect(STATUS_LABELS.published).toBeDefined();
-    expect(STATUS_LABELS.published.label).toContain('🟢');
+    expect(STATUS_LABELS.published.label).toContain('Aktif');
     expect(STATUS_LABELS.published.desc).toContain('aktif');
 
     expect(STATUS_LABELS.draft).toBeDefined();
-    expect(STATUS_LABELS.draft.label).toContain('🟡');
+    expect(STATUS_LABELS.draft.label).toContain('Draft');
 
     expect(STATUS_LABELS.closed).toBeDefined();
-    expect(STATUS_LABELS.closed.label).toContain('⚪');
+    expect(STATUS_LABELS.closed.label).toContain('Ditutup');
   });
 });
 

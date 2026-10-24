@@ -1,16 +1,8 @@
 /**
- * DashboardForms.tsx — Island dashboard pengguna ala E-Tutor (Zona B).
- *
- * Struktur arsitektur bersih & modular:
- * 1. DashboardSidebar: Navigasi samping dengan logo, badge, dan panduan cepat.
- * 2. DashboardTopbar: Sambutan hangat, pencarian instan, tema, dan profil.
- * 3. DashboardMyFormsTab: Daftar formulir 2-kolom dengan kartu & statistik ringkas.
- * 4. DashboardTemplatesTab: Katalog template dengan contoh nyata pertanyaan.
- * 5. DashboardStatsTab: Ringkasan statistik & ekspor respons (CSV/Excel).
- * 6. DashboardGuideTab: Panduan visual 4-langkah untuk pengguna pemula.
+ * DashboardForms.tsx — Island dashboard pengguna (tab Formulir Saya, Buat & Template,
+ * Statistik, Panduan). Menerima data awal dari halaman server Astro via props.
  */
-import { useMemo, useState } from 'react';
-import './dashboard/dashboard.css';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { DashboardProps, DashboardTab, StatusFilter } from './dashboard/types';
 import DashboardSidebar from './dashboard/DashboardSidebar';
 import DashboardTopbar from './dashboard/DashboardTopbar';
@@ -50,10 +42,14 @@ export default function DashboardForms({
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  useEffect(() => () => clearTimeout(toastTimer.current), []);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3000);
+    clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setToastMessage(null), 3000);
   };
 
   const run = async (key: string, fn: () => Promise<void>) => {

@@ -9,6 +9,7 @@ import DashboardStatSummary from './DashboardStatSummary';
 import DashboardFeaturedCard from './DashboardFeaturedCard';
 import DashboardRecentActivity from './DashboardRecentActivity';
 import { PREBUILT_TEMPLATES, type PrebuiltTemplate } from '../defaultTemplates';
+import { summarizeForms } from './templateHelper';
 
 interface MyFormsTabProps {
   forms: FormRow[];
@@ -43,11 +44,11 @@ export default function DashboardMyFormsTab({
   onUseTemplate,
   isBusy,
 }: MyFormsTabProps) {
-  const publishedCount = forms.filter((f) => f.status === 'published').length;
-  const draftCount = forms.filter((f) => f.status === 'draft').length;
-  const closedCount = forms.filter((f) => f.status === 'closed').length;
-  const totalResponses = forms.reduce((acc, f) => acc + (f.responses || 0), 0);
-  const featuredTemplate = PREBUILT_TEMPLATES[0]; // Template Skripsi
+  const summary = summarizeForms(forms);
+  const { publishedCount, draftCount, closedCount, totalResponses } = summary;
+  // Template andalan: cari by id agar urutan array tak mengubah tampilan.
+  const featuredTemplate =
+    PREBUILT_TEMPLATES.find((t) => t.id === 'tpl-skripsi-multipage') ?? PREBUILT_TEMPLATES[0];
 
   return (
     <div className="db-grid-main">
@@ -58,14 +59,13 @@ export default function DashboardMyFormsTab({
             <span>📁</span> Formulir Kamu ({filteredForms.length})
           </h2>
 
-          {/* Filter Status Pills */}
           <div className="db-filter-pills">
             <button
               type="button"
               className={`db-filter-pill ${statusFilter === 'all' ? 'is-active' : ''}`}
               onClick={() => onStatusFilterChange('all')}
             >
-              Semua ({forms.length})
+              Semua ({summary.total})
             </button>
             <button
               type="button"
@@ -151,7 +151,7 @@ export default function DashboardMyFormsTab({
       {/* ================= KOLOM KANAN: STATISTIK & REKOMENDASI ================= */}
       <aside className="db-col-secondary">
         <DashboardStatSummary
-          totalForms={forms.length}
+          totalForms={summary.total}
           publishedCount={publishedCount}
           draftCount={draftCount}
           totalResponses={totalResponses}

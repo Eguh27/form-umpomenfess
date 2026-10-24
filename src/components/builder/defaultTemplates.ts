@@ -9,7 +9,7 @@ import type { FormSchemaData } from '../../lib/forms/schema';
 export interface PrebuiltTemplate {
   id: string;
   name: string;
-  tag: 'Skripsi' | 'Survei' | 'Pendaftaran' | 'Evaluasi' | 'Cepat';
+  tag: 'Skripsi' | 'Survei' | 'Cepat';
   description: string;
   pagesCount: number;
   questionCount: number;

@@ -50,7 +50,7 @@ export default function DashboardFormCard({
   const progress = calculateProgress(form.responses, form.maxResponses);
 
   return (
-    <article className="db-form-card" data-testid={`form-card-${form.id}`}>
+    <article className="db-form-card">
       {/* Bagian Atas: Ikon status, Judul & Tautan Publik */}
       <div className="db-fc-top">
         <div className={`db-fc-icon icon-${form.status}`} aria-hidden="true">
@@ -116,29 +116,26 @@ export default function DashboardFormCard({
               <div className="db-fc-progress-fill" style={{ width: `${Math.max(4, progress.ratio)}%` }} />
             </div>
             <span className="db-fc-progress-text">
-              📊 {progress.label}
+              {progress.label}
             </span>
           </>
         ) : (
           <span className="db-fc-progress-text" style={{ width: '100%' }}>
-            📊 {progress.label}
+            {progress.label}
           </span>
         )}
       </div>
 
       {/* Tombol Aksi Ramah Pemula */}
       <div className="db-fc-actions">
-        {/* Tombol Edit */}
         <a href={`/dashboard/${form.id}`} className="db-action-btn db-btn-primary" title="Edit pertanyaan dan tema form">
           ✏️ Edit Form
         </a>
 
-        {/* Tombol Lihat Respons */}
         <a href={`/dashboard/${form.id}/respons`} className="db-action-btn db-btn-secondary" title="Lihat hasil jawaban responden">
           📊 Jawaban ({form.responses})
         </a>
 
-        {/* Tombol Salin Tautan */}
         <button
           type="button"
           className="db-action-btn db-btn-secondary"
@@ -148,7 +145,6 @@ export default function DashboardFormCard({
           {isCopied ? '✓ Tersalin!' : '🔗 Salin Link'}
         </button>
 
-        {/* Menu Pilihan Lainnya (⋯) */}
         <div style={{ position: 'relative', marginLeft: 'auto' }} ref={menuRef}>
           <button
             type="button"

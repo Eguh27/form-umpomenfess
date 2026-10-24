@@ -20,12 +20,6 @@ export interface DashboardProps {
   pendingReportsCount?: number;
 }
 
-export interface QuickSuggestion {
-  title: string;
-  category: string;
-  tag: string;
-}
-
 export const STATUS_LABELS: Record<string, { label: string; badgeClass: string; desc: string }> = {
   published: {
     label: '🟢 Aktif Menerima Jawaban',

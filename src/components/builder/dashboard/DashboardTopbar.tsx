@@ -94,7 +94,6 @@ export default function DashboardTopbar({
         </svg>
       </button>
 
-      {/* Sambutan Pengguna */}
       <div className="db-welcome">
         <h1>
           Selamat datang, <span>{displayName}</span>! 👋
@@ -104,7 +103,6 @@ export default function DashboardTopbar({
 
       {/* Aksi Topbar: Pencarian, Filter Status, Tema, Profil, Tombol Buat */}
       <div className="db-topbar-actions">
-        {/* Kolom Pencarian */}
         <div className="db-search">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="11" cy="11" r="8" />
@@ -129,7 +127,6 @@ export default function DashboardTopbar({
           )}
         </div>
 
-        {/* Dropdown Filter Status Cepat */}
         <div className="db-profile-wrap" ref={filterRef}>
           <button
             type="button"
@@ -173,7 +170,6 @@ export default function DashboardTopbar({
         <button
           type="button"
           className="theme-toggle"
-          data-theme-toggle
           onClick={handleToggleTheme}
           aria-label={isDark ? 'Aktifkan tema terang' : 'Aktifkan tema gelap'}
           aria-pressed={isDark}
@@ -188,7 +184,6 @@ export default function DashboardTopbar({
           </svg>
         </button>
 
-        {/* Menu Profil Pengguna */}
         <div className="db-profile-wrap" ref={profileRef}>
           <button
             type="button"
@@ -239,7 +234,6 @@ export default function DashboardTopbar({
           )}
         </div>
 
-        {/* Tombol Buat Form Baru Prominen */}
         <button
           type="button"
           className="btn btn--accent btn--sm"

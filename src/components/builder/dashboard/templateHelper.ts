@@ -3,6 +3,9 @@
  * Membantu pengguna awam memahami isi template & metrik kuota formulir.
  */
 
+import type { QuestionKind } from '../../../lib/forms/schema';
+import type { FormRow } from '../dashboardForms';
+
 export interface SampleQuestion {
   label: string;
   kindText: string;
@@ -14,15 +17,13 @@ export interface ProgressInfo {
   label: string;
 }
 
-const KIND_NAMES: Record<string, string> = {
+const KIND_NAMES: Record<QuestionKind, string> = {
   short_text: 'Teks Singkat',
   paragraph: 'Teks Panjang / Uraian',
   single_choice: 'Pilihan Tunggal (Radio)',
   multiple_choice: 'Pilihan Ganda (Kotak Centang)',
   dropdown: 'Pilihan Dropdown',
   scale: 'Skala Nilai',
-  date: 'Tanggal',
-  time: 'Waktu',
 };
 
 /** Ekstrak contoh pertanyaan nyata dari schema blocks template. */
@@ -36,7 +37,7 @@ export function extractSampleQuestions(blocks: unknown[], max = 4): SampleQuesti
     .slice(0, max)
     .map((q) => {
       const rawKind = String(q.kind ?? '');
-      let kindText = KIND_NAMES[rawKind] ?? 'Pertanyaan';
+      let kindText = KIND_NAMES[rawKind as QuestionKind] ?? 'Pertanyaan';
 
       if (rawKind === 'scale') {
         const min = typeof q.min === 'number' ? q.min : 1;
@@ -44,7 +45,7 @@ export function extractSampleQuestions(blocks: unknown[], max = 4): SampleQuesti
         kindText = `Skala Nilai ${min}-${maxVal}`;
       } else if (rawKind === 'single_choice' || rawKind === 'multiple_choice' || rawKind === 'dropdown') {
         if (Array.isArray(q.options) && q.options.length > 0) {
-          kindText = `${KIND_NAMES[rawKind] ?? 'Pilihan'} (${q.options.length} opsi)`;
+          kindText = `${KIND_NAMES[rawKind as QuestionKind] ?? 'Pilihan'} (${q.options.length} opsi)`;
         }
       }
 
@@ -71,5 +72,24 @@ export function calculateProgress(responses: number, maxResponses: number | null
     hasQuota: false,
     ratio: 0,
     label: `${safeResponses} jawaban masuk · Tanpa batas kuota`,
+  };
+}
+
+export interface FormsSummary {
+  total: number;
+  publishedCount: number;
+  draftCount: number;
+  closedCount: number;
+  totalResponses: number;
+}
+
+/** Rekap status & total respons form milik pengguna (dipakai tab Formulir Saya & Statistik). */
+export function summarizeForms(forms: FormRow[]): FormsSummary {
+  return {
+    total: forms.length,
+    publishedCount: forms.filter((f) => f.status === 'published').length,
+    draftCount: forms.filter((f) => f.status === 'draft').length,
+    closedCount: forms.filter((f) => f.status === 'closed').length,
+    totalResponses: forms.reduce((acc, f) => acc + (f.responses || 0), 0),
   };
 }
