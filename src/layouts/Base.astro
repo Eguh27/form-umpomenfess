@@ -116,6 +116,23 @@ const main = 'https://umpomenfess.my.id';
       </header>
     )}
 
+    {!nav && (
+      <header class="respondent-wm" aria-hidden="true">
+        <span class="respondent-wm__chip">
+          <span class="brand__mark">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="4.5" y="3" width="15" height="18" rx="3" />
+              <path d="M8.5 8.5h7M8.5 12h7M8.5 15.5h4" />
+              <circle cx="18.5" cy="5.5" r="2.6" fill="#F6C96B" stroke="none" />
+            </svg>
+          </span>
+          <span class="brand__name">umpomenfess</span>
+          <span class="brand__divider" aria-hidden="true"></span>
+          <span class="brand__sub">form</span>
+        </span>
+      </header>
+    )}
+
     <main id="main"><slot /></main>
 
     {footer && (
@@ -149,5 +166,29 @@ const main = 'https://umpomenfess.my.id';
 
     {nav && <script is:inline src={themeToggleUrl}></script>}
     {nav && <script is:inline src={navMenuUrl}></script>}
+
+    <style>
+      .respondent-wm {
+        position: sticky;
+        top: 10px;
+        z-index: 40;
+        display: flex;
+        justify-content: center;
+        padding-inline: 20px;
+        pointer-events: none;
+      }
+      .respondent-wm__chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 7px 16px 7px 12px;
+        border: 1px solid var(--border-glass);
+        border-radius: 999px;
+        background: var(--nav-bg);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        box-shadow: 0 10px 32px rgba(40, 70, 57, 0.08);
+      }
+    </style>
   </body>
 </html>
