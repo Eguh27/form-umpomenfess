@@ -28,10 +28,10 @@ Tetap sediakan kolom `tier` (default `free`) agar paywall mudah ditambah kelak.
 `BACKUP_BUCKET` (opsional, default `db-backups` — bucket Storage harus privat)
 
 ### 4.2 Limit (konstanta di `src/lib/config/limits.ts`, mudah diubah)
-Usulan awal: maks form aktif per user 20; maks gambar per form 5; maks ukuran gambar 2 MB; maks pertanyaan per form 50; maks panjang jawaban teks 2000 karakter; maks respons per form 2000 (free); rate limit submit per IP; maks ukuran payload submit.
+Usulan awal: maks form aktif per user 20; maks gambar per form 5; maks ukuran gambar 2 MB; banner: input 2 MB, hasil kompres target ≤180 KB (hard cap 256 KB), data URL ≤350.000 karakter; maks pertanyaan per form 50; maks panjang jawaban teks 2000 karakter; maks respons per form 2000 (free); rate limit submit per IP; maks ukuran payload submit.
 
 ### 4.3 Tabel (cek schema nyata; Agent A finalkan nama di Fase 0/1)
-- `forms`: id, owner_id, slug (UNIQUE, huruf kecil/angka/-), title, status (`draft|published|closed`), schema jsonb, theme jsonb, schema_version int, version int, tier text default 'free', closes_at, max_responses, deleted_at, created_at, updated_at
+- `forms`: id, owner_id, slug (UNIQUE, huruf kecil/angka/-), title, status (`draft|published|closed`), schema jsonb, theme jsonb, schema_version int, version int, tier text default 'free', closes_at, max_responses, `banner_data_url text null` (data URL banner terkompresi; CHECK prefix WebP/JPEG/PNG + panjang), deleted_at, created_at, updated_at
 - `form_images`: id, form_id (nullable; sejak E-A1 dapat terisi sejak lahir bila pembuat mengirim formId saat sign), owner_id, public_id, bytes, state (`tmp|used`), created_at
 - `responses`: id, form_id, form_version, answers jsonb, client_token text null (idempoten; partial unique `(form_id, client_token) where client_token is not null`; tidak pernah tampil ke publik), created_at. INSERT lewat rpc `insert_response_guarded` (kuota atomik + fast-path duplikat) dengan fallback count→insert bila rpc belum dipush.
 - `reports`: id, form_id, reason, created_at
@@ -67,12 +67,22 @@ Usulan awal: maks form aktif per user 20; maks gambar per form 5; maks ukuran ga
 - Question kind: `short_text|paragraph|single_choice|multiple_choice|dropdown|scale`
 - `font` HANYA dari whitelist **`system-ui|Quicksand|Baloo 2|Georgia`** (CONTRACT CHANGE 2026-10-22 @C: Poppins/Inter diganti Quicksand/Baloo 2 — mengikuti topic situs utama & template kaca; Georgia disematkan untuk variety serif); `cardStyle` hanya dari preset (`menfess|plain|soft`); warna harus hex valid; angka dibatasi rentang. Nilai di luar whitelist DITOLAK, bukan dibersihkan diam-diam.
 - Satu sumber tipe & validator: `src/lib/forms/schema.ts` (dimiliki Agent C; builder dan public page mengimpor dari sini).
+- Banner BARU berada di kolom `forms.banner_data_url` (data URL terkompresi), BUKAN di `schema.theme`. `theme.bannerPublicId` dipertahankan hanya sebagai fallback baca untuk form lama (Cloudinary).
 - `answers`: `{ "<questionId>": string | string[] | number }`, divalidasi terhadap schema versi form saat itu.
 
 ### 4.6 Endpoint (Agent C kecuali disebut)
 - `POST /api/forms/[slug]/submit`: cek form published & belum tutup & belum penuh; verifikasi Turnstile; rate limit; validasi jawaban; simpan; idempoten terhadap double-click.
 - `GET /api/forms/[id]/export.csv`: hanya pemilik; kolom sesuai urutan pertanyaan; lindungi dari CSV injection (awali `=`, `+`, `-`, `@` dengan `'`).
 - `POST /api/uploads/sign` (Agent B/D bersama C): tanda tangan upload Cloudinary; hanya user login; batasi ukuran/format/folder `form/`; catat di `form_images` (state `tmp`).
+
+### 4.7 Banner base64 (CONTRACT CHANGE 2026-10-24 @B)
+- Kolom `forms.banner_data_url text null`; CHECK: `null` atau prefix `data:image/(webp|jpeg|png);base64,`, panjang ≤350.000 karakter, hasil decode ≤262.144 byte.
+- Klien: terima JPEG/PNG/WebP ≤2 MB; TOLAK GIF/SVG; crop tengah 1200×630; WebP q≈0.8 (fallback JPEG bila perlu); target ≤180 KB, hard cap 256 KB.
+- Simpan hanya saat banner berubah (jangan ikut setiap autosave); JANGAN menyalin base64 ke `schema` atau `forms.theme`.
+- Render prioritas: `banner_data_url` → `theme.bannerPublicId` (legacy Cloudinary) → tanpa banner. Data URL DILARANG dipakai untuk `og:image`/`twitter:image`.
+- `public_forms` mengekspos `banner_data_url` (kolom ditambahkan di akhir). Query dashboard list, respons, submit, dan CSV TIDAK mengambil kolom ini.
+- CSP `img-src` sudah mengizinkan `data:`; dilarang memakai `blob:` tanpa mengubah konfigurasi CSP.
+- Migrasi: `supabase/migrations/20261024213000_banner_data_url.sql`; uji constraint: `tests/banner_data_url.sql`.
 
 ## 5. Tampilan selaras dengan situs menfess
 - Satu sumber: `design/tokens.css` (CSS variables: warna, font, radius, spasi, bayangan) + `design/README.md` (komponen: header, footer, tombol, kartu).
