@@ -6,10 +6,11 @@
 -- query kedua = daftar template dgn font terpakai (kontrol mata manusia).
 -- ============================================================================
 
--- 1) Hukum: tak boleh ada font off-whitelist di template.
-select id, name, theme ->> 'font' as font
+-- 1) Hukum: tak boleh ada font off-whitelist di template (baik di theme maupun schema.theme).
+select id, name, theme ->> 'font' as theme_font, schema -> 'theme' ->> 'font' as schema_font
 from public.templates
 where theme ->> 'font' not in ('system-ui', 'Quicksand', 'Baloo 2', 'Georgia')
+   or schema -> 'theme' ->> 'font' not in ('system-ui', 'Quicksand', 'Baloo 2', 'Georgia')
    or theme ->> 'font' is null;
 
 -- 2) Kontrol: distribution font yang terpasang.

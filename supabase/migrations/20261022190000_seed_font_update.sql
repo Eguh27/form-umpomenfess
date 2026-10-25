@@ -14,12 +14,14 @@
 -- ============================================================================
 
 update public.templates
-  set theme = jsonb_set(theme, '{font}', '"Quicksand"')
-  where theme ->> 'font' = 'Poppins';
+  set theme = jsonb_set(theme, '{font}', '"Quicksand"'),
+      schema = jsonb_set(schema, '{theme,font}', '"Quicksand"')
+  where theme ->> 'font' = 'Poppins' or schema -> 'theme' ->> 'font' = 'Poppins';
 
 update public.templates
-  set theme = jsonb_set(theme, '{font}', '"system-ui"')
-  where theme ->> 'font' = 'Inter';
+  set theme = jsonb_set(theme, '{font}', '"system-ui"'),
+      schema = jsonb_set(schema, '{theme,font}', '"system-ui"')
+  where theme ->> 'font' = 'Inter' or schema -> 'theme' ->> 'font' = 'Inter';
 
 do $$
 declare
@@ -27,7 +29,8 @@ declare
 begin
   select count(*) into liars
   from public.templates
-  where theme ->> 'font' in ('Poppins', 'Inter', 'Roboto', 'Montserrat', 'Open Sans');
+  where (theme ->> 'font' in ('Poppins', 'Inter', 'Roboto', 'Montserrat', 'Open Sans'))
+     or (schema -> 'theme' ->> 'font' in ('Poppins', 'Inter', 'Roboto', 'Montserrat', 'Open Sans'));
 
   if liars > 0 then
     raise exception 'seed_font_update: masih ada % template ber-font off-whitelist', liars;

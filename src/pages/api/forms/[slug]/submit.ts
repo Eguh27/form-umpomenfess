@@ -85,11 +85,12 @@ export const POST = async (ctx: { params: Record<string, string | undefined>; re
   // supaya draft benar-benar tak terbaca dari jalur mana pun).
   const { data: row, error: loadError } = await service
     .from('public_forms')
-    .select('id, slug, title, schema, schema_version, version, closes_at, max_responses')
+    .select('id, slug, title, schema, schema_version, version, closes_at, max_responses, archived_at')
     .eq('slug', slug)
     .maybeSingle();
   if (loadError !== null || row === null) return redirectBack(slug, 'tidak_tersedia');
   const pub = row as unknown as PublicFormRow;
+  if (pub.archived_at) return redirectBack(slug, 'form_diarsipkan');
 
   const parsed = parsePublicSchema(pub);
   if (parsed === null) return redirectBack(slug, 'tidak_tersedia');
