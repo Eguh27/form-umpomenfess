@@ -18,6 +18,8 @@ const {
   footer = true,
 } = Astro.props;
 const main = 'https://umpomenfess.my.id';
+// true bila pengunjung mempunyai sesi (diisi middleware.ts); false = tamu
+const user = Astro.locals.user;
 ---
 
 <!doctype html>
@@ -74,16 +76,21 @@ const main = 'https://umpomenfess.my.id';
             <a href="/#cara">Cara kerja</a>
             <a href="/#tema">Tema</a>
             <a href={main} aria-label="Menfess, situs utama">Menfess ↗</a>
+            {!user && <a href="/login">Masuk</a>}
           </nav>
-          <a class="nav-cta" href="/dashboard">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <rect x="3" y="3" width="7" height="7" rx="2" />
-              <rect x="14" y="3" width="7" height="7" rx="2" />
-              <rect x="3" y="14" width="7" height="7" rx="2" />
-              <rect x="14" y="14" width="7" height="7" rx="2" />
-            </svg>
-            Dashboard
-          </a>
+          {user ? (
+            <a class="nav-cta" href="/dashboard">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="3" y="3" width="7" height="7" rx="2" />
+                <rect x="14" y="3" width="7" height="7" rx="2" />
+                <rect x="3" y="14" width="7" height="7" rx="2" />
+                <rect x="14" y="14" width="7" height="7" rx="2" />
+              </svg>
+              Dashboard
+            </a>
+          ) : (
+            <a class="nav-cta" href="/login?tab=signup">Daftar</a>
+          )}
           <button
             class="theme-toggle"
             type="button"
@@ -107,7 +114,14 @@ const main = 'https://umpomenfess.my.id';
             <nav class="mobile-menu" aria-label="Navigasi mobile">
               <a href="/#cara">Cara kerja</a>
               <a href="/#tema">Tema</a>
-              <a href="/dashboard">Dashboard</a>
+              {user ? (
+                <a href="/dashboard">Dashboard</a>
+              ) : (
+                <>
+                  <a href="/login">Masuk</a>
+                  <a href="/login?tab=signup">Daftar</a>
+                </>
+              )}
               <a href={main} aria-label="Menfess, situs utama">Menfess ↗</a>
             </nav>
           </details>
@@ -156,7 +170,7 @@ const main = 'https://umpomenfess.my.id';
         <nav class="site-footer__links" aria-label="Navigasi footer">
           <a href="/#cara">Cara kerja</a>
           <a href="/#tema">Tema</a>
-          <a href="/dashboard">Dashboard</a>
+          {user ? <a href="/dashboard">Dashboard</a> : <a href="/login">Masuk</a>}
           <a href={main} aria-label="Menfess, situs utama">Menfess ↗</a>
         </nav>
       </div>
