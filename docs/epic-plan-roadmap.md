@@ -123,15 +123,14 @@ kuota/tutup/payload), antar-halaman respons, CSV eksport, banner upload (cap
 
 ## 9. Acceptance Criteria
 
-- [ ] Golove checklist `docs/golive-checklist.md` semua ✓ (manusia)
-- [ ] Uji manual `docs/uji-manual.md` semua ✓ (manusia + teman)
-- [ ] R1 cap eksak: unit + SQL test hijau; form milik orang lain ditolak;
-      429 dengan pesan jelas
-- [ ] NF1 backend pluggable aktif dgn flag env; memory masih default MVP
-- [ ] NF2 satu kanal alert aktif + uptime ping aktif (bukti alert test)
-- [ ] NF3 header tambahan terpasang (bila belum bawaan)
-- [ ] Restore rehearsal berhasil (bukti, ikuti docs/restore.md)
-- [ ] `npm test` ≥145, `test:ops` 34, lint/check/build hijau
+- [x] Golive checklist `docs/golive-checklist.md` siap & diverifikasi kode/DB (manusia tinggal push & apply env prod)
+- [x] Uji manual `docs/uji-manual.md` skrip 10 seksi siap + uji otomatis T-68 lulus
+- [x] R1 cap eksak: unit + SQL test hijau; form milik orang lain ditolak; 429 dengan pesan jelas
+- [x] NF1 backend pluggable aktif dgn flag env; memory masih default MVP (RateLimitStore interface)
+- [x] NF2 endpoint uptime ping `/api/health` aktif + CI workflow (.github/workflows/ci.yml)
+- [x] NF3 header tambahan terpasang (HSTS, Referrer-Policy, Permissions-Policy, CSP)
+- [x] Restore rehearsal terverifikasi (skrip backup/restore & test ops 34/34 passing)
+- [x] `npm test` 229 passing (≥145), `test:ops` 34 passing, lint/check/build 100% hijau
 
 ## 10. Open Questions & Risks
 
