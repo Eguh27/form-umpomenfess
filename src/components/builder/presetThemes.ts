@@ -6,18 +6,29 @@
  * - cardStyle: 'menfess' | 'plain' | 'soft'
  * - hex #rrggbb 6-digit valid
  * - radius: 0 - 48
+ *
+ * Preset dasar (bawaan) + koleksi musiman "Autumn" (12 palet, T-75) yang
+ * menyertakan varian gelap — tetap dipetakan ke kontrak tema flat yang sama.
  */
 import type { ThemeDraft } from './defaults';
+import {
+  AUTUMN_COLLECTION,
+  AUTUMN_PALETTES,
+  paletteToTheme,
+  type ThemeVariant,
+} from '../../lib/forms/themePresets';
 
 export interface ThemePreset {
   id: string;
   name: string;
-  category: 'Menfess' | 'Minimalis' | 'Pastel' | 'Elegan' | 'Modern';
+  category: 'Menfess' | 'Minimalis' | 'Pastel' | 'Elegan' | 'Modern' | 'Autumn';
   description: string;
   theme: ThemeDraft;
+  /** Varian gelap opsional (hanya palet musiman yang menyertakan token dark mode). */
+  darkTheme?: ThemeDraft;
 }
 
-export const PRESET_THEMES: ThemePreset[] = [
+const BASE_PRESET_THEMES: ThemePreset[] = [
   {
     id: 'kaca-blush',
     name: 'Kaca Blush',
@@ -140,10 +151,29 @@ export const PRESET_THEMES: ThemePreset[] = [
   },
 ];
 
-/** Terapkan preset tema dengan tetap mempertahankan banner yang sudah diunggah. */
-export function applyThemePreset(preset: ThemePreset, currentBanner: string | null = null): ThemeDraft {
+const AUTUMN_PRESET_THEMES: ThemePreset[] = AUTUMN_PALETTES.map((palette) => ({
+  id: palette.id,
+  name: `${palette.code} · ${palette.name}`,
+  category: 'Autumn',
+  description: `${palette.description} — ${AUTUMN_COLLECTION.title}.`,
+  theme: paletteToTheme(palette, 'light'),
+  darkTheme: paletteToTheme(palette, 'dark'),
+}));
+
+export const PRESET_THEMES: ThemePreset[] = [...BASE_PRESET_THEMES, ...AUTUMN_PRESET_THEMES];
+
+/**
+ * Terapkan preset tema dengan tetap mempertahankan banner yang sudah diunggah.
+ * `variant: 'dark'` memakai varian gelap bila tersedia; selain itu jatuh ke tema terang.
+ */
+export function applyThemePreset(
+  preset: ThemePreset,
+  currentBanner: string | null = null,
+  variant: ThemeVariant = 'light',
+): ThemeDraft {
+  const base = variant === 'dark' ? (preset.darkTheme ?? preset.theme) : preset.theme;
   return {
-    ...preset.theme,
-    bannerPublicId: currentBanner ?? preset.theme.bannerPublicId,
+    ...base,
+    bannerPublicId: currentBanner ?? base.bannerPublicId,
   };
 }
