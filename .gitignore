@@ -11,3 +11,7 @@ backups/
 supabase/.temp/
 client_secret_*.json
 .playwright-cli/
+
+# Mirror HTML vendor (30MB) & ekspor data responden — referensi lokal, jangan dikomit
+docs/html/
+docs/survei-*.csv

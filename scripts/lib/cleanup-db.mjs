@@ -100,12 +100,13 @@ export function createCleanupDb(client) {
       return unwrap(await query, 'baca form soft-deleted');
     },
 
-    /** Kandidat arsip: tidak aktif 6 bulan (hanya dilaporkan, tidak diubah). */
+    /** Kandidat arsip: tidak aktif 6 bulan dan belum diarsipkan (hanya dilaporkan, tidak diubah). */
     async listStaleForms(cutoffIso, limit = 200) {
       const query = client
         .from('forms')
         .select('id, slug, status, updated_at')
         .is('deleted_at', null)
+        .is('archived_at', null)
         .lt('updated_at', cutoffIso)
         .limit(limit);
       return unwrap(await query, 'baca form tidak aktif');

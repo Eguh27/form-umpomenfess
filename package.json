@@ -10,7 +10,8 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "check": "astro check"
+    "check": "astro check",
+    "audit:security": "node scripts/security-audit.mjs"
   },
   "dependencies": {
     "@astrojs/react": "^7.1.1",
