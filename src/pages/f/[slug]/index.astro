@@ -385,7 +385,8 @@ const pages = form === null
         )}
 
         <div class="respondent-footer">
-          <span class="respondent-footer__credit">dibuat dgn umpomenfess form</span>
+          <span class="respondent-footer__credit">Dibuat dengan umpomenfess form</span>
+          <span class="respondent-footer__dot" aria-hidden="true">·</span>
           <button type="button" class="btn-report-trigger" id="btn-open-report" aria-haspopup="dialog">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
@@ -737,14 +738,19 @@ const pages = form === null
   .respondent-footer {
     margin-top: var(--space-5);
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
-    gap: var(--space-3);
+    gap: var(--space-2);
     flex-wrap: wrap;
   }
   .respondent-footer__credit {
     font-size: 0.75rem;
-    opacity: 0.65;
+    color: var(--text-muted);
+  }
+  .respondent-footer__dot {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    opacity: 0.4;
   }
   .btn-report-trigger {
     display: inline-flex;
@@ -754,7 +760,7 @@ const pages = form === null
     background: transparent;
     color: var(--text-muted);
     font: inherit;
-    font-size: 0.78rem;
+    font-size: 0.75rem;
     font-weight: 700;
     cursor: pointer;
     padding: 4px 8px;
