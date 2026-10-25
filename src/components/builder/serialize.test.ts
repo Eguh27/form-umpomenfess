@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { emptyState, type BuilderState } from './defaults';
 import { addBlock, updateBlock } from './state';
-import { optionsToTextarea, parseOptionsTextarea, serialize, toPayload } from './serialize';
+import {
+  optionsToTextarea,
+  parseOptionsTextarea,
+  payloadBlockIdAt,
+  serialize,
+  toPayload,
+} from './serialize';
 import { FORM_SCHEMA_VERSION } from '../../lib/forms/schema';
 
 /** State lengkap: semua jenis blok + semua kind pertanyaan terwakili. */
@@ -86,5 +92,24 @@ describe('optionsTextarea', () => {
   it('baris → opsi; kosong & duplikat dibuang', () => {
     expect(parseOptionsTextarea('A\nB\n\nA ')).toEqual(['A', 'B']);
     expect(optionsToTextarea(['A', 'B'])).toBe('A\nB');
+  });
+});
+
+describe('payloadBlockIdAt', () => {
+  it('melewati gambar kosong yang ditunda dari payload', () => {
+    let s = addBlock(emptyState('x'), 'heading')!;
+    const headingId = s.blocks[0].id;
+    s = addBlock(s, 'image') ?? s;
+    s = addBlock(s, 'text') ?? s;
+    const textId = s.blocks[2].id;
+
+    expect(payloadBlockIdAt(s.blocks, 0)).toBe(headingId);
+    expect(payloadBlockIdAt(s.blocks, 1)).toBe(textId);
+    expect(payloadBlockIdAt(s.blocks, 2)).toBeNull();
+  });
+
+  it('indeks tidak valid menghasilkan null', () => {
+    expect(payloadBlockIdAt(emptyState().blocks, -1)).toBeNull();
+    expect(payloadBlockIdAt(emptyState().blocks, 4)).toBeNull();
   });
 });

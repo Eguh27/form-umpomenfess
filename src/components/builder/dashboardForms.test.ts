@@ -4,6 +4,8 @@ import {
   blankPayload,
   duplicatePayload,
   insertForm,
+  archiveForm,
+  unarchiveForm,
   mapFormRows,
   templatePayload,
   type TemplateRow,
@@ -87,6 +89,7 @@ describe('mapFormRows', () => {
       slug: 'survei',
       title: 'Survei',
       status: 'published',
+      archivedAt: null,
       responses: 7,
       maxResponses: 100,
       closesAt: null,
@@ -188,5 +191,51 @@ describe('insertForm — owner_id dari sesi (E1: form tak bisa dibuat tanpa owne
     const { client, inserted } = insertFake({ userId: 'user-abc', count: 99 });
     await expect(insertForm(client, blankPayload('x'))).rejects.toThrow(/Batas 20 form aktif/);
     expect(inserted).toHaveLength(0);
+  });
+});
+
+describe('archiveForm & unarchiveForm (E-A5)', () => {
+  it('archiveForm mengupdate archived_at dengan timestamp', async () => {
+    let updatedPayload: Record<string, unknown> | null = null;
+    let targetId: string | null = null;
+    const client = {
+      from: () => ({
+        update: (payload: Record<string, unknown>) => {
+          updatedPayload = payload;
+          return {
+            eq: (_col: string, val: string) => {
+              targetId = val;
+              return Promise.resolve({ error: null });
+            },
+          };
+        },
+      }),
+    } as unknown as SupabaseClient;
+
+    await archiveForm(client, 'form-123');
+    expect(targetId).toBe('form-123');
+    expect(typeof updatedPayload?.['archived_at']).toBe('string');
+  });
+
+  it('unarchiveForm menyetel archived_at kembali null', async () => {
+    let updatedPayload: Record<string, unknown> | null = null;
+    let targetId: string | null = null;
+    const client = {
+      from: () => ({
+        update: (payload: Record<string, unknown>) => {
+          updatedPayload = payload;
+          return {
+            eq: (_col: string, val: string) => {
+              targetId = val;
+              return Promise.resolve({ error: null });
+            },
+          };
+        },
+      }),
+    } as unknown as SupabaseClient;
+
+    await unarchiveForm(client, 'form-123');
+    expect(targetId).toBe('form-123');
+    expect(updatedPayload?.['archived_at']).toBeNull();
   });
 });

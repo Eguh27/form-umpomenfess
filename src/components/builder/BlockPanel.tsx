@@ -1,75 +1,116 @@
 /**
- * BlockPanel.tsx — panel properti blok terpilih (T-41).
- * Mengedit draft apa adanya; validasi batas dilakukan saat autosave/publish
- * lewat parseFormSchema (serialize.ts) — nilai nakal TIDAK tersimpan.
+ * BlockPanel.tsx — properti blok terpilih (T-73).
+ * Label, jenis, dan ukuran memakai bahasa Indonesia dari blockLabels.ts.
  */
-import { QUESTION_KINDS, SCHEMA_LIMITS, CHOICE_KINDS, type QuestionKind } from '../../lib/forms/schema';
-import type { BlockDraft, BuilderState } from './defaults';
-import { parseOptionsTextarea, optionsToTextarea } from './serialize';
+import {
+  ALIGNMENTS,
+  CHOICE_KINDS,
+  HEADING_SIZES,
+  QUESTION_KINDS,
+  SCHEMA_LIMITS,
+  type QuestionKind,
+} from '../../lib/forms/schema';
+import type { BlockDraft } from './defaults';
 import { isSensitiveLabel } from './sensitive';
+import BlockOptionsEditor from './BlockOptionsEditor';
+import {
+  ALIGN_LABELS,
+  HEADING_SIZE_LABELS,
+  QUESTION_KIND_LABELS,
+} from './blockLabels';
 
 interface Props {
   block: BlockDraft;
   onPatch: (patch: Partial<BlockDraft>) => void;
 }
 
-const inputStyle = {
-  display: 'block',
-  width: '100%',
-  background: 'var(--surface)',
-  color: 'var(--text)',
-  border: '1.5px solid var(--border)',
-  borderRadius: 8,
-  padding: '7px 10px',
-  font: '600 0.9rem/1.4 var(--font-sans)',
-} as const;
-
 export default function BlockPanel({ block: b, onPatch }: Props) {
+  const prefix = `b-panel-${b.id}`;
+
   if (b.type === 'divider') {
     return (
-      <section aria-label="Panel pembatas">
-        <p className="eyebrow">Pembatas</p>
-        <p className="help">Garis putus-putus tanpa properti.</p>
+      <section className="b-panel" aria-label="Properti garis pembatas">
+        <h3 className="b-section__title">Garis pembatas</h3>
+        <p className="b-help">Blok ini hanya memberi jarak visual antarbagian form.</p>
       </section>
     );
   }
 
   if (b.type === 'image') {
     return (
-      <section aria-label="Panel gambar">
-        <p className="eyebrow">Gambar (publicId Cloudinary)</p>
-        <input
-          style={inputStyle}
-          value={b.publicId}
-          onChange={(e) => onPatch({ publicId: e.target.value })}
-          placeholder="mis. form/uniqnotation"
-        />
-        <p className="help">Hanya publicId milik project ini (bukan URL bebas). Banner: panel teman.</p>
+      <section className="b-panel" aria-label="Properti gambar">
+        <h3 className="b-section__title">Gambar</h3>
+        <div className="b-field">
+          <label className="b-field__label" htmlFor={`${prefix}-public-id`}>
+            ID gambar Cloudinary
+          </label>
+          <input
+            id={`${prefix}-public-id`}
+            className="input"
+            value={b.publicId}
+            onChange={(event) => onPatch({ publicId: event.target.value })}
+            placeholder="form/contoh"
+            autoComplete="off"
+          />
+          <p className="b-help">Gunakan gambar yang diunggah lewat builder ini, bukan URL bebas.</p>
+        </div>
+        <div className="b-field">
+          <label className="b-field__label" htmlFor={`${prefix}-align`}>Perataan</label>
+          <select
+            id={`${prefix}-align`}
+            className="select"
+            value={b.align}
+            onChange={(event) => onPatch({ align: event.target.value })}
+          >
+            {ALIGNMENTS.map((align) => (
+              <option key={align} value={align}>{ALIGN_LABELS[align]}</option>
+            ))}
+          </select>
+        </div>
       </section>
     );
   }
 
   if (b.type === 'heading') {
     return (
-      <section aria-label="Panel judul">
-        <p className="eyebrow">Judul</p>
-        <label style={{ fontWeight: 600, fontSize: '0.9rem' }}>
-          Teks
-          <input style={inputStyle} value={b.text} onChange={(e) => onPatch({ text: e.target.value })} />
-        </label>
-        <div style={{ display: 'flex', gap: 10 }}>
-          <label style={{ fontSize: '0.9rem', fontWeight: 600 }}>
-            Ukuran
-            <select style={inputStyle} value={b.size} onChange={(e) => onPatch({ size: e.target.value as typeof b.size })}>
-              {(['s', 'm', 'l', 'xl'] as const).map((s) => <option key={s} value={s}>{s}</option>)}
+      <section className="b-panel" aria-label="Properti judul">
+        <h3 className="b-section__title">Judul</h3>
+        <div className="b-field">
+          <label className="b-field__label" htmlFor={`${prefix}-text`}>Teks judul</label>
+          <input
+            id={`${prefix}-text`}
+            className="input"
+            value={b.text}
+            onChange={(event) => onPatch({ text: event.target.value })}
+          />
+        </div>
+        <div className="b-grid2">
+          <div className="b-field">
+            <label className="b-field__label" htmlFor={`${prefix}-size`}>Ukuran</label>
+            <select
+              id={`${prefix}-size`}
+              className="select"
+              value={b.size}
+              onChange={(event) => onPatch({ size: event.target.value as typeof b.size })}
+            >
+              {HEADING_SIZES.map((size) => (
+                <option key={size} value={size}>{HEADING_SIZE_LABELS[size]}</option>
+              ))}
             </select>
-          </label>
-          <label style={{ fontSize: '0.9rem', fontWeight: 600 }}>
-            Perataan
-            <select style={inputStyle} value={b.align} onChange={(e) => onPatch({ align: e.target.value as typeof b.align })}>
-              {(['left', 'center', 'right'] as const).map((a) => <option key={a} value={a}>{a}</option>)}
+          </div>
+          <div className="b-field">
+            <label className="b-field__label" htmlFor={`${prefix}-align`}>Perataan</label>
+            <select
+              id={`${prefix}-align`}
+              className="select"
+              value={b.align}
+              onChange={(event) => onPatch({ align: event.target.value as typeof b.align })}
+            >
+              {ALIGNMENTS.map((align) => (
+                <option key={align} value={align}>{ALIGN_LABELS[align]}</option>
+              ))}
             </select>
-          </label>
+          </div>
         </div>
       </section>
     );
@@ -77,87 +118,126 @@ export default function BlockPanel({ block: b, onPatch }: Props) {
 
   if (b.type === 'text') {
     return (
-      <section aria-label="Panel teks">
-        <p className="eyebrow">Teks</p>
-        <textarea style={{ ...inputStyle, minHeight: 90 }} value={b.text} onChange={(e) => onPatch({ text: e.target.value })} />
-        <p className="help">{b.text.length} karakter— batas diperiksa saat simpan.</p>
+      <section className="b-panel" aria-label="Properti teks">
+        <h3 className="b-section__title">Teks</h3>
+        <div className="b-field">
+          <label className="b-field__label" htmlFor={`${prefix}-text`}>Isi teks</label>
+          <textarea
+            id={`${prefix}-text`}
+            className="textarea"
+            value={b.text}
+            onChange={(event) => onPatch({ text: event.target.value })}
+          />
+          <p className="b-counter">{b.text.length} karakter</p>
+        </div>
       </section>
     );
   }
 
-  // question
   return (
-    <section aria-label="Panel pertanyaan">
-      <p className="eyebrow">Pertanyaan</p>
-      <label style={{ fontWeight: 600, fontSize: '0.9rem' }}>
-        Label
-        <input style={inputStyle} value={b.label} onChange={(e) => onPatch({ label: e.target.value })} />
-      </label>
+    <section className="b-panel" aria-label="Properti pertanyaan">
+      <h3 className="b-section__title">Pertanyaan</h3>
+
+      <div className="b-field">
+        <label className="b-field__label" htmlFor={`${prefix}-label`}>Label pertanyaan</label>
+        <input
+          id={`${prefix}-label`}
+          className="input"
+          value={b.label}
+          onChange={(event) => onPatch({ label: event.target.value })}
+        />
+      </div>
+
       {isSensitiveLabel(b.label) && (
-        <p role="alert" className="help" style={{ color: 'var(--danger)', fontWeight: 700 }}>
-          Peringatan: berisiko data sensitif (sandi/NIK/rekening dsb.) — mohon ganti.
-        </p>
+        <div className="b-warning b-warning--phishing" role="alert">
+          <strong>⚠️ Peringatan Keras Anti-Phishing:</strong>{' '}
+          <span>Dilarang meminta kata sandi, PIN, NIK, atau data rekening. Admin berhak menutup form &amp; memblokir akun yang melanggar.</span>
+        </div>
       )}
-      <label style={{ display: 'flex', gap: 8, marginTop: 8, fontSize: '0.9rem', fontWeight: 600 }}>
+
+      <label className="b-check">
         <input
           type="checkbox"
           checked={b.required}
-          onChange={(e) => onPatch({ required: e.target.checked })}
+          onChange={(event) => onPatch({ required: event.target.checked })}
         />
         Wajib diisi
       </label>
-      <label style={{ marginTop: 8, fontSize: '0.9rem', fontWeight: 600 }}>
-        Jenis
-        <select style={inputStyle} value={b.kind} onChange={(e) => onPatch({ kind: e.target.value as QuestionKind })}>
-          {QUESTION_KINDS.map((k) => <option key={k} value={k}>{k}</option>)}
+
+      <div className="b-field">
+        <label className="b-field__label" htmlFor={`${prefix}-kind`}>Jenis pertanyaan</label>
+        <select
+          id={`${prefix}-kind`}
+          className="select"
+          value={b.kind}
+          onChange={(event) => {
+            const nextKind = event.target.value as QuestionKind;
+            const patch: Partial<BlockDraft> = { kind: nextKind };
+            if ((CHOICE_KINDS as readonly string[]).includes(nextKind)) {
+              if (!b.options || b.options.length === 0) {
+                patch.options = ['Opsi 1', 'Opsi 2', 'Opsi 3'];
+              }
+            }
+            onPatch(patch);
+          }}
+        >
+          {QUESTION_KINDS.map((kind) => (
+            <option key={kind} value={kind}>{QUESTION_KIND_LABELS[kind]}</option>
+          ))}
         </select>
-      </label>
+      </div>
 
       {(CHOICE_KINDS as readonly string[]).includes(b.kind) && (
-        <label style={{ display: 'block', marginTop: 8, fontSize: '0.9rem', fontWeight: 600 }}>
-          Opsi (satu per baris)
-          <textarea
-            style={{ ...inputStyle, minHeight: 80 }}
-            value={optionsToTextarea(b.options)}
-            onChange={(e) => onPatch({ options: parseOptionsTextarea(e.target.value) })}
-          />
-        </label>
+        <BlockOptionsEditor
+          prefix={prefix}
+          options={b.options ?? []}
+          onChange={(options) => onPatch({ options })}
+        />
       )}
 
       {b.kind === 'scale' && (
-        <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
-          <label style={{ fontSize: '0.9rem', fontWeight: 600 }}>
-            Min
-            <input type="number" style={inputStyle} value={b.min ?? 1}
-              onChange={(e) => onPatch({ min: Number(e.target.value) })}
-              min={SCHEMA_LIMITS.scaleValueMin} max={SCHEMA_LIMITS.scaleValueMax}
+        <div className="b-grid2">
+          <div className="b-field">
+            <label className="b-field__label" htmlFor={`${prefix}-min`}>Nilai minimum</label>
+            <input
+              id={`${prefix}-min`}
+              type="number"
+              className="input"
+              value={b.min ?? 1}
+              onChange={(event) => onPatch({ min: Number(event.target.value) })}
+              min={SCHEMA_LIMITS.scaleValueMin}
+              max={SCHEMA_LIMITS.scaleValueMax}
             />
-          </label>
-          <label style={{ fontSize: '0.9rem', fontWeight: 600 }}>
-            Max
-            <input type="number" style={inputStyle} value={b.max ?? 5}
-              onChange={(e) => onPatch({ max: Number(e.target.value) })}
-              min={1} max={SCHEMA_LIMITS.scaleValueMax}
+          </div>
+          <div className="b-field">
+            <label className="b-field__label" htmlFor={`${prefix}-max`}>Nilai maksimum</label>
+            <input
+              id={`${prefix}-max`}
+              type="number"
+              className="input"
+              value={b.max ?? 5}
+              onChange={(event) => onPatch({ max: Number(event.target.value) })}
+              min={1}
+              max={SCHEMA_LIMITS.scaleValueMax}
             />
-          </label>
+          </div>
         </div>
       )}
 
       {(b.kind === 'short_text' || b.kind === 'paragraph') && (
-        <label style={{ display: 'block', marginTop: 8, fontSize: '0.9rem', fontWeight: 600 }}>
-          Batas karakter (opsional)
+        <div className="b-field">
+          <label className="b-field__label" htmlFor={`${prefix}-max-length`}>Batas karakter (opsional)</label>
           <input
+            id={`${prefix}-max-length`}
             type="number"
-            style={inputStyle}
+            className="input"
             value={b.maxLength ?? ''}
-            onChange={(e) => onPatch({ maxLength: e.target.value === '' ? null : Number(e.target.value) })}
+            onChange={(event) => onPatch({ maxLength: event.target.value === '' ? null : Number(event.target.value) })}
             min={1}
             placeholder="mis. 200"
           />
-        </label>
+        </div>
       )}
     </section>
   );
 }
-
-export type { BuilderState };

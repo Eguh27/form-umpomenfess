@@ -28,7 +28,10 @@
 .db-sidebar {
   width: 248px; flex-shrink: 0; position: sticky; top: 0; z-index: 60;
   height: 100vh; height: 100dvh; display: flex; flex-direction: column;
-  padding: var(--space-5) var(--space-3);
+  padding: max(var(--space-5), calc(var(--space-4) + env(safe-area-inset-top, 0px)))
+           var(--space-3)
+           max(var(--space-5), calc(var(--space-4) + env(safe-area-inset-bottom, 0px)))
+           max(var(--space-3), calc(var(--space-2) + env(safe-area-inset-left, 0px)));
   background: var(--surface); overflow-y: auto;
 }
 .db-sidebar-close {
@@ -84,7 +87,18 @@
 /* ======================= MAIN & TOPBAR ======================= */
 .db-main {
   flex: 1; min-width: 0; display: flex; flex-direction: column;
-  padding: var(--space-5) var(--space-6) var(--space-7);
+  padding: max(var(--space-5), calc(var(--space-4) + env(safe-area-inset-top, 0px)))
+           max(var(--space-6), calc(var(--space-4) + env(safe-area-inset-right, 0px)))
+           max(var(--space-7), calc(var(--space-5) + env(safe-area-inset-bottom, 0px)))
+           max(var(--space-6), calc(var(--space-4) + env(safe-area-inset-left, 0px)));
+}
+.db-main-inner {
+  width: 100%;
+  max-width: 1320px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 .db-topbar {
   display: flex; align-items: center; gap: var(--space-3);
@@ -429,7 +443,11 @@
 /* ======================= MODAL ======================= */
 .db-modal-backdrop {
   position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center;
-  padding: var(--space-4); background: rgba(19, 28, 26, 0.48);
+  padding: max(var(--space-4), env(safe-area-inset-top, 0px))
+           max(var(--space-4), env(safe-area-inset-right, 0px))
+           max(var(--space-4), env(safe-area-inset-bottom, 0px))
+           max(var(--space-4), env(safe-area-inset-left, 0px));
+  background: rgba(19, 28, 26, 0.48);
 }
 .db-modal {
   display: flex; flex-direction: column; gap: var(--space-5); width: 100%;
@@ -455,7 +473,9 @@
 
 /* ======================= TOAST ======================= */
 .db-toast {
-  position: fixed; bottom: var(--space-5); left: 50%; z-index: 1200;
+  position: fixed;
+  bottom: max(var(--space-5), calc(var(--space-4) + env(safe-area-inset-bottom, 0px)));
+  left: 50%; z-index: 1200;
   display: flex; align-items: center; gap: var(--space-2);
   max-width: calc(100vw - var(--space-6)); padding: var(--space-2) var(--space-4);
   border-radius: var(--radius-pill); background: var(--text); color: var(--surface);
@@ -471,12 +491,21 @@
   .db-sidebar {
     position: fixed; left: 0; top: 0; width: 280px;
     transform: translateX(-100%); transition: transform 0.18s ease;
+    padding-top: max(var(--space-5), calc(var(--space-4) + env(safe-area-inset-top, 0px)));
+    padding-bottom: max(var(--space-5), calc(var(--space-4) + env(safe-area-inset-bottom, 0px)));
+    padding-left: max(var(--space-4), calc(var(--space-3) + env(safe-area-inset-left, 0px)));
+    padding-right: var(--space-3);
   }
   .db-sidebar.is-open { transform: translateX(0); box-shadow: var(--shadow); }
   .db-sidebar-close { display: grid; }
   .db-overlay { display: block; }
   .db-hamburger { display: grid; }
-  .db-main { padding: var(--space-4) var(--space-4) var(--space-6); }
+  .db-main {
+    padding: max(var(--space-5), calc(var(--space-4) + env(safe-area-inset-top, 0px)))
+             max(var(--space-5), calc(var(--space-3) + env(safe-area-inset-right, 0px)))
+             max(var(--space-6), calc(var(--space-5) + env(safe-area-inset-bottom, 0px)))
+             max(var(--space-5), calc(var(--space-3) + env(safe-area-inset-left, 0px)));
+  }
   .db-mobile-tabs { display: flex; }
   .db-grid-main { grid-template-columns: minmax(0, 1fr); }
   .db-topbar { margin-bottom: var(--space-4); }
@@ -493,7 +522,12 @@
 }
 
 @media (max-width: 560px) {
-  .db-main { padding: var(--space-3) var(--space-3) var(--space-5); }
+  .db-main {
+    padding-top: max(var(--space-4), calc(var(--space-3) + env(safe-area-inset-top, 0px)));
+    padding-bottom: max(var(--space-6), calc(var(--space-5) + env(safe-area-inset-bottom, 0px)));
+    padding-left: max(var(--space-4), calc(var(--space-3) + env(safe-area-inset-left, 0px)));
+    padding-right: max(var(--space-4), calc(var(--space-3) + env(safe-area-inset-right, 0px)));
+  }
   .db-topbar { gap: var(--space-2); }
   .db-topbar-actions { gap: var(--space-1); }
   .db-stats-strip { gap: var(--space-3); padding: var(--space-3) var(--space-4); }
@@ -508,7 +542,8 @@
   .db-panel { padding: var(--space-4); }
   .db-modal { padding: var(--space-4); max-height: calc(100dvh - var(--space-4)); }
   .db-toast {
-    bottom: var(--space-4); width: calc(100vw - var(--space-6));
+    bottom: max(var(--space-4), calc(var(--space-3) + env(safe-area-inset-bottom, 0px)));
+    width: calc(100vw - max(var(--space-6), calc(var(--space-4) + env(safe-area-inset-left, 0px) + env(safe-area-inset-right, 0px))));
     justify-content: center; text-align: center;
   }
 }

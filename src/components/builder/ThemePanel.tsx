@@ -1,8 +1,8 @@
 /**
- * ThemePanel.tsx — panel properti tema + preset tema siap pakai (T-41/T-45, Zona B).
- * Peringatan kontras memakai util @D (isReadable) — TASK 7.
- * Banner upload → lihat BannerUpload.tsx (T-42).
+ * ThemePanel.tsx — properti tema dan preset (T-41/T-45, diperbarui T-73).
+ * Preset hanya memakai nilai whitelist schema; banner tidak ikut terhapus.
  */
+import { useId, useState, type CSSProperties } from 'react';
 import {
   CARD_STYLE_PRESETS,
   FONT_WHITELIST,
@@ -10,7 +10,10 @@ import {
   type FormFont,
 } from '../../lib/forms/schema';
 import { isReadable } from '../../lib/design/contrast';
+import type { ThemeVariant } from '../../lib/forms/themePresets';
 import type { ThemeDraft } from './defaults';
+import { CARD_STYLE_LABELS, FONT_LABELS } from './blockLabels';
+import { cloudinaryUrl } from './themeUtils';
 import BannerUpload from './BannerUpload';
 import { PRESET_THEMES, applyThemePreset, type ThemePreset } from './presetThemes';
 
@@ -18,6 +21,7 @@ interface Props {
   formId?: string;
   theme: ThemeDraft;
   onChange: (patch: Partial<ThemeDraft>) => void;
+  cloudName?: string;
 }
 
 const COLORS: Array<{ key: 'bg' | 'accent' | 'text'; label: string }> = [
@@ -26,151 +30,161 @@ const COLORS: Array<{ key: 'bg' | 'accent' | 'text'; label: string }> = [
   { key: 'text', label: 'Teks' },
 ];
 
-export default function ThemePanel({ formId, theme, onChange }: Props) {
+export default function ThemePanel({ formId, theme, onChange, cloudName = '' }: Props) {
+  const prefix = useId();
+  const [variant, setVariant] = useState<ThemeVariant>('light');
   const contrastOk = isReadable(theme.text, theme.bg);
 
-  const handleSelectPreset = (preset: ThemePreset) => {
-    const applied = applyThemePreset(preset, theme.bannerPublicId);
-    onChange(applied);
+  const usePreset = (preset: ThemePreset) => {
+    onChange(applyThemePreset(preset, theme.bannerPublicId, variant));
   };
 
+  const presetThemeFor = (preset: ThemePreset) =>
+    variant === 'dark' ? (preset.darkTheme ?? preset.theme) : preset.theme;
+
   return (
-    <section aria-label="Panel tema" style={{ display: 'grid', gap: 'var(--space-3)' }}>
-      {/* Bagian Preset Tema 1-Klik ala Canva */}
-      <div>
-        <p className="eyebrow" style={{ margin: '0 0 6px' }}>Preset Tema Siap Pakai</p>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 6 }}>
+    <div className="b-panel">
+      <section className="b-section" aria-label="Preset tema">
+        <h3 className="b-section__title">Preset</h3>
+        <div className="b-variant" role="group" aria-label="Varian warna preset">
+          <button type="button" aria-pressed={variant === 'light'} onClick={() => setVariant('light')}>
+            Terang
+          </button>
+          <button type="button" aria-pressed={variant === 'dark'} onClick={() => setVariant('dark')}>
+            Gelap
+          </button>
+        </div>
+        <div className="b-presets">
           {PRESET_THEMES.map((preset) => {
-            const isCurrent =
-              theme.bg.toLowerCase() === preset.theme.bg.toLowerCase() &&
-              theme.accent.toLowerCase() === preset.theme.accent.toLowerCase();
+            const target = presetThemeFor(preset);
+            const active =
+              theme.bg.toLowerCase() === target.bg.toLowerCase() &&
+              theme.accent.toLowerCase() === target.accent.toLowerCase();
+            const presetStyle = {
+              background: target.bg,
+              color: target.text,
+            } as CSSProperties;
 
             return (
               <button
                 key={preset.id}
                 type="button"
-                className="card card--plain"
-                style={{
-                  padding: '8px 10px',
-                  textAlign: 'left',
-                  cursor: 'pointer',
-                  borderRadius: 8,
-                  border: isCurrent ? '2px solid var(--brand)' : '1px solid var(--border)',
-                  background: preset.theme.bg,
-                  color: preset.theme.text,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 4,
-                  boxShadow: isCurrent ? '0 0 0 2px var(--accent-soft)' : 'none',
-                }}
-                onClick={() => handleSelectPreset(preset)}
-                title={`Pilih preset ${preset.name}: ${preset.description}`}
+                className="b-preset"
+                style={presetStyle}
+                aria-pressed={active}
+                onClick={() => usePreset(preset)}
+                title={preset.description}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span className="b-preset__name">
                   <span
-                    style={{
-                      width: 14,
-                      height: 14,
-                      borderRadius: '50%',
-                      background: preset.theme.accent,
-                      border: '1px solid rgba(0,0,0,0.15)',
-                    }}
+                    className="b-preset__dot"
+                    style={{ background: target.accent }}
+                    aria-hidden="true"
                   />
-                  <strong style={{ fontSize: '0.8rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {preset.name}
-                  </strong>
-                </div>
-                <span style={{ fontSize: '0.68rem', opacity: 0.75 }}>
-                  {preset.theme.font} · {preset.theme.cardStyle}
+                  {preset.name}
+                </span>
+                <span className="b-preset__meta">
+                  {preset.category} · {FONT_LABELS[target.font]}
                 </span>
               </button>
             );
           })}
         </div>
-      </div>
+      </section>
 
-      <hr className="dashed-divider" style={{ margin: 'var(--space-2) 0' }} />
+      <section className="b-section" aria-label="Warna dan bentuk">
+        <h3 className="b-section__title">Warna &amp; bentuk</h3>
 
-      {/* Kontrol Kustomisasi Lanjutan */}
-      <p className="eyebrow" style={{ margin: 0 }}>Penyesuaian Detail</p>
-      <div style={{ display: 'grid', gap: 'var(--space-3)' }}>
-        {COLORS.map(({ key, label }) => (
-          <label key={key} style={{ display: 'flex', gap: 10, alignItems: 'center', fontSize: '0.9rem', fontWeight: 600 }}>
-            <input
-              type="color"
-              value={theme[key]}
-              onChange={(e) => onChange({ [key]: e.target.value })}
-              aria-label={`Warna ${label}`}
-              style={{ cursor: 'pointer', border: 'none', width: 32, height: 32, borderRadius: 6 }}
-            />
-            <span>{label} <code>{theme[key]}</code></span>
-          </label>
-        ))}
+        <div className="b-color-grid">
+          {COLORS.map(({ key, label }) => (
+            <label className="b-color" key={key} htmlFor={`${prefix}-${key}`}>
+              <span>{label}</span>
+              <input
+                id={`${prefix}-${key}`}
+                type="color"
+                value={theme[key]}
+                onChange={(event) => onChange({ [key]: event.target.value })}
+              />
+              <code>{theme[key]}</code>
+            </label>
+          ))}
+        </div>
 
-        <label style={{ fontSize: '0.9rem', fontWeight: 600 }}>
-          Font
+        <div className="b-field">
+          <label className="b-field__label" htmlFor={`${prefix}-font`}>Font</label>
           <select
+            id={`${prefix}-font`}
             className="select"
             value={theme.font}
-            onChange={(e) => onChange({ font: e.target.value as FormFont })}
-            style={{ display: 'block', width: '100%', marginTop: 4 }}
+            onChange={(event) => onChange({ font: event.target.value as FormFont })}
           >
-            {FONT_WHITELIST.map((f) => (
-              <option key={f} value={f}>{f}</option>
+            {FONT_WHITELIST.map((font) => (
+              <option key={font} value={font}>{FONT_LABELS[font]}</option>
             ))}
           </select>
-        </label>
+        </div>
 
-        <label style={{ fontSize: '0.9rem', fontWeight: 600 }}>
-          Radius sudut: {theme.radius}px
+        <div className="b-field">
+          <label className="b-field__label" htmlFor={`${prefix}-radius`}>
+            Sudut membulat: {theme.radius}px
+          </label>
           <input
+            id={`${prefix}-radius`}
             type="range"
             min={SCHEMA_LIMITS.radiusMin}
             max={SCHEMA_LIMITS.radiusMax}
             value={theme.radius}
-            onChange={(e) => onChange({ radius: Number(e.target.value) })}
-            style={{ display: 'block', width: '100%', marginTop: 4 }}
+            onChange={(event) => onChange({ radius: Number(event.target.value) })}
           />
-        </label>
+        </div>
 
-        <label style={{ fontSize: '0.9rem', fontWeight: 600 }}>
-          Gaya kartu
+        <div className="b-field">
+          <label className="b-field__label" htmlFor={`${prefix}-card-style`}>Gaya kartu</label>
           <select
+            id={`${prefix}-card-style`}
             className="select"
             value={theme.cardStyle}
-            onChange={(e) => onChange({ cardStyle: e.target.value as ThemeDraft['cardStyle'] })}
-            style={{ display: 'block', width: '100%', marginTop: 4 }}
+            onChange={(event) => onChange({ cardStyle: event.target.value as ThemeDraft['cardStyle'] })}
           >
-            {CARD_STYLE_PRESETS.map((c) => (
-              <option key={c} value={c}>{c}</option>
+            {CARD_STYLE_PRESETS.map((style) => (
+              <option key={style} value={style}>{CARD_STYLE_LABELS[style]}</option>
             ))}
           </select>
-        </label>
+        </div>
 
-        {theme.bannerPublicId === null && (
-          <BannerUpload formId={formId} onUploaded={(publicId) => onChange({ bannerPublicId: publicId })} />
+        {!contrastOk && (
+          <p className="b-warning" role="alert">
+            Kontras teks dan latar belum cukup (minimal 4.5:1). Perbaiki sebelum publikasi.
+          </p>
         )}
-        {theme.bannerPublicId !== null && (
-          <div style={{ fontSize: '0.85rem' }}>
-            <p className="eyebrow" style={{ margin: '0 0 4px' }}>Banner Terpasang</p>
-            <code>{theme.bannerPublicId}</code>{' '}
-            <button
-              type="button"
-              className="btn btn--ghost btn--sm"
-              style={{ padding: '3px 8px', fontSize: '0.78rem' }}
-              onClick={() => onChange({ bannerPublicId: null })}
-            >
-              Hapus banner
-            </button>
+      </section>
+
+      <section className="b-section" aria-label="Banner form">
+        <h3 className="b-section__title">Banner</h3>
+        {theme.bannerPublicId === null ? (
+          <BannerUpload formId={formId} onUploaded={(publicId) => onChange({ bannerPublicId: publicId })} />
+        ) : (
+          <div className="b-banner">
+            {cloudName !== '' && (
+              <img
+                className="b-banner__img"
+                src={cloudinaryUrl(theme.bannerPublicId, cloudName)}
+                alt="Pratinjau banner form"
+              />
+            )}
+            <div className="b-banner__row">
+              <span className="b-banner__id" title={theme.bannerPublicId}>{theme.bannerPublicId}</span>
+              <button
+                type="button"
+                className="b-btn b-btn--ghost b-btn--sm"
+                onClick={() => onChange({ bannerPublicId: null })}
+              >
+                Hapus banner
+              </button>
+            </div>
           </div>
         )}
-      </div>
-
-      {!contrastOk && (
-        <p role="alert" className="help" style={{ color: 'var(--danger)', fontWeight: 700 }}>
-          Peringatan: kontras teks &lt; 4.5:1 — kombinasi ini akan DITOLAK saat dipublikasikan.
-        </p>
-      )}
-    </section>
+      </section>
+    </div>
   );
 }

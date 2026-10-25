@@ -12,6 +12,7 @@ export interface FormRow {
   slug: string;
   title: string;
   status: string;
+  archivedAt: string | null;
   responses: number;
   maxResponses: number | null;
   closesAt: string | null;
@@ -26,7 +27,7 @@ export interface TemplateRow {
   previewUrl: string | null;
 }
 
-const FORM_COLUMNS = 'id, slug, title, status, max_responses, closes_at, updated_at, responses(count)';
+const FORM_COLUMNS = 'id, slug, title, status, archived_at, max_responses, closes_at, updated_at, responses(count)';
 
 /** Antrian → FormRow; relasi responses(count) bentuk [{count:n}]. */
 export function mapFormRows(data: Record<string, unknown>[]): FormRow[] {
@@ -37,6 +38,7 @@ export function mapFormRows(data: Record<string, unknown>[]): FormRow[] {
       slug: String(raw.slug),
       title: String(raw.title),
       status: String(raw.status),
+      archivedAt: (raw.archived_at as string | null) ?? null,
       responses: counts && counts[0] ? counts[0].count : 0,
       maxResponses: (raw.max_responses as number | null) ?? null,
       closesAt: (raw.closes_at as string | null) ?? null,
@@ -198,4 +200,22 @@ export async function deleteForm(supabase: SupabaseClient, id: string): Promise<
     .update({ deleted_at: new Date().toISOString() })
     .eq('id', id);
   if (error) throw friendlyError(error, 'menghapus form');
+}
+
+/** Arsipkan form: set archived_at (E-A5). Form tidak menerima respons baru. */
+export async function archiveForm(supabase: SupabaseClient, id: string): Promise<void> {
+  const { error } = await supabase
+    .from('forms')
+    .update({ archived_at: new Date().toISOString() })
+    .eq('id', id);
+  if (error) throw friendlyError(error, 'mengarsipkan form');
+}
+
+/** Batalkan arsip form (E-A5): set archived_at null. */
+export async function unarchiveForm(supabase: SupabaseClient, id: string): Promise<void> {
+  const { error } = await supabase
+    .from('forms')
+    .update({ archived_at: null })
+    .eq('id', id);
+  if (error) throw friendlyError(error, 'mengembalikan form dari arsip');
 }

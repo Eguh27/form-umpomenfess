@@ -82,6 +82,18 @@ function themeDraftToSchema(t: ThemeDraft): Record<string, unknown> {
   };
 }
 
+/**
+ * ID blok draft pada indeks payload schema. Gambar kosong ditunda dari payload,
+ * jadi indeks issue `blocks.N` tidak selalu sama dengan indeks state.
+ */
+export function payloadBlockIdAt(blocks: BlockDraft[], index: number): string | null {
+  if (!Number.isInteger(index) || index < 0) return null;
+  const included = blocks.filter(
+    (block) => !(block.type === 'image' && block.publicId.trim() === ''),
+  );
+  return included[index]?.id ?? null;
+}
+
 /** Draft apa adanya → payload kontrak (belum tahu valid/tidak). */
 export function toPayload(state: BuilderState): unknown {
   return {

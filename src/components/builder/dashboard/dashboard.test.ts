@@ -103,6 +103,7 @@ describe('summarizeForms', () => {
     slug: 'form-contoh',
     title: 'Formulir Contoh',
     status: 'draft',
+    archivedAt: null,
     responses: 0,
     maxResponses: null,
     closesAt: null,

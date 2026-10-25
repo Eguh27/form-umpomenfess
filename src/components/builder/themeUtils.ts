@@ -2,7 +2,7 @@
  * themeUtils.ts — petakan tampilan tema form utk preview/inject (zona B).
  * Font dari whitelist schema; stack CSS masing-masing dipetakan di sini.
  */
-import type { FormFont, FormTheme } from '../../lib/forms/schema';
+import type { FormFont, FormTheme, HeadingSize } from '../../lib/forms/schema';
 import type { CSSProperties } from 'react';
 
 export function fontStack(font: FormFont): string {
@@ -27,11 +27,12 @@ export function themeToStyle(t: FormTheme): CSSProperties {
   };
 }
 
-export const HEADING_SIZE_REM: Record<string, string> = {
-  s: '1.15rem',
-  m: '1.5rem',
-  l: '2rem',
-  xl: '2.6rem',
+/** Samakan dengan halaman publik /f/[slug] agar preview setara. */
+export const HEADING_SIZE_REM: Record<HeadingSize, string> = {
+  s: '1.1rem',
+  m: '1.4rem',
+  l: '1.85rem',
+  xl: '2.3rem',
 };
 
 /** URL aman publicId → URL disampaikan (hanya host Cloudinary project ini). */

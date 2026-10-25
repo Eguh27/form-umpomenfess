@@ -32,7 +32,7 @@ import { summarizeForms } from './dashboard/templateHelper';
 import { getSupabaseBrowserClient } from './browserClient';
 import type { PrebuiltTemplate } from './defaultTemplates';
 
-export default function DashboardForms({
+export function DashboardForms({
   initialForms,
   templates: dbTemplates,
   user,
@@ -169,70 +169,72 @@ export default function DashboardForms({
       />
 
       <main className="db-main" id="main">
-        <DashboardTopbar
-          onOpenSidebar={() => setSidebarOpen(true)}
-          sidebarOpen={sidebarOpen}
-          displayName={displayName}
-          userEmail={user?.email}
-          formsCount={summary.total}
-          totalResponses={summary.totalResponses}
-          onOpenCreateModal={() => setCreateModalOpen(true)}
-        />
-
-        <nav className="db-mobile-tabs" aria-label="Tab dashboard">
-          {DASHBOARD_TABS.map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              className={mainTab === tab.id ? 'is-active' : ''}
-              aria-current={mainTab === tab.id ? 'page' : undefined}
-              onClick={() => setMainTab(tab.id)}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </nav>
-
-        {error && (
-          <div role="alert" className="db-alert">
-            {error}
-          </div>
-        )}
-
-        {mainTab === 'my-forms' && (
-          <DashboardMyFormsTab
-            forms={forms}
-            filteredForms={filteredForms}
-            statusFilter={statusFilter}
-            onStatusFilterChange={setStatusFilter}
-            searchQuery={search}
-            onSearchChange={setSearch}
-            onCopyLink={handleCopyLink}
-            copiedSlug={copiedSlug}
-            onDuplicate={duplicate}
-            onCloseForm={close}
-            onDeleteForm={remove}
+        <div className="db-main-inner">
+          <DashboardTopbar
+            onOpenSidebar={() => setSidebarOpen(true)}
+            sidebarOpen={sidebarOpen}
+            displayName={displayName}
+            userEmail={user?.email}
+            formsCount={summary.total}
+            totalResponses={summary.totalResponses}
             onOpenCreateModal={() => setCreateModalOpen(true)}
-            onGoToTemplates={() => setMainTab('templates')}
-            isBusy={busy !== null}
           />
-        )}
 
-        {mainTab === 'templates' && (
-          <DashboardTemplatesTab
-            onUsePrebuilt={createFromPrebuilt}
-            onUseDbTemplate={createFromDbTemplate}
-            onCreateBlank={createBlank}
-            dbTemplates={dbTemplates}
-            isBusy={busy !== null}
-          />
-        )}
+          <nav className="db-mobile-tabs" aria-label="Tab dashboard">
+            {DASHBOARD_TABS.map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                className={mainTab === tab.id ? 'is-active' : ''}
+                aria-current={mainTab === tab.id ? 'page' : undefined}
+                onClick={() => setMainTab(tab.id)}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </nav>
 
-        {mainTab === 'stats' && <DashboardStatsTab forms={forms} />}
+          {error && (
+            <div role="alert" className="db-alert">
+              {error}
+            </div>
+          )}
 
-        {mainTab === 'guide' && (
-          <DashboardGuideTab onOpenCreateModal={() => setCreateModalOpen(true)} />
-        )}
+          {mainTab === 'my-forms' && (
+            <DashboardMyFormsTab
+              forms={forms}
+              filteredForms={filteredForms}
+              statusFilter={statusFilter}
+              onStatusFilterChange={setStatusFilter}
+              searchQuery={search}
+              onSearchChange={setSearch}
+              onCopyLink={handleCopyLink}
+              copiedSlug={copiedSlug}
+              onDuplicate={duplicate}
+              onCloseForm={close}
+              onDeleteForm={remove}
+              onOpenCreateModal={() => setCreateModalOpen(true)}
+              onGoToTemplates={() => setMainTab('templates')}
+              isBusy={busy !== null}
+            />
+          )}
+
+          {mainTab === 'templates' && (
+            <DashboardTemplatesTab
+              onUsePrebuilt={createFromPrebuilt}
+              onUseDbTemplate={createFromDbTemplate}
+              onCreateBlank={createBlank}
+              dbTemplates={dbTemplates}
+              isBusy={busy !== null}
+            />
+          )}
+
+          {mainTab === 'stats' && <DashboardStatsTab forms={forms} />}
+
+          {mainTab === 'guide' && (
+            <DashboardGuideTab onOpenCreateModal={() => setCreateModalOpen(true)} />
+          )}
+        </div>
       </main>
 
       <DashboardCreateModal
@@ -253,3 +255,5 @@ export default function DashboardForms({
     </div>
   );
 }
+
+export default DashboardForms;

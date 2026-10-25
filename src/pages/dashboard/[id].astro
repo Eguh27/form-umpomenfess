@@ -1,5 +1,5 @@
 ---
-import Base from '../../layouts/Base.astro';
+import BuilderLayout from '../../layouts/BuilderLayout.astro';
 
 /*
   Penyunting form (T-41/T-43, @B). Middleware menjaga sesi; lapisan kedua di
@@ -30,21 +30,14 @@ if (row === null) return Astro.redirect('/dashboard');
 const cloudName = (import.meta.env.CLOUDINARY_CLOUD_NAME as string | undefined) ?? '';
 const state = stateFromRow(row as unknown as { title: string; schema: unknown });
 ---
-<Base title={`Edit: ${state.title} — umpomenfess form`}>
-  <section class="container" style="padding-block:var(--space-5)">
-    <p class="eyebrow">
-      <a href="/dashboard" style="text-decoration:none">← Dashboard</a>
-      <span aria-hidden="true"> · </span>Builder<span aria-hidden="true"> · </span>
-      <a href={`/dashboard/${String(row.id)}/respons`} style="text-decoration:none">Respons</a>
-    </p>
-    <Editor
-      client:load
-      formId={String(row.id)}
-      slug={String(row.slug)}
-      status={String(row.status)}
-      version={(row.version as number) ?? 1}
-      initial={state}
-      cloudName={cloudName}
-    />
-  </section>
-</Base>
+<BuilderLayout title={`Edit: ${state.title} — umpomenfess form`}>
+  <Editor
+    client:load
+    formId={String(row.id)}
+    slug={String(row.slug)}
+    status={String(row.status)}
+    version={(row.version as number) ?? 1}
+    initial={state}
+    cloudName={cloudName}
+  />
+</BuilderLayout>

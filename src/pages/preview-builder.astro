@@ -1,0 +1,87 @@
+---
+/**
+ * preview-builder.astro — rute mock sementara untuk verifikasi visual T-73.
+ * Tanpa login dan tanpa permintaan data saat mount; semua isi berasal dari
+ * state dummy di bawah. Hapus setelah review desain selesai.
+ */
+import BuilderLayout from '../layouts/BuilderLayout.astro';
+import Editor from '../components/builder/Editor';
+import type { BuilderState } from '../components/builder/defaults';
+
+const demo: BuilderState = {
+  title: 'Formulir Demo Builder',
+  theme: {
+    bg: '#fdeeec',
+    accent: '#e8604c',
+    text: '#1f4d46',
+    font: 'Quicksand',
+    radius: 18,
+    cardStyle: 'menfess',
+    bannerPublicId: null,
+  },
+  blocks: [
+    {
+      id: 'q_demo1',
+      type: 'question',
+      kind: 'short_text',
+      label: 'Nama lengkap atau nama panggilan',
+      required: true,
+      options: [],
+      min: null,
+      max: null,
+      maxLength: 100,
+    },
+    {
+      id: 'q_demo2',
+      type: 'question',
+      kind: 'paragraph',
+      label: 'Apa hal yang paling kamu syukuri bulan ini?',
+      required: false,
+      options: [],
+      min: null,
+      max: null,
+      maxLength: 1000,
+    },
+    {
+      id: 'q_demo3',
+      type: 'question',
+      kind: 'single_choice',
+      label: 'Seberapa sering kamu membuka forum kampus?',
+      required: true,
+      options: ['Setiap hari', 'Beberapa kali seminggu', 'Jarang'],
+      min: null,
+      max: null,
+      maxLength: null,
+    },
+    {
+      id: 'q_demo4',
+      type: 'question',
+      kind: 'scale',
+      label: 'Seberapa nyaman kamu dengan suasana kelas?',
+      required: true,
+      options: [],
+      min: 1,
+      max: 5,
+      maxLength: null,
+    },
+    { id: 'page_demo', type: 'divider' },
+    {
+      id: 'b_demo1',
+      type: 'image',
+      publicId: 'form/demo-banner',
+      align: 'center',
+    },
+  ],
+};
+---
+<BuilderLayout title="Pratinjau builder — umpomenfess form">
+  <Editor
+    client:load
+    formId="00000000-0000-4000-8000-000000000000"
+    slug="demo"
+    status="draft"
+    version={1}
+    initial={demo}
+    cloudName=""
+  />
+</BuilderLayout>
