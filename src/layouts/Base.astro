@@ -26,7 +26,7 @@ const user = Astro.locals.user;
 <html lang="id">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#FDEEEC" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#131C1A" media="(prefers-color-scheme: dark)" />
     <meta name="theme-color" content="#FDEEEC" />
@@ -41,8 +41,22 @@ const user = Astro.locals.user;
       href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23FDEEEC'/%3E%3Crect x='6' y='5' width='20' height='22' rx='6' fill='%23E8604C'/%3E%3Cpath d='M11 12h10M11 16h10M11 20h6' stroke='%23FFF6EA' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='26' cy='6' r='3' fill='%23F6C96B'/%3E%3C/svg%3E"
     />
 
-    <!-- Script klasik blocking: tema di-set sebelum render (CSP: script-src 'self'). -->
-    <script is:inline src={themeInitUrl}></script>
+    {nav ? (
+      <script is:inline src={themeInitUrl}></script>
+    ) : (
+      <script is:inline>
+        (() => {
+          let stored = null;
+          try {
+            stored = localStorage.getItem('respondent_theme');
+          } catch {
+            /* localStorage bisa diblokir; pakai tema terang */
+          }
+          const theme = stored === 'dark' ? 'dark' : 'light';
+          document.documentElement.dataset.theme = theme;
+        })();
+      </script>
+    )}
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -130,23 +144,48 @@ const user = Astro.locals.user;
     )}
 
     {!nav && (
-      <header class="respondent-wm" aria-hidden="true">
-        <span class="respondent-wm__chip">
-          <span class="brand__mark">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="4.5" y="3" width="15" height="18" rx="3" />
-              <path d="M8.5 8.5h7M8.5 12h7M8.5 15.5h4" />
-              <circle cx="18.5" cy="5.5" r="2.6" fill="#F6C96B" stroke="none" />
+      <header class="respondent-topbar">
+        <div class="respondent-topbar__inner">
+          <div class="respondent-wm__chip" aria-hidden="true">
+            <span class="brand__mark">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="4.5" y="3" width="15" height="18" rx="3" />
+                <path d="M8.5 8.5h7M8.5 12h7M8.5 15.5h4" />
+                <circle cx="18.5" cy="5.5" r="2.6" fill="#F6C96B" stroke="none" />
+              </svg>
+            </span>
+            <span class="brand__name">umpomenfess</span>
+            <span class="brand__divider" aria-hidden="true"></span>
+            <span class="brand__sub">form</span>
+          </div>
+
+          <button
+            type="button"
+            class="respondent-theme-toggle"
+            id="respondent-theme-toggle"
+            aria-label="Ganti tema gelap atau terang"
+            title="Ganti tema gelap / terang"
+          >
+            <svg class="icon-sun" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="5" />
+              <line x1="12" y1="1" x2="12" y2="3" />
+              <line x1="12" y1="21" x2="12" y2="23" />
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+              <line x1="1" y1="12" x2="3" y2="12" />
+              <line x1="21" y1="12" x2="23" y2="12" />
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
             </svg>
-          </span>
-          <span class="brand__name">umpomenfess</span>
-          <span class="brand__divider" aria-hidden="true"></span>
-          <span class="brand__sub">form</span>
-        </span>
+            <svg class="icon-moon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+            </svg>
+          </button>
+        </div>
       </header>
     )}
 
-    <main id="main"><slot /></main>
+    <main id="main" class:list={[{ 'main--respondent': !nav }]}><slot /></main>
 
     {footer && (
       <footer class="site-footer">
@@ -170,6 +209,7 @@ const user = Astro.locals.user;
           <a href="/#cara">Cara kerja</a>
           <a href="/#tema">Tema</a>
           {user ? <a href="/dashboard">Dashboard</a> : <a href="/login">Masuk</a>}
+          <a href="/terms">Ketentuan Layanan</a>
           <a href={main} aria-label="Menfess, situs utama">Menfess ↗</a>
         </nav>
       </div>
@@ -179,28 +219,101 @@ const user = Astro.locals.user;
 
     {nav && <script is:inline src={themeToggleUrl}></script>}
     {nav && <script is:inline src={navMenuUrl}></script>}
+    {!nav && (
+      <script is:inline>
+        (() => {
+          const btn = document.getElementById('respondent-theme-toggle');
+          if (!btn) return;
+          const current = () => (document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light');
+          const sync = () => {
+            const isDark = current() === 'dark';
+            btn.setAttribute('aria-pressed', String(isDark));
+            btn.setAttribute('aria-label', isDark ? 'Aktifkan tema terang' : 'Aktifkan tema gelap');
+            btn.title = isDark ? 'Tema terang' : 'Tema gelap';
+          };
+          btn.addEventListener('click', () => {
+            const next = current() === 'dark' ? 'light' : 'dark';
+            document.documentElement.dataset.theme = next;
+            try {
+              localStorage.setItem('respondent_theme', next);
+            } catch {
+              /* penyimpanan tema opsional; abaikan bila diblokir */
+            }
+            sync();
+          });
+          sync();
+        })();
+      </script>
+    )}
 
     <style>
-      .respondent-wm {
-        position: sticky;
-        top: 10px;
-        z-index: 40;
+      .main--respondent {
+        padding-top: 0;
+        min-height: auto;
+      }
+      .respondent-topbar {
+        position: static;
+        width: 100%;
+        padding-top: max(var(--space-3), env(safe-area-inset-top, 0px));
+        padding-bottom: var(--space-1);
+        padding-inline: 16px;
+      }
+      .respondent-topbar__inner {
+        max-width: 640px;
+        margin: 0 auto;
         display: flex;
-        justify-content: center;
-        padding-inline: 20px;
-        pointer-events: none;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
       }
       .respondent-wm__chip {
         display: inline-flex;
         align-items: center;
-        gap: 10px;
-        padding: 7px 16px 7px 12px;
+        gap: 8px;
+        padding: 5px 14px 5px 10px;
         border: 1px solid var(--border-glass);
         border-radius: 999px;
         background: var(--nav-bg);
         backdrop-filter: blur(16px);
         -webkit-backdrop-filter: blur(16px);
-        box-shadow: 0 10px 32px rgba(40, 70, 57, 0.08);
+        box-shadow: 0 4px 16px rgba(40, 70, 57, 0.06);
+        font-size: 0.8rem;
+      }
+      .respondent-theme-toggle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 999px;
+        border: 1px solid var(--border-glass);
+        background: var(--nav-bg);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        color: var(--text);
+        cursor: pointer;
+        box-shadow: 0 4px 16px rgba(40, 70, 57, 0.06);
+        transition: transform 0.16s ease, background-color 0.16s ease, color 0.16s ease;
+      }
+      .respondent-theme-toggle:hover {
+        transform: scale(1.06);
+        color: var(--accent-strong);
+      }
+      .respondent-theme-toggle .icon-sun {
+        display: none;
+      }
+      .respondent-theme-toggle .icon-moon {
+        display: block;
+      }
+      :global([data-theme="dark"]) .respondent-theme-toggle .icon-sun {
+        display: block;
+      }
+      :global([data-theme="dark"]) .respondent-theme-toggle .icon-moon {
+        display: none;
+      }
+      :global([data-theme="dark"]) .respondent-wm__chip,
+      :global([data-theme="dark"]) .respondent-theme-toggle {
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
       }
     </style>
   </body>

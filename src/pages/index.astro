@@ -235,6 +235,42 @@ import '../styles/showcase.css';
     </div>
   </section>
 
+  <section class="section section--trust" id="keamanan">
+    <div class="container">
+      <div class="trust-panel">
+        <div class="trust-badge">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+          </svg>
+          <span>Standar Keamanan Kampus</span>
+        </div>
+        <h2>Aman, Transparan, &amp; Nol-Toleransi Phishing</h2>
+        <p class="trust-desc">
+          Formulir di umpomenfess dirancang khusus untuk riset dan kegiatan akademik yang sah. Dilarang keras membuat formulir penipuan atau meminta kata sandi &amp; data perbankan. Admin berhak menutup formulir mencurigakan seketika.
+        </p>
+        <div class="trust-grid">
+          <div class="trust-item">
+            <strong>🛡️ Nol-Toleransi Phishing</strong>
+            <p>Larangan mutlak meminta kata sandi, PIN, NIK, atau rekening bank.</p>
+          </div>
+          <div class="trust-item">
+            <strong>⚡ Hak Tindakan Admin</strong>
+            <p>Admin berhak memblokir akun dan menghapus form yang melanggar aturan.</p>
+          </div>
+          <div class="trust-item">
+            <strong>🚩 Hak Lapor Responden</strong>
+            <p>Setiap form dilengkapi menu lapor langsung agar responden terlindungi.</p>
+          </div>
+        </div>
+        <div class="trust-action">
+          <a href="/terms" class="trust-link">
+            Baca Ketentuan Layanan &amp; Kebijakan Anti-Phishing lengkap →
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <section class="final-cta">
     <div class="container">
       <div class="final-cta__panel">
@@ -292,5 +328,81 @@ import '../styles/showcase.css';
     .hero-stage__art {
       animation: none;
     }
+  }
+
+  /* Section Keamanan & Anti-Phishing */
+  .section--trust {
+    padding-block: var(--space-6);
+  }
+  .trust-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+    box-shadow: var(--shadow-sm);
+  }
+  .trust-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: var(--radius-pill);
+    background: color-mix(in srgb, var(--coral) 12%, var(--surface));
+    color: var(--danger);
+    font-size: 0.78rem;
+    font-weight: 700;
+    margin-bottom: var(--space-3);
+  }
+  .trust-panel h2 {
+    font-size: clamp(1.4rem, 2.5vw, 1.85rem);
+    margin-bottom: var(--space-2);
+    color: var(--text);
+  }
+  .trust-desc {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    max-width: 640px;
+    margin-bottom: var(--space-5);
+  }
+  .trust-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--space-4);
+    margin-bottom: var(--space-5);
+  }
+  .trust-item {
+    background: var(--surface-soft);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+  }
+  .trust-item strong {
+    display: block;
+    color: var(--text);
+    font-size: 0.95rem;
+    margin-bottom: 6px;
+  }
+  .trust-item p {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    line-height: 1.5;
+    margin: 0;
+  }
+  .trust-action {
+    border-top: 1px dashed var(--border);
+    padding-top: var(--space-4);
+  }
+  .trust-link {
+    display: inline-flex;
+    align-items: center;
+    color: var(--accent-strong);
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .trust-link:hover {
+    color: var(--accent-hover);
   }
 </style>

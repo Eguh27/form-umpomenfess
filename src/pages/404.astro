@@ -1,0 +1,76 @@
+---
+/**
+ * src/pages/404.astro — Halaman 404 Kustom (Keamanan & Anti-Footprint).
+ *
+ * Mencegah kebocoran framework banner default Astro saat pengunjung
+ * mengakses direktori kosong (/f/, /dashboard/admin/, /auth/) atau rute yang
+ * tidak ada. Mendukung respons JSON untuk rute API.
+ */
+import Base from '../layouts/Base.astro';
+
+Astro.response.status = 404;
+
+const pathname = Astro.url.pathname;
+const isApi = pathname.startsWith('/api/') || pathname === '/api';
+const wantsJson = Astro.request.headers.get('accept')?.includes('application/json');
+
+if (isApi || wantsJson) {
+  return new Response(
+    JSON.stringify({
+      error: 'tidak_ditemukan',
+      message: 'Halaman atau endpoint tidak ditemukan.',
+    }),
+    {
+      status: 404,
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8',
+        'Cache-Control': 'no-store, private',
+        'X-Content-Type-Options': 'nosniff',
+      },
+    }
+  );
+}
+---
+
+<Base
+  title="404 — Halaman Tidak Ditemukan · UMPOmenfess Form"
+  description="Halaman atau alamat yang kamu tuju tidak ditemukan atau telah dipindahkan."
+>
+  <main
+    style="min-height: calc(100vh - 220px); display: flex; align-items: center; justify-content: center; padding: var(--space-8) var(--space-4);"
+  >
+    <article
+      class="card card--menfess"
+      style="max-width: 520px; width: 100%; text-align: center; padding: var(--space-8) var(--space-6); border-radius: var(--radius-card);"
+    >
+      <div
+        style="display: inline-flex; align-items: center; justify-content: center; width: 72px; height: 72px; border-radius: 20px; background: rgba(232, 96, 76, 0.1); color: var(--brand); font-size: 2rem; font-weight: 800; margin-bottom: var(--space-4);"
+      >
+        404
+      </div>
+      <h1
+        style="font-size: clamp(1.35rem, 4vw, 1.75rem); margin: 0 0 var(--space-2); color: var(--text);"
+      >
+        Halaman Tidak Ditemukan
+      </h1>
+      <p
+        style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; margin: 0 0 var(--space-6);"
+      >
+        Tautan yang kamu tuju tidak tersedia, direktori kosong, atau alamat formulir salah ketik.
+      </p>
+      <div
+        style="display: flex; gap: var(--space-3); justify-content: center; flex-wrap: wrap;"
+      >
+        <a href="/" class="btn btn--primary"> Ke Beranda </a>
+        <a
+          href="https://umpomenfess.my.id"
+          class="btn btn--ghost"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          UMPOmenfess ↗
+        </a>
+      </div>
+    </article>
+  </main>
+</Base>

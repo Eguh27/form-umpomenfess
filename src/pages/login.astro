@@ -233,6 +233,18 @@ const successText = msg ? (SUCCESS_MESSAGES[msg] ?? decodeURIComponent(msg)) : n
           <button type="submit" class="auth-primary-btn" disabled={!configured}>
             Buat Akun Gratis
           </button>
+
+          <div class="auth-tos-box">
+            <p class="auth-tos-text">
+              Dengan mendaftar, kamu menyetujui <a href="/terms" target="_blank" class="auth-tos-link">Ketentuan Layanan &amp; Kebijakan Anti-Phishing</a>.
+            </p>
+            <div class="auth-phishing-alert">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 9v4M12 17h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+              </svg>
+              <span><strong>Peringatan Keras:</strong> Dilarang membuat formulir penipuan/phishing atau meminta kata sandi &amp; data finansial. Admin berhak menutup form &amp; memblokir akun seketika.</span>
+            </div>
+          </div>
         </form>
 
         {/* FORM 3: LUPA KATA SANDI */}
@@ -324,6 +336,10 @@ const successText = msg ? (SUCCESS_MESSAGES[msg] ?? decodeURIComponent(msg)) : n
           <button type="button" id="btn-toggle-switch" class="auth-switch-link">
             Daftar sekarang
           </button>
+        </div>
+
+        <div class="auth-legal-footer">
+          <a href="/terms" target="_blank" class="auth-legal-link">Ketentuan Layanan &amp; Kebijakan Anti-Phishing</a>
         </div>
       </article>
     </section>
@@ -681,6 +697,55 @@ const successText = msg ? (SUCCESS_MESSAGES[msg] ?? decodeURIComponent(msg)) : n
     text-decoration: none;
   }
   .auth-switch-link:hover {
+    text-decoration: underline;
+  }
+
+  .auth-tos-box {
+    margin-top: 10px;
+    font-size: 0.74rem;
+    line-height: 1.45;
+    text-align: left;
+  }
+  .auth-tos-text {
+    margin: 0 0 6px;
+    color: var(--text-muted);
+  }
+  .auth-tos-link {
+    color: var(--brand);
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .auth-phishing-alert {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 7px 9px;
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--coral) 12%, var(--surface));
+    border: 1px solid var(--coral);
+    color: var(--danger);
+    font-size: 0.72rem;
+    line-height: 1.35;
+  }
+  .auth-phishing-alert svg {
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .auth-legal-footer {
+    text-align: center;
+    margin-top: 12px;
+    padding-top: 8px;
+    border-top: 1px dashed var(--border);
+  }
+  .auth-legal-link {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .auth-legal-link:hover {
+    color: var(--text);
     text-decoration: underline;
   }
 

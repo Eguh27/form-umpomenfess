@@ -40,6 +40,16 @@ export const onRequest = defineMiddleware(async (context, next) => {
     response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
   }
 
+  // S7: Cache-Control privat untuk seluruh rute terautentikasi dan API
+  if (context.url.pathname.startsWith('/dashboard') || context.url.pathname.startsWith('/api/')) {
+    response.headers.set('Cache-Control', 'private, no-store, must-revalidate');
+  }
+
+  // Anti-fingerprinting: sembunyikan jejak server & framework
+  response.headers.delete('X-Powered-By');
+  response.headers.delete('x-powered-by');
+  response.headers.delete('Server');
+  response.headers.delete('server');
 
   return response;
 });
