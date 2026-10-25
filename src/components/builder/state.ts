@@ -73,6 +73,30 @@ export function removeBlock(state: BuilderState, id: string): BuilderState {
   return { ...state, blocks: state.blocks.filter((b) => b.id !== id) };
 }
 
+/**
+ * Sisipkan blok tepat setelah blok lain (T-77); afterId tidak ada/null → append
+ * di akhir (perilaku sama seperti addBlock). Limit mengikuti kontrak addBlock
+ * (maks blok & maks pertanyaan), tapi karena fungsi ini murni memutar array
+ * dan pemeriksaan batas dengan pesan ada di Editor.tsx, pelanggaran limit di
+ * sini bersifat defensif: kembalikan blocks apa adanya (bukan null) agar
+ * pemanggil lain tidak menerima array kosong.
+ */
+export function insertBlockAfter(
+  blocks: BlockDraft[],
+  afterId: string | null,
+  block: BlockDraft,
+): BlockDraft[] {
+  if (blocks.length >= LIMITS.maxBlocksPerForm) return blocks;
+  if (block.type === 'question' && questionCount(blocks) >= LIMITS.maxQuestionsPerForm) {
+    return blocks;
+  }
+  const idx = afterId === null ? -1 : blocks.findIndex((b) => b.id === afterId);
+  if (idx === -1) return [...blocks, block];
+  const next = [...blocks];
+  next.splice(idx + 1, 0, block);
+  return next;
+}
+
 /** Pindahkan blok ±1 posisi (tombol naik/turun — drag&drop menyusul, TASK 2). */
 export function moveBlock(state: BuilderState, id: string, delta: -1 | 1): BuilderState {
   const idx = state.blocks.findIndex((b) => b.id === id);

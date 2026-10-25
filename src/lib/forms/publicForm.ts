@@ -19,16 +19,22 @@ export interface PublicFormRow {
   version: number;
   closes_at: string | null;
   max_responses: number | null;
+  archived_at?: string | null;
 }
 
-export type ClosedState = { closed: false } | { closed: true; code: 'sudah_tutup' | 'penuh' };
+export type ClosedState =
+  | { closed: false }
+  | { closed: true; code: 'sudah_tutup' | 'penuh' | 'diarsipkan' };
 
-/** Kemudian: tutup lewat closes_at, atau penuh lewat max_responses. */
+/** Kemudian: tutup lewat closes_at, penuh lewat max_responses, atau diarsipkan (E-A5). */
 export function closedState(
-  row: Pick<PublicFormRow, 'closes_at' | 'max_responses'>,
+  row: Pick<PublicFormRow, 'closes_at' | 'max_responses'> & { archived_at?: string | null },
   responseCount: number,
   now: Date = new Date(),
 ): ClosedState {
+  if (row.archived_at) {
+    return { closed: true, code: 'diarsipkan' };
+  }
   if (row.closes_at !== null && new Date(row.closes_at).getTime() <= now.getTime()) {
     return { closed: true, code: 'sudah_tutup' };
   }
@@ -129,6 +135,8 @@ export function errMessage(code: string | null): string | null {
       return 'Gagal mengirim laporan — coba lagi.';
     case 'lapor_ok':
       return 'Terima kasih, laporan sudah kami terima.';
+    case 'form_diarsipkan':
+      return 'Formulir ini telah diarsipkan dan tidak lagi menerima respons.';
     default:
       return null;
   }

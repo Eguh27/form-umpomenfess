@@ -58,6 +58,15 @@ describe('closedState (T-52)', () => {
     expect(closedState({ closes_at: null, max_responses: 10 }, 10)).toEqual({ closed: true, code: 'penuh' });
     expect(closedState({ closes_at: null, max_responses: 10 }, 9).closed).toBe(false);
   });
+
+  it('tutup jika diarsipkan (E-A5)', () => {
+    expect(
+      closedState(
+        { closes_at: null, max_responses: null, archived_at: '2026-10-25T00:00:00Z' },
+        0,
+      ),
+    ).toEqual({ closed: true, code: 'diarsipkan' });
+  });
 });
 
 describe('parsePublicSchema', () => {

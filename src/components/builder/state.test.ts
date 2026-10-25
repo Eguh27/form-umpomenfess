@@ -1,6 +1,16 @@
 import { describe, expect, it } from 'vitest';
+import { LIMITS } from '../../lib/config/limits';
 import { emptyState, type BlockDraft, type BuilderState } from './defaults';
-import { addBlock, draftBlock, moveBlock, nextBlockId, questionCount, removeBlock, updateBlock } from './state';
+import {
+  addBlock,
+  draftBlock,
+  insertBlockAfter,
+  moveBlock,
+  nextBlockId,
+  questionCount,
+  removeBlock,
+  updateBlock,
+} from './state';
 
 function state(...types: BlockDraft['type'][]): BuilderState {
   let s: BuilderState = emptyState('uji');
@@ -35,6 +45,33 @@ describe('addBlock', () => {
       s = next;
     }
     expect(s.blocks.length).toBe(3);
+  });
+});
+
+describe('insertBlockAfter', () => {
+  it('menyisipkan tepat setelah afterId (tengah array tetap terjaga)', () => {
+    const s = state('divider', 'text', 'heading');
+    const ids = s.blocks.map((b) => b.id);
+    const baru = draftBlock('question', s.blocks);
+    const next = insertBlockAfter(s.blocks, ids[1], baru);
+    expect(next.map((b) => b.id)).toEqual([ids[0], ids[1], baru.id, ids[2]]);
+    expect(s.blocks.map((b) => b.id)).toEqual(ids); // blocks asal tidak terubah
+  });
+
+  it('afterId null atau tidak ditemukan → append di akhir', () => {
+    const s = state('divider');
+    const q = draftBlock('question', s.blocks);
+    expect(insertBlockAfter(s.blocks, null, q).map((b) => b.id)).toEqual(['b1', q.id]);
+    expect(insertBlockAfter(s.blocks, 'tidak-ada', q).map((b) => b.id)).toEqual(['b1', q.id]);
+  });
+
+  it('limit blok tercapai → kembalikan blocks apa adanya (defensif)', () => {
+    const penuh: BlockDraft[] = Array.from({ length: LIMITS.maxBlocksPerForm }, (_, i) => ({
+      id: `d${i + 1}`,
+      type: 'divider',
+    }));
+    const hasil = insertBlockAfter(penuh, 'd1', { id: 'dx', type: 'divider' });
+    expect(hasil).toBe(penuh); // referensi sama: tidak ada penyisipan
   });
 });
 

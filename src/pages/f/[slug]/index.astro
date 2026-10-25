@@ -15,6 +15,7 @@ import {
   publicFontStack,
   cloudinaryUrl,
 } from '../../../lib/forms/publicForm';
+import { splitIntoPages } from '../../../components/builder/pages';
 import { getSupabaseService } from '../../../lib/forms/service';
 import type { FormSchemaData } from '../../../lib/forms/schema';
 
@@ -32,7 +33,7 @@ if (supabase !== null && /^[a-z0-9-]{1,80}$/.test(slug)) {
   // view public_forms (kebijakan @A): hanya published & tidak soft-deleted.
   const { data, error } = await supabase
     .from('public_forms')
-    .select('id, slug, title, schema, schema_version, version, closes_at, max_responses')
+    .select('id, slug, title, schema, schema_version, version, closes_at, max_responses, banner_data_url, archived_at')
     .eq('slug', slug)
     .maybeSingle();
   if (error === null) row = data as unknown as Record<string, unknown> | null;
@@ -55,12 +56,16 @@ if (service !== null && row !== null) {
 
 const state = row === null
   ? ({ closed: true, code: 'tidak_tersedia' } as const)
-  : closedState({ closes_at: row.closes_at as string | null, max_responses: row.max_responses as number | null }, responseCount);
+  : closedState({
+      closes_at: row.closes_at as string | null,
+      max_responses: row.max_responses as number | null,
+      archived_at: row.archived_at as string | null,
+    }, responseCount);
 
 const theme = form?.theme;
 const wrapperStyle = theme === undefined
   ? undefined
-  : `background:${theme.bg};color:${theme.text};font-family:${publicFontStack(theme.font)};border-radius:${theme.radius}px`;
+  : `--custom-bg:${theme.bg};--custom-text:${theme.text};font-family:${publicFontStack(theme.font)};border-radius:${theme.radius}px;`;
 
 const cloudName = (import.meta.env.CLOUDINARY_CLOUD_NAME as string | undefined) ?? '';
 const turnstileSiteKey = (import.meta.env.TURNSTILE_SITE_KEY as string | undefined) ?? '';
@@ -68,10 +73,34 @@ const turnstileSiteKey = (import.meta.env.TURNSTILE_SITE_KEY as string | undefin
 const banner = theme?.bannerPublicId ?? null;
 const isPublishedOpen = form !== null && state.closed === false;
 
-const headingSizeRem: Record<string, string> = { s: '1.1rem', m: '1.4rem', l: '1.85rem', xl: '2.3rem' };
+const headingSizeRem: Record<string, string> = {
+  s: 'clamp(1rem, 2.8vw, 1.15rem)',
+  m: 'clamp(1.15rem, 3.8vw, 1.35rem)',
+  l: 'clamp(1.35rem, 5vw, 1.65rem)',
+  xl: 'clamp(1.55rem, 6vw, 2rem)',
+};
+
+// T-77: bagi blok jadi halaman bila ada divider ber-ID page_* (pemisah halaman).
+// Form tanpa pemisah → 1 halaman → render flat persis seperti sebelumnya.
+// FormBlock (optional) dinormalisasi ke bentuk BlockDraft (min/max/maxLength
+// null, options []) karena helper pages.ts milik builder memakai tipe itu.
+const pages = form === null
+  ? []
+  : splitIntoPages(
+      form.blocks.map((block) => {
+        if (block.type !== 'question') return block;
+        return {
+          ...block,
+          options: block.options ?? [],
+          min: block.min ?? null,
+          max: block.max ?? null,
+          maxLength: block.maxLength ?? null,
+        };
+      }),
+    );
 ---
 <Base title={row === null ? 'Form tidak tersedia' : `${String(row.title)} — umpomenfess form`} description={row === null ? 'Form tidak tersedia.' : `Isi form ${String(row.title)}`} nav={false} footer={false}>
-  <section class="container" style="padding-block:var(--space-6);max-width:640px">
+  <section class="container respondent-container">
     {notFound && (
       <article class="card card--plain" style="text-align:center;padding:var(--space-7) var(--space-5)">
         <p class="eyebrow">404-ish</p>
@@ -86,7 +115,7 @@ const headingSizeRem: Record<string, string> = { s: '1.1rem', m: '1.4rem', l: '1
     )}
 
     {row !== null && form !== null && (
-      <div style={wrapperStyle}>
+      <div class="respondent-wrapper" style={wrapperStyle}>
         {banner !== null && cloudName !== '' && (
           <img
             src={cloudinaryUrl(banner, cloudName)}
@@ -101,6 +130,8 @@ const headingSizeRem: Record<string, string> = { s: '1.1rem', m: '1.4rem', l: '1
               <p><strong>Form sudah tutup.</strong> Terima kasih atas antusiasmenya.</p>
             ) : state.code === 'penuh' ? (
               <p><strong>Kuota respons penuh.</strong> Kuota sampel form ini telah tercapai.</p>
+            ) : state.code === 'diarsipkan' ? (
+              <p><strong>Formulir diarsipkan.</strong> Formulir ini telah diarsipkan oleh pemiliknya dan tidak lagi menerima respons baru.</p>
             ) : (
               <p><strong>Form tidak tersedia.</strong></p>
             )}
@@ -122,91 +153,135 @@ const headingSizeRem: Record<string, string> = { s: '1.1rem', m: '1.4rem', l: '1
           <form
             method="POST"
             action={`/api/forms/${slug}/submit`}
-            class:list={['card', `card--${theme?.cardStyle ?? 'plain'}`]}
-            style="padding:var(--space-5)"
+            class:list={['card', `card--${theme?.cardStyle ?? 'plain'}`, 'respondent-form']}
+            novalidate={pages.length > 1 ? true : undefined}
           >
-            {form.blocks.map((block) => {
-              if (block.type === 'heading') {
-                return (
-                  <h2 style={`font-size:${headingSizeRem[block.size]};text-align:${block.align};margin:0 0 var(--space-3)`}>
-                    {block.text}
-                  </h2>
-                );
-              }
-              if (block.type === 'text') {
-                return <p style="margin:var(--space-2) 0">{block.text}</p>;
-              }
-              if (block.type === 'divider') {
-                return <hr class="dashed-divider" />;
-              }
-              if (block.type === 'image') {
-                return (
-                  <div style={`text-align:${block.align};margin:var(--space-3) 0`}>
-                    {cloudName !== '' && (
-                      <img src={cloudinaryUrl(block.publicId, cloudName)} alt="" style={`border-radius:${Math.min(theme?.radius ?? 16, 24)}px`} />
-                    )}
+            {pages.map((page, pageIndex) => (
+              <div
+                class="respondent-page"
+                data-page={page.pageNumber}
+                hidden={pageIndex > 0 ? true : undefined}
+                tabindex={pages.length > 1 ? -1 : undefined}
+              >
+                {pages.length > 1 && !page.blocks.some((b) => b.type === 'heading') && (
+                  <p class="respondent-page__title">{page.title}</p>
+                )}
+                {page.blocks.map((block) => {
+                  if (block.type === 'heading') {
+                    return (
+                      <h2 style={`font-size:${headingSizeRem[block.size]};text-align:${block.align};margin:0 0 var(--space-3);line-height:1.25`}>
+                        {block.text}
+                      </h2>
+                    );
+                  }
+                  if (block.type === 'text') {
+                    return <p class="respondent-text">{block.text}</p>;
+                  }
+                  if (block.type === 'divider') {
+                    return <hr class="dashed-divider respondent-divider" />;
+                  }
+                  if (block.type === 'image') {
+                    return (
+                      <div style={`text-align:${block.align};margin:var(--space-3) 0`}>
+                        {cloudName !== '' && (
+                          <img src={cloudinaryUrl(block.publicId, cloudName)} alt="" style={`border-radius:${Math.min(theme?.radius ?? 16, 24)}px`} />
+                        )}
+                      </div>
+                    );
+                  }
+                  // question
+                  const req = block.required;
+                  return (
+                    <div class="respondent-question-row">
+                      <label for={block.id} class="respondent-question-label">
+                        {block.label}
+                        {req && <span class="respondent-req" aria-hidden="true"> *</span>}
+                      </label>
+
+                      {block.kind === 'short_text' && (
+                        <input class="input" id={block.id} name={block.id} maxlength={block.maxLength ?? 2000} required={req} autocomplete="off" />
+                      )}
+                      {block.kind === 'paragraph' && (
+                        <textarea class="textarea" id={block.id} name={block.id} maxlength={block.maxLength ?? 2000} required={req}></textarea>
+                      )}
+                      {block.kind === 'dropdown' && (
+                        <select class="select" id={block.id} name={block.id} required={req}>
+                          <option value="" disabled selected>— pilih —</option>
+                          {(block.options ?? []).map((opt) => <option value={opt}>{opt}</option>)}
+                        </select>
+                      )}
+                      {(block.kind === 'single_choice' || block.kind === 'multiple_choice') && (
+                        <fieldset class="respondent-fieldset respondent-choice-group">
+                          {(block.options ?? []).map((opt) => (
+                            <label class="respondent-choice-item">
+                              <input
+                                type={block.kind === 'multiple_choice' ? 'checkbox' : 'radio'}
+                                name={block.id}
+                                value={opt}
+                                required={block.kind === 'single_choice' && req}
+                              />
+                              <span class="respondent-choice-text">{opt}</span>
+                            </label>
+                          ))}
+                        </fieldset>
+                      )}
+                      {block.kind === 'scale' && (
+                        <fieldset class="respondent-fieldset respondent-scale-group">
+                          {Array.from({ length: (block.max ?? 5) - (block.min ?? 1) + 1 }, (_, i) => (block.min ?? 1) + i).map((n) => (
+                            <label class="respondent-scale-item">
+                              <input type="radio" name={block.id} value={String(n)} required={req} />
+                              <span>{n}</span>
+                            </label>
+                          ))}
+                        </fieldset>
+                      )}
+                    </div>
+                  );
+                })}
+
+                {pages.length > 1 && (
+                  <div class="respondent-stepper">
+                    <span class="respondent-stepper__pos">Halaman {page.pageNumber} dari {pages.length}</span>
+                    <span class="respondent-stepper__actions">
+                      <button type="button" class="btn btn--ghost btn--sm" data-page-prev disabled={pageIndex === 0 ? true : undefined}>Kembali</button>
+                      {pageIndex < pages.length - 1 && (
+                        <button type="button" class="btn btn--accent btn--sm" data-page-next>Lanjut</button>
+                      )}
+                    </span>
                   </div>
-                );
-              }
-              // question
-              const req = block.required;
-              return (
-                <div style="margin:var(--space-4) 0">
-                  <label for={block.id} style="font-weight:700;display:block">
-                    {block.label}
-                    {req && <span aria-hidden="true"> *</span>}
-                  </label>
+                )}
 
-                  {block.kind === 'short_text' && (
-                    <input class="input" id={block.id} name={block.id} maxlength={block.maxLength ?? 2000} required={req} autocomplete="off" />
-                  )}
-                  {block.kind === 'paragraph' && (
-                    <textarea class="textarea" id={block.id} name={block.id} maxlength={block.maxLength ?? 2000} required={req}></textarea>
-                  )}
-                  {block.kind === 'dropdown' && (
-                    <select class="select" id={block.id} name={block.id} required={req}>
-                      <option value="" disabled selected>— pilih —</option>
-                      {(block.options ?? []).map((opt) => <option value={opt}>{opt}</option>)}
-                    </select>
-                  )}
-                  {(block.kind === 'single_choice' || block.kind === 'multiple_choice') && (
-                    <fieldset style="border:0;display:grid;gap:6px;padding:0;margin:4px 0 0">
-                      {(block.options ?? []).map((opt) => (
-                        <label style="display:flex;gap:8px;align-items:center;font-weight:600">
-                          <input
-                            type={block.kind === 'multiple_choice' ? 'checkbox' : 'radio'}
-                            name={block.id}
-                            value={opt}
-                            required={block.kind === 'single_choice' && req}
-                          />
-                          {opt}
-                        </label>
-                      ))}
-                    </fieldset>
-                  )}
-                  {block.kind === 'scale' && (
-                    <fieldset style="border:0;display:flex;flex-wrap:wrap;gap:10px;padding:0;margin:6px 0 0">
-                      {Array.from({ length: (block.max ?? 5) - (block.min ?? 1) + 1 }, (_, i) => (block.min ?? 1) + i).map((n) => (
-                        <label style="display:flex;gap:5px;align-items:center;font-weight:700">
-                          <input type="radio" name={block.id} value={String(n)} required={req} /> {n}
-                        </label>
-                      ))}
-                    </fieldset>
-                  )}
-                </div>
-              );
-            })}
+                {pageIndex === pages.length - 1 && (
+                  <>
+                    {turnstileSiteKey === '' ? (
+                      <p class="help">Verifikasi anti-bot aktif setelah env TURNSTILE diisi.</p>
+                    ) : (
+                      <div class="cf-turnstile" data-sitekey={turnstileSiteKey} data-theme="auto" />
+                    )}
+                    {turnstileSiteKey !== '' && (
+                      <script is:inline async defer src="https://challenges.cloudflare.com/turnstile/v0/api.js" />
+                    )}
 
-            {turnstileSiteKey === '' ? (
-              <p class="help">Verifikasi anti-bot aktif setelah env TURNSTILE diisi.</p>
-            ) : (
-              <div class="cf-turnstile" data-sitekey={turnstileSiteKey} data-theme="auto" />
-            )}
-            {turnstileSiteKey !== '' && (
-              <script is:inline async defer src="https://challenges.cloudflare.com/turnstile/v0/api.js" />
-            )}
+                    <input type="hidden" id="client-token" name="client_token" />
 
-            <input type="hidden" id="client-token" name="client_token" />
+                    <div class="respondent-security-note">
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                      </svg>
+                      <span><strong>Keamanan:</strong> Jangan berikan kata sandi, PIN, atau data keuangan rahasia di formulir apa pun.</span>
+                    </div>
+
+                    <button type="submit" class="btn btn--accent" style="margin-top:var(--space-3);width:100%">
+                      Kirim jawaban
+                    </button>
+                    <p style="font-size:0.72rem;opacity:0.7;margin-top:var(--space-2)">
+                      Jawaban anonim · dipakai hanya untuk form ini · jangan tulis data sensitif (sandi, NIK, rekening).
+                    </p>
+                  </>
+                )}
+              </div>
+            ))}
+
             <script is:inline>
               // Token dedup untuk double-click/refresh (server yang menegakkan
               // lewat cek replay). Jawaban tetap anonim — token hanya murni
@@ -231,28 +306,576 @@ const headingSizeRem: Record<string, string> = { s: '1.1rem', m: '1.4rem', l: '1
                 }
               })();
             </script>
+            <script is:inline>
+              // T-77: stepper multi-halaman. Form multi-halaman dirender dengan
+              // novalidate; validasi tiap halaman manual lewat constraintValidation
+              // API (reportValidity pada kontrol pertama yang invalid) sehingga
+              // required di halaman TERSEMBUNYI tidak pernah menghambat. Server
+              // tetap memvalidasi jawaban penuh di endpoint submit.
+              (function () {
+                const form = document.querySelector('form[action$="/submit"]');
+                // noValidate = properti IDL camelCase (bukan nama atribut) untuk form multi-halaman.
+                if (form === null || !form.noValidate) return;
+                const pageEls = Array.prototype.slice.call(form.querySelectorAll('[data-page]'));
+                if (pageEls.length < 2) return;
+                const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-            <button type="submit" class="btn btn--accent" style="margin-top:var(--space-4);width:100%">
-              Kirim jawaban
-            </button>
-            <p style="font-size:0.72rem;opacity:0.7;margin-top:var(--space-2)">
-              Jawaban anonim · dipakai hanya untuk form ini · jangan tulis data sensitif (sandi, NIK, rekening).
-            </p>
+                function activeIndex() {
+                  for (let i = 0; i < pageEls.length; i++) {
+                    if (!pageEls[i].hasAttribute('hidden')) return i;
+                  }
+                  return 0;
+                }
+                function firstInvalid(pageEl) {
+                  const controls = pageEl.querySelectorAll('input:not([type="hidden"]), select, textarea');
+                  for (let i = 0; i < controls.length; i++) {
+                    if (!controls[i].checkValidity()) return controls[i];
+                  }
+                  return null;
+                }
+                function show(idx) {
+                  for (let i = 0; i < pageEls.length; i++) {
+                    if (i === idx) pageEls[i].removeAttribute('hidden');
+                    else pageEls[i].setAttribute('hidden', '');
+                  }
+                  const target = pageEls[idx];
+                  target.focus({ preventScroll: true });
+                  target.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+                }
+
+                form.addEventListener('click', function (e) {
+                  const t = e.target;
+                  const btn = t && t.closest ? t.closest('[data-page-next],[data-page-prev],button[type="submit"]') : null;
+                  if (btn === null) return;
+                  const idx = activeIndex();
+
+                  if (btn.hasAttribute('data-page-prev')) {
+                    // Kembali: tanpa validasi, hanya pindah halaman.
+                    if (idx > 0) show(idx - 1);
+                  } else if (btn.hasAttribute('data-page-next')) {
+                    // Lanjut: validasi halaman AKTIF dulu, baru berpindah.
+                    const bad = firstInvalid(pageEls[idx]);
+                    if (bad !== null) {
+                      bad.reportValidity();
+                      return;
+                    }
+                    show(idx + 1);
+                  } else if (idx < pageEls.length - 1) {
+                    // Kirim diklik saat halaman tengah = efek Enter implisit:
+                    // batalkan submit, perlakukan seperti tombol Lanjut.
+                    e.preventDefault();
+                    const badMid = firstInvalid(pageEls[idx]);
+                    if (badMid !== null) {
+                      badMid.reportValidity();
+                      return;
+                    }
+                    show(idx + 1);
+                  } else {
+                    // Halaman terakhir: validasi manual sebelum POST.
+                    const badEnd = firstInvalid(pageEls[idx]);
+                    if (badEnd !== null) {
+                      e.preventDefault();
+                      badEnd.reportValidity();
+                    }
+                  }
+                });
+              })();
+            </script>
           </form>
         )}
 
-        <div style="margin-top:var(--space-5);display:flex;justify-content:space-between;align-items:center;gap:var(--space-3)">
-          <span style="font-size:0.75rem;opacity:0.65">dibuat dgn umpomenfess form</span>
-          <details>
-            <summary style="cursor:pointer;font-size:0.82rem;font-weight:700">Laporkan form</summary>
-            <form method="POST" action={`/api/forms/${slug}/report`} style="margin-top:8px;display:grid;gap:8px">
-              <label style="font-size:0.8rem" for="report-reason">Alasan (maks 1000 huruf)</label>
-              <input class="input" id="report-reason" name="reason" maxlength={1000} required placeholder="mis. meminta kata sandi / spam" />
-              <button type="submit" class="btn btn--ghost btn--sm">Kirim laporan</button>
-            </form>
-          </details>
+        <div class="respondent-footer">
+          <span class="respondent-footer__credit">dibuat dgn umpomenfess form</span>
+          <button type="button" class="btn-report-trigger" id="btn-open-report" aria-haspopup="dialog">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
+              <line x1="4" y1="22" x2="4" y2="15" />
+            </svg>
+            Laporkan form ini
+          </button>
         </div>
+
+        <dialog id="report-dialog" class="report-dialog" aria-labelledby="report-dialog-title">
+          <div class="report-dialog__content">
+            <div class="report-dialog__head">
+              <div>
+                <h3 id="report-dialog-title" class="report-dialog__title">Laporkan Formulir Ini</h3>
+                <p class="report-dialog__sub">Bantu kami menjaga keamanan kampus. Laporan Anda langsung diteruskan ke tim admin.</p>
+              </div>
+              <button type="button" id="btn-close-report" class="report-dialog__close" aria-label="Tutup dialog lapor">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                  <line x1="5" y1="5" x2="19" y2="19" />
+                  <line x1="19" y1="5" x2="5" y2="19" />
+                </svg>
+              </button>
+            </div>
+
+            <div class="report-warning-banner">
+              <strong>Peringatan Anti-Phishing:</strong> Formulir dilarang meminta kata sandi, PIN, NIK, atau rekening. Admin berhak menutup form &amp; menindak akun yang melanggar.
+            </div>
+
+            <form method="POST" action={`/api/forms/${slug}/report`} class="report-dialog__form">
+              <label class="report-dialog__label" for="report-reason-input">Pilih Kategori atau Tulis Alasan Laporan</label>
+              
+              <div class="report-presets" role="group" aria-label="Pilihan kategori cepat">
+                <button type="button" class="report-preset-chip" data-reason="Phishing: Form meminta kata sandi, PIN, atau kode OTP">
+                  Phishing / Kata Sandi
+                </button>
+                <button type="button" class="report-preset-chip" data-reason="Data Sensitif: Form meminta NIK, nomor rekening, atau kartu kredit">
+                  Rekening / NIK Rahasia
+                </button>
+                <button type="button" class="report-preset-chip" data-reason="Penipuan: Formulir mencurigakan atau memuat pengelabuan">
+                  Penipuan / Fraud
+                </button>
+                <button type="button" class="report-preset-chip" data-reason="Spam: Konten tidak pantas, promosi ilegal, atau pelecehan">
+                  Spam / Iklan Liar
+                </button>
+              </div>
+
+              <textarea
+                class="textarea"
+                id="report-reason-input"
+                name="reason"
+                maxlength={1000}
+                required
+                rows={3}
+                placeholder="Tuliskan alasan atau pertanyaan spesifik yang mencurigakan..."
+              ></textarea>
+
+              <div class="report-dialog__actions">
+                <button type="button" id="btn-cancel-report" class="btn btn--ghost btn--sm">Batal</button>
+                <button type="submit" class="btn btn--accent btn--sm">Kirim Laporan ke Admin</button>
+              </div>
+            </form>
+
+            <p class="report-dialog__foot">
+              Diproses sesuai <a href="/terms" target="_blank">Ketentuan Layanan &amp; Kebijakan Anti-Phishing</a> umpomenfess.
+            </p>
+          </div>
+        </dialog>
+
+        <script is:inline>
+          (function () {
+            const btnOpen = document.getElementById('btn-open-report');
+            const dialog = document.getElementById('report-dialog');
+            const btnClose = document.getElementById('btn-close-report');
+            const btnCancel = document.getElementById('btn-cancel-report');
+            const reasonInput = document.getElementById('report-reason-input');
+            const presetButtons = document.querySelectorAll('.report-preset-chip');
+
+            if (btnOpen && dialog) {
+              btnOpen.addEventListener('click', function () {
+                if (typeof dialog.showModal === 'function') {
+                  dialog.showModal();
+                } else {
+                  dialog.setAttribute('open', '');
+                }
+              });
+            }
+
+            function closeDialog() {
+              if (dialog) {
+                if (typeof dialog.close === 'function') {
+                  dialog.close();
+                } else {
+                  dialog.removeAttribute('open');
+                }
+              }
+            }
+
+            if (btnClose) btnClose.addEventListener('click', closeDialog);
+            if (btnCancel) btnCancel.addEventListener('click', closeDialog);
+            if (dialog) {
+              dialog.addEventListener('click', function (e) {
+                if (e.target === dialog) closeDialog();
+              });
+            }
+
+            presetButtons.forEach(function (btn) {
+              btn.addEventListener('click', function () {
+                const text = btn.getAttribute('data-reason');
+                if (reasonInput && text) {
+                  reasonInput.value = text;
+                  reasonInput.focus();
+                }
+              });
+            });
+          })();
+        </script>
       </div>
     )}
   </section>
 </Base>
+
+<style>
+  .respondent-wrapper {
+    background: var(--custom-bg, var(--surface));
+    color: var(--custom-text, var(--text));
+    border-radius: inherit;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+  .respondent-container {
+    max-width: 640px;
+    padding-block: var(--space-4) var(--space-7);
+  }
+  .respondent-form {
+    padding: var(--space-6) var(--space-5);
+  }
+  .respondent-text {
+    margin: var(--space-2) 0;
+    line-height: 1.6;
+    opacity: 0.92;
+  }
+  .respondent-divider {
+    margin: var(--space-4) 0;
+  }
+  /* T-77: kontainer halaman multi-step & stepper (gunakan token — dark mode lolos). */
+  .respondent-page:focus {
+    outline: none;
+  }
+  .respondent-page__title {
+    margin: 0 0 var(--space-2);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .respondent-stepper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    margin-top: var(--space-5);
+    padding-top: var(--space-3);
+    border-top: 1px dashed var(--border);
+  }
+  .respondent-stepper__pos {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--text-muted);
+  }
+  .respondent-stepper__actions {
+    display: flex;
+    gap: var(--space-2);
+  }
+  .respondent-question-row {
+    margin: var(--space-4) 0;
+  }
+  .respondent-question-label {
+    display: block;
+    font-weight: 700;
+    font-size: 0.95rem;
+    margin-bottom: 6px;
+    line-height: 1.35;
+  }
+  .respondent-req {
+    color: var(--danger);
+  }
+  .respondent-fieldset {
+    border: 0;
+    padding: 0;
+    margin: 6px 0 0;
+  }
+  .respondent-choice-group {
+    display: grid;
+    gap: 8px;
+  }
+  .respondent-choice-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    font-weight: 600;
+    font-size: 0.88rem;
+    line-height: 1.3;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .respondent-choice-item:hover {
+    border-color: var(--brand);
+    background: var(--surface-soft);
+  }
+  .respondent-choice-item:has(input:checked) {
+    border-color: var(--brand);
+    background: color-mix(in srgb, var(--brand) 10%, var(--surface));
+  }
+  .respondent-choice-item input {
+    accent-color: var(--brand);
+    width: 17px;
+    height: 17px;
+    margin: 0;
+    flex-shrink: 0;
+  }
+  .respondent-choice-text {
+    overflow-wrap: anywhere;
+  }
+  .respondent-scale-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .respondent-scale-item {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-width: 44px;
+    min-height: 42px;
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .respondent-scale-item:hover {
+    border-color: var(--brand);
+    background: var(--surface-soft);
+  }
+  .respondent-scale-item:has(input:checked) {
+    border-color: var(--brand);
+    background: color-mix(in srgb, var(--brand) 14%, var(--surface));
+    color: var(--brand-strong);
+  }
+  .respondent-scale-item input {
+    accent-color: var(--brand);
+    margin: 0;
+  }
+
+  @media (max-width: 640px) {
+    .respondent-container {
+      padding-inline: 12px;
+      padding-block: var(--space-3) var(--space-6);
+    }
+    .respondent-form {
+      padding: var(--space-4) var(--space-3);
+      border-radius: calc(var(--radius) * 0.85);
+    }
+    .respondent-question-row {
+      margin: var(--space-3) 0;
+    }
+    .respondent-form .textarea {
+      min-height: 84px;
+    }
+  }
+
+  :global([data-theme="dark"]) .respondent-wrapper {
+    background: var(--surface);
+    color: var(--text);
+  }
+  :global([data-theme="dark"]) .respondent-form {
+    background: var(--surface);
+    border-color: var(--border);
+    color: var(--text);
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.4);
+  }
+  :global([data-theme="dark"]) .respondent-form .input,
+  :global([data-theme="dark"]) .respondent-form .textarea,
+  :global([data-theme="dark"]) .respondent-form .select {
+    background: var(--surface-soft);
+    color: var(--text);
+    border-color: var(--border);
+  }
+  :global([data-theme="dark"]) .respondent-choice-item {
+    background: var(--surface-soft);
+    color: var(--text);
+    border-color: var(--border);
+  }
+  :global([data-theme="dark"]) .respondent-choice-item:hover {
+    border-color: var(--brand);
+    background: color-mix(in srgb, var(--brand) 18%, var(--surface-soft));
+  }
+  :global([data-theme="dark"]) .respondent-choice-item:has(input:checked) {
+    border-color: var(--brand);
+    background: color-mix(in srgb, var(--brand) 22%, var(--surface-soft));
+    color: var(--text);
+  }
+  :global([data-theme="dark"]) .respondent-scale-item {
+    background: var(--surface-soft);
+    color: var(--text);
+    border-color: var(--border);
+  }
+  :global([data-theme="dark"]) .respondent-scale-item:hover {
+    border-color: var(--brand);
+    background: color-mix(in srgb, var(--brand) 18%, var(--surface-soft));
+  }
+  :global([data-theme="dark"]) .respondent-scale-item:has(input:checked) {
+    border-color: var(--brand);
+    background: var(--brand);
+    color: var(--on-brand);
+  }
+  :global([data-theme="dark"]) .respondent-security-note {
+    background: color-mix(in srgb, var(--coral) 14%, var(--surface));
+    border-color: var(--coral-deep);
+  }
+  :global([data-theme="dark"]) .respondent-footer {
+    color: var(--text-muted);
+  }
+
+  .respondent-security-note {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    margin-top: var(--space-4);
+    border-radius: var(--radius-sm);
+    background: color-mix(in srgb, var(--coral) 10%, var(--surface));
+    border: 1px solid var(--coral);
+    color: var(--danger);
+    font-size: 0.74rem;
+    line-height: 1.4;
+  }
+  .respondent-security-note svg {
+    flex-shrink: 0;
+  }
+  .respondent-footer {
+    margin-top: var(--space-5);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+  }
+  .respondent-footer__credit {
+    font-size: 0.75rem;
+    opacity: 0.65;
+  }
+  .btn-report-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: 0;
+    background: transparent;
+    color: var(--text-muted);
+    font: inherit;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: var(--radius-xs);
+    transition: color 0.15s ease, background-color 0.15s ease;
+  }
+  .btn-report-trigger:hover {
+    color: var(--danger);
+    background: color-mix(in srgb, var(--coral) 12%, transparent);
+  }
+  .report-dialog {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+    color: var(--text);
+    padding: 0;
+    max-width: 480px;
+    width: calc(100% - 32px);
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.22);
+  }
+  .report-dialog::backdrop {
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+  .report-dialog__content {
+    padding: var(--space-5);
+  }
+  .report-dialog__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-3);
+    margin-bottom: var(--space-3);
+  }
+  .report-dialog__title {
+    margin: 0;
+    font-size: 1.15rem;
+    color: var(--text);
+  }
+  .report-dialog__sub {
+    margin: 2px 0 0;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+  .report-dialog__close {
+    border: 0;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    cursor: pointer;
+    padding: 4px;
+    line-height: 1;
+    border-radius: 4px;
+  }
+  .report-dialog__close:hover {
+    color: var(--text);
+    background: var(--surface-soft);
+  }
+  .report-dialog__close svg {
+    display: block;
+  }
+  .report-warning-banner {
+    padding: 8px 10px;
+    border-radius: var(--radius-sm);
+    background: color-mix(in srgb, var(--coral) 12%, var(--surface));
+    border: 1px solid var(--coral);
+    color: var(--danger);
+    font-size: 0.74rem;
+    line-height: 1.4;
+    margin-bottom: var(--space-3);
+  }
+  .report-dialog__form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+  .report-dialog__label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .report-presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 4px;
+  }
+  .report-preset-chip {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-pill);
+    background: var(--surface-soft);
+    color: var(--text);
+    font: inherit;
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 4px 10px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .report-preset-chip:hover {
+    border-color: var(--coral);
+    background: color-mix(in srgb, var(--coral) 10%, var(--surface));
+    color: var(--danger);
+  }
+  .report-dialog__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-2);
+    margin-top: var(--space-2);
+  }
+  .report-dialog__foot {
+    margin: var(--space-3) 0 0;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-align: center;
+    border-top: 1px dashed var(--border);
+    padding-top: var(--space-2);
+  }
+  .report-dialog__foot a {
+    color: var(--accent-strong);
+    text-decoration: underline;
+  }
+</style>
