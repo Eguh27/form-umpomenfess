@@ -48,6 +48,21 @@ Set **Production + Preview**. Nama sesuai TASK 4.1 (server-only TANPA prefix `PU
   produksi (login Google dev sudah terverifikasi — ulang di prod)
 - □ DNS: `form.umpomenfess.my.id` ↔ Vercel, HTTPS aktif
 - □ `PUBLIC_SITE_URL` = domain produksi
+- □ Supabase → Authentication → **URL Configuration** (INI yang menentukan
+  tujuan akhir setelah login):
+  - **Site URL** = `https://form.umpomenfess.my.id` — **bukan**
+    `http://localhost:4321`. Site URL adalah fallback yang dipakai Supabase
+    ketika `redirect_to` tidak cocok dengan allowlist, jadi Site URL localhost
+    = pengguna dilempar ke localhost setelah login.
+  - **Redirect URLs** (satu per baris):
+    - `https://form.umpomenfess.my.id/auth/callback`
+    - `http://localhost:4321/auth/callback` (dev)
+    - `https://*.vercel.app/auth/callback` (preview deployment)
+  - Verifikasi cepat: buka `/auth/login` di domain produksi; header
+    `Location` harus berisi
+    `redirect_to=https%3A%2F%2Fform.umpomenfess.my.id%2Fauth%2Fcallback`.
+    Setelah callback Google dengan kode salah, Supabase harus tetap
+    mengarah ke domain produksi (bukan localhost).
 
 ## 4. Workflow cron (GitHub Actions — cleanup & backup @D)
 

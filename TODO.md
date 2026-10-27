@@ -102,6 +102,11 @@ Ganti peran: B (builder), C (public), D (design/ops), R (reviewer), L (lead).
 
 ---
 
+## Hotfix pasca-deploy (2026-10-27)
+
+- [x] T-78 @L 2026-10-27-09:50 Perbaikan deploy Vercel: script inline `/login` + tema responden + stepper/report/token dieksternalisasi ke `src/scripts/*.js` (CSP `script-src 'self'` tidak lagi memblokir; build lokal 0 inline script, browser 0 error CSP, tab login/toggle password/tema/stepper/dialog report jalan); origin OAuth/email memakai `x-forwarded-host` via `src/lib/auth/origin.ts` + 9 test; `docs/golive-checklist.md` §3 memuat instruksi **Supabase Site URL + Redirect URLs**; `eslint.config.mjs` mengabaikan `docs/html/` (vendor mirror). Gates: 258 test / 34 file, lint 0, check 0, build OK.
+- [!] AKSI MANUSIA (T-78) — Supabase → Authentication → URL Configuration: **Site URL** masih `http://localhost:4321` (terbukti dari fallback `/auth/v1/verify`), ubah ke `https://form.umpomenfess.my.id`; tambahkan Redirect URLs `https://form.umpomenfess.my.id/auth/callback`, `http://localhost:4321/auth/callback`, `https://*.vercel.app/auth/callback`. Tanpa ini, login dari host yang tidak ada di allowlist (mis. preview Vercel) tetap jatuh ke localhost. Detail di `docs/golive-checklist.md` §3.
+
 ## Requests (antar agent)
 
 - **@R→manusia/@L (KRITIS, E3 dari T-68)** — `PUBLIC_SUPABASE_ANON_KEY` **identik** dengan `SUPABASE_SERVICE_ROLE_KEY` di `.env.local` (sha sama, 219 char) → key service role bocor ke aset client (`dist/client/_astro/jsx-runtime.*.js`, `.vercel/output/...`) dan bisa dipakai siapa pun untuk melewati seluruh RLS (baca `responses` = jawaban responden, tulis/hapus `forms`/`reports`). **Minta aksi manusia:** (1) Supabase → API Keys → pakai key **anon/publishable yang asli** untuk `PUBLIC_SUPABASE_ANON_KEY` (`.env.local` + Vercel Production & Preview); (2) **rotasi `SUPABASE_SERVICE_ROLE_KEY`** (sudah bocor di artefak build) → update `.env.local` + Vercel + GitHub Secrets; (3) build ulang & deploy ulang; (4) guard anti-regresi: test gagal bila kedua key sama + cek "grep bundle client" di `docs/golive-checklist.md` §1. Detail + bukti: `docs/review-e2e-T68.md` §E3.

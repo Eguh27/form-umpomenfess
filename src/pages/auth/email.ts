@@ -6,6 +6,7 @@
  */
 import type { APIRoute } from 'astro';
 import { createBufferedClient, getEnvConfig } from '../../lib/auth/supabase';
+import { publicOriginOf } from '../../lib/auth/origin';
 
 export const POST: APIRoute = async (context) => {
   const config = getEnvConfig();
@@ -36,7 +37,7 @@ export const POST: APIRoute = async (context) => {
       return context.redirect('/login?tab=signup&error=password_pendek');
     }
 
-    const origin = context.url.origin;
+    const origin = publicOriginOf(context);
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -67,7 +68,7 @@ export const POST: APIRoute = async (context) => {
     if (!email) {
       return context.redirect('/login?tab=forgot&error=email_wajib');
     }
-    const origin = context.url.origin;
+    const origin = publicOriginOf(context);
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${origin}/auth/callback?next=/dashboard`,
     });

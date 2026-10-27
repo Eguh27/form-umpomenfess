@@ -7,6 +7,7 @@
  */
 import type { APIRoute } from 'astro';
 import { createBufferedClient, getEnvConfig } from '../../lib/auth/supabase';
+import { publicOriginOf } from '../../lib/auth/origin';
 
 export const GET: APIRoute = async (context) => {
   const config = getEnvConfig();
@@ -15,12 +16,12 @@ export const GET: APIRoute = async (context) => {
   }
 
   const { supabase, flush } = createBufferedClient(context.request, config);
-  const origin = context.url.origin;
+  // Host asli dari Vercel (x-forwarded-host), bukan host internal server.
+  const origin = publicOriginOf(context);
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      // Absolute URL — origin permintaan mengikuti localhost/production otomatis
       redirectTo: `${origin}/auth/callback`,
       skipBrowserRedirect: true,
     },

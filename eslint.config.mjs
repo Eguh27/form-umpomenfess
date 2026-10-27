@@ -7,7 +7,7 @@ import { defineConfig } from 'eslint/config';
 
 export default defineConfig([
   {
-    ignores: ['dist/', 'node_modules/', '.astro/', '.vercel/'],
+    ignores: ['dist/', 'node_modules/', '.astro/', '.vercel/', 'docs/html/'],
   },
 
   // Global config

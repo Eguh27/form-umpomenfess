@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import loginTabsUrl from '../scripts/login-tabs.js?url&no-inline';
 
 // Login & Sign-up page (T-15, Agent A).
 // Mendukung:
@@ -309,7 +310,7 @@ const successText = msg ? (SUCCESS_MESSAGES[msg] ?? decodeURIComponent(msg)) : n
             class="social-btn facebook-btn"
             title="Facebook Login (segera hadir)"
             aria-label="Masuk dengan Facebook"
-            onclick="alert('Login Facebook akan segera hadir! Silakan gunakan email atau Google.')"
+            data-coming-soon="Login Facebook akan segera hadir! Silakan gunakan email atau Google."
           >
             <svg viewBox="0 0 24 24" fill="#1877F2" class="social-svg">
               <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
@@ -322,7 +323,7 @@ const successText = msg ? (SUCCESS_MESSAGES[msg] ?? decodeURIComponent(msg)) : n
             class="social-btn apple-btn"
             title="Apple Sign-In (segera hadir)"
             aria-label="Masuk dengan Apple"
-            onclick="alert('Sign in with Apple akan segera hadir! Silakan gunakan email atau Google.')"
+            data-coming-soon="Sign in with Apple akan segera hadir! Silakan gunakan email atau Google."
           >
             <svg viewBox="0 0 24 24" fill="currentColor" class="social-svg">
               <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.38c.62-.75 1.04-1.8 1.01-2.85-.9-.04-2 .53-2.61 1.25-.55.63-.99 1.68-.94 2.7.99.08 1.95-.49 2.54-1.1"/>
@@ -846,85 +847,4 @@ const successText = msg ? (SUCCESS_MESSAGES[msg] ?? decodeURIComponent(msg)) : n
 
 </style>
 
-<script is:inline>
-  // Interaktivitas tab & toggle password tanpa reload
-  (function () {
-    const tabLogin = document.getElementById('tab-btn-login');
-    const tabSignup = document.getElementById('tab-btn-signup');
-    const formLogin = document.getElementById('form-login');
-    const formSignup = document.getElementById('form-signup');
-    const formForgot = document.getElementById('form-forgot');
-    const titleEl = document.getElementById('auth-title');
-    const subtitleEl = document.getElementById('auth-subtitle');
-    const switchPrompt = document.getElementById('switch-prompt');
-    const switchLink = document.getElementById('btn-toggle-switch');
-    const btnShowForgot = document.getElementById('btn-show-forgot');
-    const btnBackLogin = document.getElementById('btn-back-login');
-
-    function setTab(mode) {
-      if (mode === 'signup') {
-        tabLogin?.classList.remove('is-active');
-        tabSignup?.classList.add('is-active');
-        formLogin?.classList.add('is-hidden');
-        formLogin?.classList.remove('is-visible');
-        formSignup?.classList.remove('is-hidden');
-        formSignup?.classList.add('is-visible');
-        formForgot?.classList.add('is-hidden');
-        if (titleEl) titleEl.textContent = 'Daftar akun baru';
-        if (subtitleEl) subtitleEl.textContent = 'Buat akun dalam hitungan detik untuk mulai menyusun form skripsi & survei.';
-        if (switchPrompt) switchPrompt.textContent = 'Sudah punya akun?';
-        if (switchLink) switchLink.textContent = 'Masuk di sini';
-      } else if (mode === 'forgot') {
-        tabLogin?.classList.remove('is-active');
-        tabSignup?.classList.remove('is-active');
-        formLogin?.classList.add('is-hidden');
-        formSignup?.classList.add('is-hidden');
-        formForgot?.classList.remove('is-hidden');
-        formForgot?.classList.add('is-visible');
-        if (titleEl) titleEl.textContent = 'Lupa kata sandi';
-        if (subtitleEl) subtitleEl.textContent = 'Atur ulang kata sandi akun Anda melalui email.';
-      } else {
-        // login
-        tabLogin?.classList.add('is-active');
-        tabSignup?.classList.remove('is-active');
-        formLogin?.classList.remove('is-hidden');
-        formLogin?.classList.add('is-visible');
-        formSignup?.classList.add('is-hidden');
-        formSignup?.classList.remove('is-visible');
-        formForgot?.classList.add('is-hidden');
-        if (titleEl) titleEl.textContent = 'Masuk dengan email';
-        if (subtitleEl) subtitleEl.textContent = 'Kelola form kuesioner dan kumpulkan respons mahasiswa dengan mudah & gratis.';
-        if (switchPrompt) switchPrompt.textContent = 'Belum punya akun?';
-        if (switchLink) switchLink.textContent = 'Daftar sekarang';
-      }
-    }
-
-    tabLogin?.addEventListener('click', () => setTab('login'));
-    tabSignup?.addEventListener('click', () => setTab('signup'));
-    btnShowForgot?.addEventListener('click', () => setTab('forgot'));
-    btnBackLogin?.addEventListener('click', () => setTab('login'));
-
-    switchLink?.addEventListener('click', () => {
-      const isSignupActive = tabSignup?.classList.contains('is-active');
-      setTab(isSignupActive ? 'login' : 'signup');
-    });
-
-    // Toggle Eye Password
-    const toggles = document.querySelectorAll('.toggle-password');
-    toggles.forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const targetId = btn.getAttribute('data-target');
-        const input = document.getElementById(targetId);
-        if (input) {
-          if (input.type === 'password') {
-            input.type = 'text';
-            btn.style.opacity = '1';
-          } else {
-            input.type = 'password';
-            btn.style.opacity = '0.7';
-          }
-        }
-      });
-    });
-  })();
-</script>
+<script is:inline src={loginTabsUrl}></script>

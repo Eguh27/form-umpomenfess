@@ -3,6 +3,8 @@ import '../styles/global.css';
 import themeInitUrl from '../styles/theme-init.js?url&no-inline';
 import themeToggleUrl from '../styles/theme-toggle.js?url&no-inline';
 import navMenuUrl from '../styles/nav-menu.js?url&no-inline';
+import respondentThemeInitUrl from '../scripts/respondent-theme-init.js?url&no-inline';
+import respondentThemeUrl from '../scripts/respondent-theme.js?url&no-inline';
 
 interface Props {
   title?: string;
@@ -41,22 +43,7 @@ const user = Astro.locals.user;
       href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23FDEEEC'/%3E%3Crect x='6' y='5' width='20' height='22' rx='6' fill='%23E8604C'/%3E%3Cpath d='M11 12h10M11 16h10M11 20h6' stroke='%23FFF6EA' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='26' cy='6' r='3' fill='%23F6C96B'/%3E%3C/svg%3E"
     />
 
-    {nav ? (
-      <script is:inline src={themeInitUrl}></script>
-    ) : (
-      <script is:inline>
-        (() => {
-          let stored = null;
-          try {
-            stored = localStorage.getItem('respondent_theme');
-          } catch {
-            /* localStorage bisa diblokir; pakai tema terang */
-          }
-          const theme = stored === 'dark' ? 'dark' : 'light';
-          document.documentElement.dataset.theme = theme;
-        })();
-      </script>
-    )}
+    <script is:inline src={nav ? themeInitUrl : respondentThemeInitUrl}></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -217,34 +204,8 @@ const user = Astro.locals.user;
       </footer>
     )}
 
-    {nav && <script is:inline src={themeToggleUrl}></script>}
+    <script is:inline src={nav ? themeToggleUrl : respondentThemeUrl}></script>
     {nav && <script is:inline src={navMenuUrl}></script>}
-    {!nav && (
-      <script is:inline>
-        (() => {
-          const btn = document.getElementById('respondent-theme-toggle');
-          if (!btn) return;
-          const current = () => (document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light');
-          const sync = () => {
-            const isDark = current() === 'dark';
-            btn.setAttribute('aria-pressed', String(isDark));
-            btn.setAttribute('aria-label', isDark ? 'Aktifkan tema terang' : 'Aktifkan tema gelap');
-            btn.title = isDark ? 'Tema terang' : 'Tema gelap';
-          };
-          btn.addEventListener('click', () => {
-            const next = current() === 'dark' ? 'light' : 'dark';
-            document.documentElement.dataset.theme = next;
-            try {
-              localStorage.setItem('respondent_theme', next);
-            } catch {
-              /* penyimpanan tema opsional; abaikan bila diblokir */
-            }
-            sync();
-          });
-          sync();
-        })();
-      </script>
-    )}
 
     <style>
       .main--respondent {
