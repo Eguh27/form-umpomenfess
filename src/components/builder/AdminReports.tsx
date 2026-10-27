@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { ReportItem, ReportAction, ReportStatus } from '../../lib/forms/reports';
+import type { ReportAction, ReportItem, ReportStatus } from '../../lib/forms/reports';
 import { AdminReportCard } from './AdminReportCard';
 
 interface Props {
@@ -115,7 +115,6 @@ export const AdminReports: React.FC<Props> = ({ initialReports }) => {
       {/* List Laporan */}
       {filtered.length === 0 ? (
         <div className="card" style={{ padding: 'var(--space-6)', textAlign: 'center', color: 'var(--text-muted)' }}>
-          <p style={{ fontSize: '1.8rem', margin: '0 0 8px' }}>🎉</p>
           <p style={{ margin: 0, fontWeight: 600 }}>Tidak ada laporan pada kategori ini.</p>
         </div>
       ) : (
