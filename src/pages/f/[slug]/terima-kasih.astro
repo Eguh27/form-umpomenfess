@@ -17,18 +17,18 @@ if (supabase !== null && /^[a-z0-9-]{1,80}$/.test(slug)) {
   title = data !== null ? String((data as { title: unknown }).title) : null;
 }
 ---
-<Base title="Terima kasih! — umpomenfess form" nav={false} footer={false}>
+<Base title="Terima kasih! umpomenfess form" nav={false} footer={false}>
   <section class="container" style="padding-block:var(--space-8);max-width:640px;text-align:center">
     <p class="eyebrow">Tercatat</p>
     <h1 style="font-size:clamp(1.8rem,7vw,2.6rem);margin:var(--space-3) 0">Terima kasih!</h1>
     <p style="color:var(--text-muted)">
       Jawabanmu
-      {title !== null && <> untuk <strong style="color:var(--text)">{title}</strong></>}
-      sudah tersimpan anonim. Tidak ada yang bisa menautkannya balik ke dirimu.
+      {title !== null && <>  untuk <strong style="color:var(--text)">{title} </strong></>}
+       sudah tersimpan
     </p>
     <div style="display:flex;gap:var(--space-3);justify-content:center;margin-top:var(--space-5);flex-wrap:wrap">
-      <a class="btn btn--ghost" href="https://umpomenfess.my.id">UMPOmenfess ↗</a>
-      <a class="btn btn--ghost" href={`https://umpomenfess.my.id?f=${slug}`}>Lihat fess lain ↗</a>
+      <a class="btn btn--ghost" href="https://form.umpomenfess.my.id">beranda ↗</a>
+      <a class="btn btn--ghost" href="https://www.instagram.com/umpomenfess">Follow Instagram ↗</a>
     </div>
   </section>
 </Base>
