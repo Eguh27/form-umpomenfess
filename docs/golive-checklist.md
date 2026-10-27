@@ -54,10 +54,12 @@ Set **Production + Preview**. Nama sesuai TASK 4.1 (server-only TANPA prefix `PU
     `http://localhost:4321`. Site URL adalah fallback yang dipakai Supabase
     ketika `redirect_to` tidak cocok dengan allowlist, jadi Site URL localhost
     = pengguna dilempar ke localhost setelah login.
-  - **Redirect URLs** (satu per baris):
-    - `https://form.umpomenfess.my.id/auth/callback`
+  - **Redirect URLs** (satu per baris; glob resmi Supabase, `*` = karakter
+    non-pemisah sehingga cocok untuk subdomain preview):
+    - `https://form.umpomenfess.my.id/auth/callback` (produksi)
     - `http://localhost:4321/auth/callback` (dev)
-    - `https://*.vercel.app/auth/callback` (preview deployment)
+    - `https://*-eguh-s-projects.vercel.app/auth/callback` (preview Vercel;
+      ganti `eguh-s-projects` bila slug tim Vercel berbeda)
   - Verifikasi cepat: buka `/auth/login` di domain produksi; header
     `Location` harus berisi
     `redirect_to=https%3A%2F%2Fform.umpomenfess.my.id%2Fauth%2Fcallback`.

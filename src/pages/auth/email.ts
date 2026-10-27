@@ -45,7 +45,7 @@ export const POST: APIRoute = async (context) => {
         data: {
           full_name: fullName || email.split('@')[0],
         },
-        emailRedirectTo: `${origin}/auth/callback?next=/dashboard`,
+        emailRedirectTo: `${origin}/auth/callback`,
       },
     });
 
@@ -70,7 +70,7 @@ export const POST: APIRoute = async (context) => {
     }
     const origin = publicOriginOf(context);
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${origin}/auth/callback?next=/dashboard`,
+      redirectTo: `${origin}/auth/callback`,
     });
 
     if (error) {
