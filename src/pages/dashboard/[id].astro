@@ -30,7 +30,7 @@ if (row === null) return Astro.redirect('/dashboard');
 const cloudName = (import.meta.env.CLOUDINARY_CLOUD_NAME as string | undefined) ?? '';
 const state = stateFromRow(row as unknown as { title: string; schema: unknown });
 ---
-<BuilderLayout title={`Edit: ${state.title} — umpomenfess form`}>
+<BuilderLayout title={`Edit: ${state.title}`}>
   <Editor
     client:load
     formId={String(row.id)}

@@ -102,7 +102,7 @@ const pages = form === null
       }),
     );
 ---
-<Base title={row === null ? 'Form tidak tersedia' : `${String(row.title)} — umpomenfess form`} description={row === null ? 'Form tidak tersedia.' : `Isi form ${String(row.title)}`} nav={false} footer={false}>
+<Base title={row === null ? 'Form tidak tersedia' : `${String(row.title)}`} description={row === null ? 'Form tidak tersedia.' : `Isi form ${String(row.title)}`} nav={false} footer={false}>
   <section class="container respondent-container">
     {notFound && (
       <article class="card card--plain" style="text-align:center;padding:var(--space-7) var(--space-5)">

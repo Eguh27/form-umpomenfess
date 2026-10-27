@@ -53,7 +53,7 @@ const fmt = (iso: string) => iso.replace('T', ' ').slice(0, 16).replace('Z', '')
 const clip = (t: string) => (t.length > 120 ? `${t.slice(0, 117)}…` : t);
 const cellText = (q: { id: string }, a: Record<string, FormAnswerValue>) => clip(answerToText(a[q.id]));
 ---
-<Base title={`Respons: ${String(form.title)} — umpomenfess form`}>
+<Base title={`Respons: ${String(form.title)}`}>
   <section class="container" style="padding-block:var(--space-5);max-width:1100px">
     <p class="eyebrow"><a href="/dashboard" style="text-decoration:none">← Dashboard</a> · Respons</p>
 
