@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>E-Tutor | Learning Dashboard</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232F6BFF'/%3E%3Ctext x='32' y='45' font-size='36' font-weight='800' text-anchor='middle' fill='white' font-family='Arial'%3EE%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F3F6FC;
+  --card:#FFFFFF;
+  --primary:#3B82F6;
+  --primary-deep:#2563EB;
+  --primary-soft:#DBEAFE;
+  --text-main:#101828;
+  --text-sub:#667085;
+  --text-faint:#98A2B3;
+  --pink:#EC4899;
+  --pink-bar:#F472B6;
+  --amber-bar:#FBBF24;
+  --green:#22C55E;
+  --green-deep:#16A34A;
+  --green-soft:#DCFCE7;
+  --amber-soft:#FFF1DE;
+  --track:#EDF1F8;
+  --border:#E7EDF5;
+  --r-lg:20px;
+  --shadow:0 6px 24px rgba(16,24,40,.06);
+  --shadow-hover:0 14px 34px rgba(16,24,40,.12);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Plus Jakarta Sans','Segoe UI',system-ui,-apple-system,'Helvetica Neue',Arial,sans-serif;
+  background:var(--bg);
+  color:var(--text-main);
+  font-size:14px;
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+  min-width:320px;
+}
+button{font-family:inherit;border:none;background:none;cursor:pointer;color:inherit}
+input{font-family:inherit;border:none;outline:none;background:none;color:inherit}
+ul{list-style:none}
+::selection{background:var(--primary-soft)}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-thumb{background:#CBD6E6;border-radius:8px}
+::-webkit-scrollbar-thumb:hover{background:#AEBED6}
+::-webkit-scrollbar-track{background:transparent}
+
+.app{display:flex;min-height:100vh}
+
+/* ================= SIDEBAR ================= */
+.sidebar{
+  width:264px;flex-shrink:0;
+  background:linear-gradient(180deg,#FAFCFF 0%,#F2F7FD 100%);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  padding:24px 16px 18px;
+  position:sticky;top:0;height:100vh;overflow-y:auto;
+  z-index:60;
+}
+.brand{display:flex;align-items:center;gap:12px;padding:2px 8px 24px}
+.brand-logo{
+  width:42px;height:42px;border-radius:13px;flex-shrink:0;
+  background:linear-gradient(135deg,#60A5FA,#2563EB);
+  display:grid;place-items:center;color:#fff;
+  box-shadow:0 8px 18px rgba(37,99,235,.30);
+}
+.brand-logo svg{width:22px;height:22px}
+.brand-name{font-size:20px;font-weight:800;letter-spacing:-.02em}
+.sidebar-close{display:none;position:absolute;top:20px;right:14px;width:34px;height:34px;border-radius:10px;background:#fff;border:1px solid var(--border);color:var(--text-sub);place-items:center;box-shadow:var(--shadow)}
+.sidebar-close svg{width:16px;height:16px}
+
+.nav{display:flex;flex-direction:column;gap:5px;flex:1}
+.nav-item{
+  display:flex;align-items:center;gap:13px;
+  padding:12.5px 14px;border-radius:13px;
+  color:var(--text-sub);font-weight:600;font-size:14px;
+  transition:background .2s,color .2s,transform .15s;
+  width:100%;text-align:left;
+}
+.nav-item svg{width:19px;height:19px;flex-shrink:0}
+.nav-item:hover{background:#E9F0FA;color:var(--primary-deep)}
+.nav-item:active{transform:scale(.98)}
+.nav-item.active{background:var(--primary-soft);color:var(--primary-deep);font-weight:700;box-shadow:inset 0 0 0 1px rgba(59,130,246,.15)}
+
+/* Download app card */
+.download-card{
+  margin-top:18px;position:relative;overflow:hidden;
+  background:linear-gradient(140deg,#5EA2FF 0%,#2F6BFF 62%,#2456E6 100%);
+  border-radius:20px;padding:18px 16px 16px;color:#fff;
+}
+.download-card::before{content:'';position:absolute;width:130px;height:130px;border-radius:50%;background:rgba(255,255,255,.10);top:-50px;right:-42px}
+.download-card::after{content:'';position:absolute;width:86px;height:86px;border-radius:50%;background:rgba(255,255,255,.08);bottom:-34px;left:-26px}
+.dc-top{display:flex;gap:12px;align-items:center;position:relative}
+.dc-phone{flex-shrink:0}
+.dc-text h4{font-size:14px;font-weight:800;line-height:1.35;letter-spacing:-.01em}
+.dc-text p{font-size:11px;opacity:.78;margin-top:3px;font-weight:500}
+.dc-btn{
+  position:relative;margin-top:14px;width:100%;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  background:#fff;color:var(--primary-deep);
+  font-weight:800;font-size:12.5px;padding:9.5px;border-radius:12px;
+  transition:transform .15s,box-shadow .2s;
+}
+.dc-btn svg{width:14px;height:14px}
+.dc-btn:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(2,32,94,.30)}
+
+.overlay{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;visibility:hidden;transition:.25s;z-index:55;backdrop-filter:blur(2px)}
+.overlay.show{opacity:1;visibility:visible}
+
+/* ================= MAIN / TOPBAR ================= */
+.main{flex:1;min-width:0;padding:26px 30px 36px;display:flex;flex-direction:column}
+.content{max-width:1400px}
+
+.topbar{display:flex;align-items:center;gap:18px;margin-bottom:26px;flex-wrap:wrap}
+.welcome h1{font-size:25px;font-weight:800;letter-spacing:-.025em}
+.welcome h1 span{color:var(--primary)}
+.welcome p{color:var(--text-sub);margin-top:4px;font-size:13.5px;font-weight:500}
+.topbar-actions{margin-left:auto;display:flex;align-items:center;gap:13px}
+
+.icon-btn{width:42px;height:42px;border-radius:13px;background:#fff;border:1px solid var(--border);display:grid;place-items:center;color:var(--text-main);box-shadow:var(--shadow);flex-shrink:0;transition:border-color .2s,transform .15s}
+.icon-btn:hover{border-color:#C9DAF2}
+.icon-btn:active{transform:scale(.94)}
+.icon-btn svg{width:19px;height:19px}
+.hamburger{display:none}
+
+.search{
+  display:flex;align-items:center;gap:10px;
+  background:#fff;border:1px solid var(--border);border-radius:14px;
+  padding:11px 15px;width:252px;
+  box-shadow:var(--shadow);
+  transition:border-color .2s,box-shadow .2s;
+}
+.search:focus-within{border-color:#9CC0F3;box-shadow:0 0 0 4px rgba(59,130,246,.12)}
+.search svg{width:17px;height:17px;color:var(--text-faint);flex-shrink:0}
+.search input{flex:1;min-width:0;font-size:13px;font-weight:500}
+.search input::placeholder{color:var(--text-faint)}
+
+.profile{display:flex;align-items:center;gap:7px;cursor:pointer;position:relative;padding:2px;border-radius:99px;transition:transform .15s}
+.profile:hover{transform:translateY(-1px)}
+.avatar{
+  width:42px;height:42px;border-radius:50%;
+  background:linear-gradient(135deg,#93C5FD,#3B82F6);
+  color:#fff;font-weight:800;display:grid;place-items:center;font-size:15px;
+  box-shadow:0 5px 14px rgba(59,130,246,.32);border:2.5px solid #fff;
+}
+.profile>svg{width:15px;height:15px;color:var(--text-faint)}
+
+/* Dropdown system */
+.select-wrap{position:relative}
+.select-btn{
+  display:flex;align-items:center;gap:9px;
+  background:#fff;border:1px solid var(--border);border-radius:13px;
+  padding:11px 14px;font-weight:700;font-size:13px;color:var(--text-main);
+  box-shadow:var(--shadow);transition:border-color .2s;
+  white-space:nowrap;
+}
+.select-btn:hover{border-color:#C9DAF2}
+.select-btn svg{width:15px;height:15px}
+.select-btn .chev{color:var(--text-faint);width:14px;height:14px;transition:transform .2s}
+.select-wrap.open .select-btn .chev{transform:rotate(180deg)}
+.link-btn{display:flex;align-items:center;gap:5px;font-size:12.5px;font-weight:700;color:var(--text-sub);padding:7px 10px;border-radius:10px;transition:color .15s,background .15s}
+.link-btn:hover{color:var(--primary-deep);background:#EDF3FC}
+.link-btn svg{width:14px;height:14px;color:var(--text-faint);transition:transform .2s}
+.select-wrap.open .link-btn svg{transform:rotate(180deg)}
+.dropdown{
+  position:absolute;top:calc(100% + 8px);right:0;
+  background:#fff;border-radius:14px;
+  box-shadow:0 18px 44px rgba(16,24,40,.16);
+  border:1px solid var(--border);
+  padding:7px;min-width:172px;
+  opacity:0;visibility:hidden;transform:translateY(6px) scale(.98);
+  transition:all .18s cubic-bezier(.22,1,.36,1);
+  z-index:50;
+}
+.select-wrap.open .dropdown{opacity:1;visibility:visible;transform:none}
+.dropdown button{
+  display:flex;align-items:center;gap:10px;width:100%;text-align:left;
+  padding:9.5px 12px;border-radius:9px;
+  font-size:13px;font-weight:600;color:var(--text-sub);
+  transition:background .15s,color .15s;white-space:nowrap;
+}
+.dropdown button svg{width:16px;height:16px;flex-shrink:0}
+.dropdown button:hover{background:#F2F6FD;color:var(--text-main)}
+.dropdown button.active{color:var(--primary-deep);background:var(--primary-soft);font-weight:700}
+.dropdown .dd-danger:hover{background:#FEF2F2;color:#DC2626}
+
+/* ================= CONTENT GRID ================= */
+.grid-main{display:grid;grid-template-columns:minmax(380px,440px) 1fr;gap:24px;align-items:start}
+
+/* Courses column */
+.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:10px}
+.section-head h2{font-size:17.5px;font-weight:800;letter-spacing:-.02em}
+.courses{display:flex;flex-direction:column;gap:14px}
+
+.course-card{border-radius:20px;padding:16px 18px;box-shadow:var(--shadow);transition:transform .22s,box-shadow .22s;position:relative;overflow:hidden}
+.course-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-hover)}
+.cc-top{display:flex;align-items:center;gap:13px;flex-wrap:wrap;row-gap:10px}
+.cc-icon{width:48px;height:48px;border-radius:15px;display:grid;place-items:center;flex-shrink:0}
+.cc-icon svg{width:22px;height:22px}
+.cc-info{min-width:0}
+.cc-info h3{font-size:15.5px;font-weight:800;letter-spacing:-.015em}
+.cc-info p{font-size:11.5px;margin-top:2.5px;font-weight:600;opacity:.85}
+.cc-assign{
+  margin-left:auto;font-size:10.5px;font-weight:700;
+  padding:6px 12px;border-radius:99px;
+  background:rgba(255,255,255,.24);color:#fff;white-space:nowrap;
+}
+.cc-hours{
+  margin-left:auto;display:flex;align-items:center;gap:6px;
+  background:#fff;padding:7px 12px;border-radius:99px;
+  font-size:11.5px;font-weight:800;white-space:nowrap;
+  box-shadow:0 3px 10px rgba(16,24,40,.08);
+}
+.cc-hours svg{width:13px;height:13px}
+.cc-bottom{display:flex;align-items:center;gap:12px;margin-top:14px}
+.cc-progress{flex:1;display:flex;align-items:center;gap:10px;min-width:0}
+.cc-bar{flex:1;height:7px;border-radius:99px;background:rgba(255,255,255,.30);overflow:hidden}
+.cc-bar span{display:block;height:100%;border-radius:99px;background:#fff;width:0;transition:width 1.1s cubic-bezier(.22,1,.36,1) .35s}
+body.loaded .cc-bar span{width:var(--w)}
+.cc-pct{font-size:12.5px;font-weight:800;color:#fff;flex-shrink:0}
+.cc-resume{
+  display:inline-flex;align-items:center;gap:7px;
+  background:#fff;border-radius:12px;padding:9px 16px;
+  font-size:12.5px;font-weight:800;flex-shrink:0;
+  transition:transform .15s,box-shadow .2s;
+}
+.cc-resume svg{width:11px;height:11px}
+.cc-resume:hover{transform:translateY(-1.5px)}
+.cc-resume:active{transform:scale(.96)}
+
+/* Card variants */
+.cc-ux{background:linear-gradient(120deg,#5FA5FF -12%,#2F6BFF 68%)}
+.cc-ux .cc-icon{background:rgba(255,255,255,.96);color:#2F6BFF;box-shadow:0 6px 15px rgba(10,45,130,.25)}
+.cc-ux .cc-info h3{color:#fff}
+.cc-ux .cc-info p{color:rgba(255,255,255,.78)}
+.cc-ux .cc-resume{color:#2F6BFF;box-shadow:0 6px 15px rgba(10,45,130,.24)}
+
+.cc-gfx{background:#FFF2E0}
+.cc-gfx .cc-icon{background:linear-gradient(135deg,#FDBA74,#F97316);color:#fff;box-shadow:0 6px 15px rgba(249,115,22,.32)}
+.cc-gfx .cc-info h3{color:#C2410C}
+.cc-gfx .cc-info p{color:#CE8B52}
+.cc-gfx .cc-hours{color:#EA580C}
+.cc-gfx .cc-resume{color:#EA580C;box-shadow:0 5px 13px rgba(234,88,12,.20)}
+
+.cc-color{background:#FFE9F0}
+.cc-color .cc-icon{background:linear-gradient(135deg,#F9A8D4,#EC4899);color:#fff;box-shadow:0 6px 15px rgba(236,72,153,.32)}
+.cc-color .cc-info h3{color:#DB2777}
+.cc-color .cc-info p{color:#D0819F}
+.cc-color .cc-hours{color:#E11D48}
+.cc-color .cc-resume{color:#E11D48;box-shadow:0 5px 13px rgba(219,39,119,.20)}
+
+.cc-ga{background:#E3F8EA}
+.cc-ga .cc-icon{background:linear-gradient(135deg,#86EFAC,#22C55E);color:#fff;box-shadow:0 6px 15px rgba(34,197,94,.32)}
+.cc-ga .cc-info h3{color:#15803D}
+.cc-ga .cc-info p{color:#6FA983}
+.cc-ga .cc-hours{color:#16A34A}
+.cc-ga .cc-resume{color:#16A34A;box-shadow:0 5px 13px rgba(22,163,74,.20)}
+
+.no-results{
+  display:none;text-align:center;padding:34px 16px;border-radius:20px;
+  background:#fff;box-shadow:var(--shadow);
+  color:var(--text-sub);font-size:13px;font-weight:600;
+}
+.no-results b{display:block;color:var(--text-main);font-size:14px;margin-bottom:4px}
+
+/* ================= CARDS (charts & table) ================= */
+.card{background:#fff;border-radius:var(--r-lg);box-shadow:var(--shadow);padding:22px 24px;min-width:0}
+.card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:10px}
+.card-head h2{font-size:17.5px;font-weight:800;letter-spacing:-.02em}
+.view-all{color:var(--primary);font-weight:800;font-size:12.5px;display:flex;align-items:center;gap:3px;transition:gap .2s}
+.view-all:hover{gap:7px}
+.view-all svg{width:14px;height:14px}
+
+/* Bar chart */
+.chart-wrap{position:relative}
+.chart-tip{
+  position:absolute;top:0;left:0;
+  background:#fff;border-radius:13px;
+  box-shadow:0 16px 38px rgba(16,24,40,.18);
+  border:1px solid var(--border);
+  padding:11px 13px;min-width:138px;
+  pointer-events:none;opacity:0;z-index:5;
+  transform:translate(-50%,-100%);
+  transition:opacity .18s;
+}
+.chart-tip.show{opacity:1}
+.tip-title{font-size:12.5px;font-weight:800;margin-bottom:8px;letter-spacing:-.01em}
+.tip-row{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--text-sub);margin-top:5px;font-weight:600}
+.tip-row i{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.tip-row b{margin-left:auto;color:var(--text-main);font-size:12px;padding-left:14px}
+.chart-legend{display:flex;justify-content:center;gap:26px;margin-top:10px}
+.lg-item{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:var(--text-sub)}
+.lg-item i{width:9px;height:9px;border-radius:3.5px;display:inline-block}
+
+.ax{font-family:inherit;font-size:11px;fill:var(--text-faint);font-weight:600}
+.ax-x{fill:var(--text-sub);font-size:11.5px}
+.bar{transform-origin:bottom center;transform-box:fill-box;transition:opacity .18s}
+svg.go .bar{animation:grow .8s cubic-bezier(.22,1,.36,1) both;animation-delay:var(--d,0ms)}
+@keyframes grow{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+.chart-wrap.dimmed .bar{opacity:.30}
+.chart-wrap.dimmed .bar.hl{opacity:1}
+
+/* Progress card */
+.progress-body{display:flex;align-items:center;gap:26px;padding:8px 2px 2px;flex-wrap:wrap;justify-content:center}
+.donut-wrap{width:196px;flex-shrink:0}
+.donut-wrap svg{width:100%;height:auto;display:block}
+.donut-num{font-family:inherit;font-size:31px;font-weight:800;fill:#101828;letter-spacing:-.03em}
+.progress-stats{flex:1;min-width:220px;display:flex;flex-direction:column;gap:15px}
+.ps-top{display:flex;align-items:center;gap:9px}
+.ps-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.ps-label{font-size:13px;font-weight:700;color:var(--text-main)}
+.ps-pct{margin-left:auto;font-size:13.5px;font-weight:800}
+.ps-bar{height:7px;border-radius:99px;background:var(--track);margin-top:8px;overflow:hidden}
+.ps-bar span{display:block;height:100%;border-radius:99px;width:0;transition:width 1.1s cubic-bezier(.22,1,.36,1) .5s}
+body.loaded .ps-bar span{width:var(--w)}
+
+/* Reminders table */
+.reminders-card{margin-top:24px}
+.table-scroll{overflow-x:auto;margin:0 -8px;padding:0 8px}
+.reminders-table{width:100%;border-collapse:collapse;min-width:660px}
+.reminders-table th{
+  text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.07em;
+  color:var(--text-faint);font-weight:800;padding:12px 14px;border-bottom:1.5px solid var(--border);
+}
+.reminders-table td{padding:13px 14px;border-bottom:1px solid #F1F5FA;vertical-align:middle}
+.reminders-table tbody tr:last-child td{border-bottom:none}
+.reminders-table tbody tr{transition:background .15s}
+.reminders-table tbody tr:hover{background:#F7FAFE}
+.reminders-table th:first-child,.reminders-table td:first-child{padding-left:6px}
+.reminders-table th:last-child,.reminders-table td:last-child{padding-right:6px}
+
+.type-cell{display:flex;align-items:center;gap:13px}
+.type-icon{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;color:#fff;flex-shrink:0}
+.type-icon svg{width:19px;height:19px}
+.ti-folder{background:linear-gradient(135deg,#FCD34D,#F59E0B);box-shadow:0 5px 12px rgba(245,158,11,.28)}
+.ti-chrome{background:#fff;border:1.5px solid var(--border)}
+.ti-video{background:linear-gradient(135deg,#FB7185,#E11D48);box-shadow:0 5px 12px rgba(225,29,72,.26)}
+.ti-quiz{background:linear-gradient(135deg,#60A5FA,#2563EB);box-shadow:0 5px 12px rgba(37,99,235,.28)}
+.type-cell b{font-size:13.5px;font-weight:800;display:block;letter-spacing:-.01em}
+.type-cell small{font-size:11.5px;color:var(--text-sub);margin-top:1.5px;display:block;font-weight:500}
+
+.course-cell{font-size:13px;font-weight:700;color:var(--text-main);display:flex;align-items:center;gap:9px;white-space:nowrap}
+.course-ic{width:15px;height:15px;color:var(--primary);flex-shrink:0}
+.mentor-cell{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;white-space:nowrap}
+.mini-avatar{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:800;flex-shrink:0}
+.status{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:99px;font-size:12px;font-weight:800;white-space:nowrap}
+.status svg{width:12px;height:12px}
+.st-done{background:var(--green-soft);color:var(--green-deep)}
+.st-progress{background:var(--amber-soft);color:#B45309}
+.st-upcoming{background:var(--primary-soft);color:var(--primary-deep)}
+
+/* ================= TOAST ================= */
+.toast{
+  position:fixed;bottom:26px;left:50%;
+  transform:translate(-50%,90px);
+  background:#101828;color:#fff;
+  padding:12px 20px;border-radius:14px;
+  font-size:13px;font-weight:600;
+  box-shadow:0 18px 44px rgba(16,24,40,.35);
+  opacity:0;transition:all .35s cubic-bezier(.22,1,.36,1);
+  z-index:120;display:flex;gap:10px;align-items:center;
+  pointer-events:none;max-width:calc(100vw - 40px);
+}
+.toast.show{transform:translate(-50%,0);opacity:1}
+.toast svg{width:16px;height:16px;color:#4ADE80;flex-shrink:0}
+
+/* ================= ENTRY ANIMATIONS ================= */
+.fade-up{opacity:0;transform:translateY(16px);animation:fadeUp .65s cubic-bezier(.22,1,.36,1) forwards}
+@keyframes fadeUp{to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important}
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width:1180px){
+  .grid-main{grid-template-columns:minmax(340px,390px) 1fr;gap:20px}
+  .search{width:210px}
+}
+@media (max-width:1024px){
+  .sidebar{
+    position:fixed;left:0;top:0;height:100vh;height:100dvh;
+    transform:translateX(-107%);
+    transition:transform .32s cubic-bezier(.22,1,.36,1);
+    box-shadow:none;width:276px;
+  }
+  .sidebar.open{transform:none;box-shadow:26px 0 70px rgba(16,24,40,.20)}
+  .sidebar-close{display:grid}
+  .hamburger{display:grid}
+  .grid-main{grid-template-columns:1fr}
+  .main{padding:20px 22px 30px}
+  .col-right{display:grid;gap:20px}
+}
+@media (max-width:760px){
+  .topbar{align-items:flex-start}
+  .topbar-actions{width:100%;margin-left:0}
+  .search{flex:1;width:auto;min-width:0}
+  .welcome h1{font-size:21.5px}
+  .main{padding:18px 16px 28px}
+  .card{padding:20px 18px}
+  .progress-body{gap:20px}
+}
+@media (max-width:560px){
+  .main{padding:16px 12px 26px}
+  .card{padding:18px 15px;border-radius:18px}
+  .grid-main{gap:16px}
+  .welcome h1{font-size:19.5px}
+  .welcome p{font-size:12.5px}
+  .course-card{padding:14px}
+  .cc-icon{width:44px;height:44px;border-radius:13px}
+  .cc-icon svg{width:20px;height:20px}
+  .cc-info h3{font-size:14.5px}
+  .cc-assign{font-size:9.5px;padding:5px 9px}
+  .cc-hours{font-size:10.5px;padding:6px 10px}
+  .cc-resume{padding:8px 13px;font-size:11.5px}
+  .profile>svg{display:none}
+  .section-head h2,.card-head h2{font-size:16px}
+  .donut-wrap{width:180px}
+  .progress-stats{min-width:100%}
+  .reminders-table td{padding:11px 10px}
+  .reminders-table th{padding:10px 10px}
+  .type-cell{gap:10px}
+  .type-icon{width:38px;height:38px}
+  .toast{bottom:16px;font-size:12px;padding:10px 16px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar" id="sidebar" aria-label="Navigasi utama">
+    <button class="sidebar-close" id="sidebarClose" aria-label="Tutup menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+    <div class="brand">
+      <div class="brand-logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg>
+      </div>
+      <span class="brand-name">E-Tutor</span>
+    </div>
+
+    <nav class="nav">
+      <button class="nav-item active" data-page="Dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>
+        <span>Dashboard</span>
+      </button>
+      <button class="nav-item" data-page="Lesson">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4.5h6a4 4 0 0 1 4 4V21a3 3 0 0 0-3-3H2z"/><path d="M22 4.5h-6a4 4 0 0 0-4 4V21a3 3 0 0 1 3-3h7z"/></svg>
+        <span>Lesson</span>
+      </button>
+      <button class="nav-item" data-page="Progress">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+        <span>Progress</span>
+      </button>
+      <button class="nav-item" data-page="Schedule">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16.5" rx="2.5"/><path d="M8 2.5v4M16 2.5v4M3 10h18"/></svg>
+        <span>Schedule</span>
+      </button>
+      <button class="nav-item" data-page="Activity">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        <span>Activity</span>
+      </button>
+    </nav>
+
+    <div class="download-card">
+      <div class="dc-top">
+        <div class="dc-phone">
+          <svg viewBox="0 0 44 64" width="38" height="56" aria-hidden="true">
+            <rect x="1.5" y="1.5" width="41" height="61" rx="7.5" fill="rgba(255,255,255,.14)" stroke="rgba(255,255,255,.9)" stroke-width="1.7"/>
+            <rect x="5.5" y="8.5" width="33" height="33" rx="4.5" fill="rgba(255,255,255,.96)"/>
+            <rect x="9.5" y="26" width="5" height="11" rx="2.5" fill="#60A5FA"/>
+            <rect x="17" y="20" width="5" height="17" rx="2.5" fill="#F472B6"/>
+            <rect x="24.5" y="14" width="5" height="23" rx="2.5" fill="#FBBF24"/>
+            <rect x="32" y="23" width="4.5" height="14" rx="2.25" fill="#34D399"/>
+            <circle cx="22" cy="48.5" r="3" fill="none" stroke="rgba(255,255,255,.85)" stroke-width="1.6"/>
+            <rect x="15" y="56" width="14" height="3" rx="1.5" fill="rgba(255,255,255,.85)"/>
+          </svg>
+        </div>
+        <div class="dc-text">
+          <h4>Download our mobile app</h4>
+          <p>Learn anytime, anywhere</p>
+        </div>
+      </div>
+      <button class="dc-btn" id="dlBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>
+        Get the App
+      </button>
+    </div>
+  </aside>
+
+  <div class="overlay" id="overlay"></div>
+
+  <!-- ============ MAIN ============ -->
+  <main class="main">
+    <header class="topbar fade-up" style="animation-delay:.05s">
+      <button class="icon-btn hamburger" id="hamburger" aria-label="Buka menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+      <div class="welcome">
+        <h1>Welcome back <span>Ahsanul</span>!</h1>
+        <p>You are doing excellent! Keep it up.</p>
+      </div>
+      <div class="topbar-actions">
+        <div class="search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          <input type="text" id="searchInput" placeholder="Search your course" aria-label="Cari kursus">
+        </div>
+        <div class="select-wrap" id="profileWrap">
+          <div class="profile dd-toggle" role="button" tabindex="0" aria-label="Menu profil">
+            <div class="avatar">A</div>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+          </div>
+          <div class="dropdown">
+            <button><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>My Profile</button>
+            <button><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.08a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.08a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.08a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Settings</button>
+            <button class="dd-danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Log Out</button>
+          </div>
+        </div>
+        <div class="select-wrap" id="periodWrap">
+          <button class="select-btn dd-toggle" id="periodBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16.5" rx="2.5"/><path d="M8 2.5v4M16 2.5v4M3 10h18"/></svg>
+            <span id="periodLabel">Monthly</span>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div class="dropdown" id="periodMenu">
+            <button data-val="weekly">Weekly</button>
+            <button data-val="monthly" class="active">Monthly</button>
+            <button data-val="yearly">Yearly</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section class="content">
+      <div class="grid-main">
+
+        <!-- ======== LEFT: COURSES ======== -->
+        <div class="col-courses">
+          <div class="section-head fade-up" style="animation-delay:.1s">
+            <h2>Your Courses</h2>
+            <div class="select-wrap" id="filterWrap">
+              <button class="link-btn dd-toggle">
+                <span id="filterLabel">Recently Viewed</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              </button>
+              <div class="dropdown" id="filterMenu">
+                <button class="active">Recently Viewed</button>
+                <button>In Progress</button>
+                <button>Completed</button>
+                <button>All Courses</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="courses" id="coursesList">
+            <!-- UX Design -->
+            <article class="course-card cc-ux fade-up" style="animation-delay:.16s" data-search="ux design user research">
+              <div class="cc-top">
+                <div class="cc-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 7l10 5 10-5z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/></svg>
+                </div>
+                <div class="cc-info">
+                  <h3>UX Design</h3>
+                  <p>User research</p>
+                </div>
+                <span class="cc-assign">1 assignment left</span>
+              </div>
+              <div class="cc-bottom">
+                <div class="cc-progress">
+                  <div class="cc-bar"><span style="--w:65%"></span></div>
+                  <span class="cc-pct">65%</span>
+                </div>
+                <button class="cc-resume">Resume
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg>
+                </button>
+              </div>
+            </article>
+
+            <!-- Graphics Design -->
+            <article class="course-card cc-gfx fade-up" style="animation-delay:.22s" data-search="graphics design visual design">
+              <div class="cc-top">
+                <div class="cc-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19 7-7 3 3-7 7-3-3z"/><path d="m18 13-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="m2 2 7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>
+                </div>
+                <div class="cc-info">
+                  <h3>Graphics Design</h3>
+                  <p>Visual design</p>
+                </div>
+                <span class="cc-hours">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+                  4 Hours
+                </span>
+              </div>
+              <div class="cc-bottom">
+                <button class="cc-resume">Resume
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg>
+                </button>
+              </div>
+            </article>
+
+            <!-- Colour Theory -->
+            <article class="course-card cc-color fade-up" style="animation-delay:.28s" data-search="colour theory design basics">
+              <div class="cc-top">
+                <div class="cc-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".8" fill="currentColor" stroke="none"/><circle cx="17.5" cy="10.5" r=".8" fill="currentColor" stroke="none"/><circle cx="8.5" cy="7.5" r=".8" fill="currentColor" stroke="none"/><circle cx="6.5" cy="12.5" r=".8" fill="currentColor" stroke="none"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
+                </div>
+                <div class="cc-info">
+                  <h3>Colour Theory</h3>
+                  <p>Design basics</p>
+                </div>
+                <span class="cc-hours">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+                  5 Hours
+                </span>
+              </div>
+              <div class="cc-bottom">
+                <button class="cc-resume">Resume
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg>
+                </button>
+              </div>
+            </article>
+
+            <!-- Google Analytics -->
+            <article class="course-card cc-ga fade-up" style="animation-delay:.34s" data-search="google analytics data analysis">
+              <div class="cc-top">
+                <div class="cc-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-5"/></svg>
+                </div>
+                <div class="cc-info">
+                  <h3>Google Analytics</h3>
+                  <p>Data analysis</p>
+                </div>
+                <span class="cc-hours">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+                  3 Hours
+                </span>
+              </div>
+              <div class="cc-bottom">
+                <button class="cc-resume">Resume
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg>
+                </button>
+              </div>
+            </article>
+          </div>
+
+          <div class="no-results" id="noResults">
+            <b>No courses found</b>
+            Try a different keyword, e.g. "UX" or "Analytics"
+          </div>
+        </div>
+
+        <!-- ======== RIGHT: ACTIVITY + PROGRESS ======== -->
+        <div class="col-right">
+          <div class="card chart-card fade-up" style="animation-delay:.2s">
+            <div class="card-head">
+              <h2>Course Activity</h2>
+            </div>
+            <div class="chart-wrap" id="barChartWrap">
+              <div id="barSvgHost"></div>
+              <div class="chart-tip" id="barTip"></div>
+            </div>
+            <div class="chart-legend">
+              <span class="lg-item"><i style="background:var(--amber-bar)"></i>Reading</span>
+              <span class="lg-item"><i style="background:var(--pink-bar)"></i>Listening</span>
+            </div>
+          </div>
+
+          <div class="card progress-card fade-up" style="animation-delay:.3s">
+            <div class="card-head">
+              <h2>Your Progress</h2>
+            </div>
+            <div class="progress-body">
+              <div class="donut-wrap" id="donutWrap"></div>
+              <div class="progress-stats">
+                <div class="ps-row">
+                  <div class="ps-top">
+                    <span class="ps-dot" style="background:#F472B6"></span>
+                    <span class="ps-label">Listening</span>
+                    <span class="ps-pct" data-target="40" style="color:#DB2777">0%</span>
+                  </div>
+                  <div class="ps-bar"><span style="--w:40%;background:linear-gradient(90deg,#F9A8D4,#F472B6)"></span></div>
+                </div>
+                <div class="ps-row">
+                  <div class="ps-top">
+                    <span class="ps-dot" style="background:#FBBF24"></span>
+                    <span class="ps-label">Reading</span>
+                    <span class="ps-pct" data-target="32" style="color:#B45309">0%</span>
+                  </div>
+                  <div class="ps-bar"><span style="--w:32%;background:linear-gradient(90deg,#FDE68A,#FBBF24)"></span></div>
+                </div>
+                <div class="ps-row">
+                  <div class="ps-top">
+                    <span class="ps-dot" style="background:#34D399"></span>
+                    <span class="ps-label">Writing</span>
+                    <span class="ps-pct" data-target="52" style="color:#15803D">0%</span>
+                  </div>
+                  <div class="ps-bar"><span style="--w:52%;background:linear-gradient(90deg,#86EFAC,#22C55E)"></span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ======== REMINDERS ======== -->
+      <div class="card reminders-card fade-up" style="animation-delay:.38s">
+        <div class="card-head">
+          <h2>Reminders</h2>
+          <button class="view-all" id="viewAll">View All
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
+          </button>
+        </div>
+        <div class="table-scroll">
+          <table class="reminders-table">
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>Course</th>
+                <th>Mentor</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <div class="type-cell">
+                    <span class="type-icon ti-folder">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 18.5V6.5a2 2 0 0 0-2-2h-7.9a2 2 0 0 0-1.7.9L9.2 7H4a2 2 0 0 0-2 2v9.5a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2z"/></svg>
+                    </span>
+                    <div><b>Homework</b><small>User Journey</small></div>
+                  </div>
+                </td>
+                <td>
+                  <span class="course-cell">
+                    <svg class="course-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg>
+                    Coursera
+                  </span>
+                </td>
+                <td>
+                  <div class="mentor-cell">
+                    <span class="mini-avatar" style="background:#DBEAFE;color:#2563EB">MJ</span>
+                    Michel Jada
+                  </div>
+                </td>
+                <td>
+                  <span class="status st-done">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                    Done
+                  </span>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="type-cell">
+                    <span class="type-icon ti-chrome">
+                      <svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 12 3.34 7a10 10 0 0 1 17.32 0z" fill="#EA4335"/><path d="M12 12 20.66 7a10 10 0 0 1-3.66 13.66z" fill="#FBBC05"/><path d="M12 12v10a10 10 0 0 1-8.66-15z" fill="#34A853"/><circle cx="12" cy="12" r="4.4" fill="#fff"/><circle cx="12" cy="12" r="3.1" fill="#4285F4"/></svg>
+                    </span>
+                    <div><b>Homework</b><small>Colour Theory</small></div>
+                  </div>
+                </td>
+                <td>
+                  <span class="course-cell">
+                    <svg class="course-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg>
+                    Coursera
+                  </span>
+                </td>
+                <td>
+                  <div class="mentor-cell">
+                    <span class="mini-avatar" style="background:#FCE7F3;color:#DB2777">CN</span>
+                    Cooper Nicas
+                  </div>
+                </td>
+                <td>
+                  <span class="status st-done">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                    Done
+                  </span>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="type-cell">
+                    <span class="type-icon ti-video">
+                      <svg viewBox="0 0 24 24" fill="currentColor"><path d="m22 8-6 4 6 4V8Z"/><rect x="2" y="6" width="14" height="12" rx="2.5"/></svg>
+                    </span>
+                    <div><b>Live Session</b><small>UX Research Methods</small></div>
+                  </div>
+                </td>
+                <td>
+                  <span class="course-cell">
+                    <svg class="course-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg>
+                    Coursera
+                  </span>
+                </td>
+                <td>
+                  <div class="mentor-cell">
+                    <span class="mini-avatar" style="background:#DBEAFE;color:#2563EB">MJ</span>
+                    Michel Jada
+                  </div>
+                </td>
+                <td>
+                  <span class="status st-progress">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+                    In Progress
+                  </span>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="type-cell">
+                    <span class="type-icon ti-quiz">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
+                    </span>
+                    <div><b>Quiz</b><small>Colour Theory Basics</small></div>
+                  </div>
+                </td>
+                <td>
+                  <span class="course-cell">
+                    <svg class="course-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg>
+                    Coursera
+                  </span>
+                </td>
+                <td>
+                  <div class="mentor-cell">
+                    <span class="mini-avatar" style="background:#FCE7F3;color:#DB2777">CN</span>
+                    Cooper Nicas
+                  </div>
+                </td>
+                <td>
+                  <span class="status st-upcoming">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16.5" rx="2.5"/><path d="M8 2.5v4M16 2.5v4M3 10h18"/></svg>
+                    Upcoming
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+/* ================= HELPERS ================= */
+const $  = s => document.querySelector(s);
+const $$ = s => document.querySelectorAll(s);
+
+/* ================= TOAST ================= */
+let toastTimer;
+function showToast(msg){
+  const t = $('#toast');
+  t.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span>' + msg + '</span>';
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+/* ================= SIDEBAR (MOBILE) ================= */
+const sidebar = $('#sidebar'), overlay = $('#overlay');
+function openSidebar(){
+  sidebar.classList.add('open');
+  overlay.classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+function closeSidebar(){
+  sidebar.classList.remove('open');
+  overlay.classList.remove('show');
+  document.body.style.overflow = '';
+}
+$('#hamburger').addEventListener('click', openSidebar);
+$('#sidebarClose').addEventListener('click', closeSidebar);
+overlay.addEventListener('click', closeSidebar);
+
+/* ================= NAV ================= */
+$$('.nav-item').forEach(item => {
+  item.addEventListener('click', () => {
+    $$('.nav-item').forEach(i => i.classList.remove('active'));
+    item.classList.add('active');
+    if (window.innerWidth <= 1024) closeSidebar();
+    if (item.dataset.page !== 'Dashboard') showToast(item.dataset.page + ' page — demo only');
+  });
+});
+
+/* ================= DROPDOWNS ================= */
+function closeAllDropdowns(except){
+  $$('.select-wrap.open').forEach(w => { if (w !== except) w.classList.remove('open'); });
+}
+$$('.dd-toggle').forEach(btn => {
+  btn.addEventListener('click', e => {
+    e.stopPropagation();
+    const wrap = btn.closest('.select-wrap');
+    const willOpen = !wrap.classList.contains('open');
+    closeAllDropdowns();
+    if (willOpen) wrap.classList.add('open');
+  });
+});
+document.addEventListener('click', e => {
+  closeAllDropdowns();
+  if (!e.target.closest('.chart-wrap')) hideBarTip();
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape'){ closeAllDropdowns(); closeSidebar(); }
+});
+
+/* Period dropdown (Weekly / Monthly / Yearly) */
+$$('#periodMenu button').forEach(b => {
+  b.addEventListener('click', e => {
+    e.stopPropagation();
+    $$('#periodMenu button').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    $('#periodLabel').textContent = b.textContent;
+    renderBarChart(b.dataset.val, true);
+    b.closest('.select-wrap').classList.remove('open');
+  });
+});
+
+/* Courses filter dropdown (Recently Viewed / ...) */
+$$('#filterMenu button').forEach(b => {
+  b.addEventListener('click', e => {
+    e.stopPropagation();
+    $$('#filterMenu button').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    $('#filterLabel').textContent = b.textContent;
+    b.closest('.select-wrap').classList.remove('open');
+    showToast('Showing: ' + b.textContent);
+  });
+});
+
+/* Profile menu */
+$$('#profileWrap .dropdown button').forEach(b => {
+  b.addEventListener('click', e => {
+    e.stopPropagation();
+    closeAllDropdowns();
+    showToast(b.textContent.trim() + ' — demo only');
+  });
+});
+
+/* ================= SEARCH ================= */
+$('#searchInput').addEventListener('input', e => {
+  const q = e.target.value.trim().toLowerCase();
+  let visible = 0;
+  $$('.course-card').forEach(c => {
+    const match = c.dataset.search.includes(q);
+    c.style.display = match ? '' : 'none';
+    if (match) visible++;
+  });
+  $('#noResults').style.display = visible ? 'none' : 'block';
+});
+
+/* ================= BUTTON ACTIONS ================= */
+$$('.cc-resume').forEach(b => b.addEventListener('click', () => {
+  const title = b.closest('.course-card').querySelector('h3').textContent;
+  showToast('Resuming "' + title + '" course');
+}));
+$('#dlBtn').addEventListener('click', () => showToast('Opening the app store...'));
+$('#viewAll').addEventListener('click', () => showToast('Showing all reminders'));
+
+/* ================= BAR CHART ================= */
+const CHART_COLORS = { reading:'#FBBF24', listening:'#F472B6' };
+const PERIODS = {
+  monthly:{
+    labels:['Jan','Feb','Mar','Apr','May','Jun'],
+    reading:[1.6,2.4,3.2,4.4,5.6,2.1],
+    listening:[1.2,2.0,2.8,3.8,4.8,3.2],
+    tip:l => l + ' 20'
+  },
+  weekly:{
+    labels:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+    reading:[2.2,1.7,3.1,2.6,3.6,1.1,0.8],
+    listening:[1.5,2.4,2.1,3.0,2.7,0.9,1.3],
+    tip:l => l
+  },
+  yearly:{
+    labels:['2021','2022','2023','2024','2025','2026'],
+    reading:[2.4,3.1,4.0,4.7,5.3,3.2],
+    listening:[1.9,2.7,3.5,4.1,4.5,3.9],
+    tip:l => l
+  }
+};
+let currentPeriod = 'monthly';
+let barChartW = 0;
+
+function renderBarChart(period, animate){
+  currentPeriod = period;
+  hideBarTip();
+  const host = $('#barSvgHost'), wrap = $('#barChartWrap'), tip = $('#barTip');
+  const d = PERIODS[period];
+  const W = Math.max(300, host.clientWidth || 600);
+  const H = W < 420 ? 215 : 250;
+  const ML = 36, MR = 6, MT = 14, MB = 30;
+  const iw = W - ML - MR, ih = H - MT - MB;
+  const maxV = 8;
+  const n = d.labels.length, gw = iw / n;
+  const bw = Math.min(24, Math.max(9, gw * 0.24));
+  const g  = Math.min(11, Math.max(5, gw * 0.11));
+
+  let s = '<svg viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Course activity chart">';
+
+  /* grid lines + y labels */
+  for (let v = 0; v <= maxV; v += 2){
+    const y = MT + ih - (v / maxV) * ih;
+    s += '<line x1="' + ML + '" y1="' + y + '" x2="' + (W - MR) + '" y2="' + y + '" stroke="#E8EEF6" stroke-width="1.4"' + (v ? ' stroke-dasharray="3 6"' : '') + ' stroke-linecap="round"/>';
+    s += '<text x="' + (ML - 9) + '" y="' + (y + 4) + '" text-anchor="end" class="ax">' + (v ? v + 'H' : '0') + '</text>';
+  }
+
+  /* bars + x labels + hover zones */
+  d.labels.forEach((lb, i) => {
+    const gx = ML + i * gw, cx = gx + gw / 2;
+    const vals = [['reading', d.reading[i]], ['listening', d.listening[i]]];
+    vals.forEach((pair, j) => {
+      const v = pair[1];
+      const h = Math.max(4, (v / maxV) * ih);
+      const x = cx - bw - g / 2 + j * (bw + g);
+      const y = MT + ih - h;
+      const r = Math.min(5.5, bw / 2, h / 2);
+      s += '<path class="bar" data-m="' + i + '" d="M' + x + ' ' + (y + h) +
+           ' V' + (y + r) + ' Q' + x + ' ' + y + ' ' + (x + r) + ' ' + y +
+           ' H' + (x + bw - r) + ' Q' + (x + bw) + ' ' + y + ' ' + (x + bw) + ' ' + (y + r) +
+           ' V' + (y + h) + ' Z" fill="' + CHART_COLORS[pair[0]] + '" style="--d:' + (120 + i * 70) + 'ms"/>';
+    });
+    s += '<text x="' + cx + '" y="' + (H - 8) + '" text-anchor="middle" class="ax ax-x">' + lb + '</text>';
+    s += '<rect class="hz" data-i="' + i + '" x="' + (gx + 1) + '" y="' + MT + '" width="' + (gw - 2) + '" height="' + ih + '" fill="transparent"/>';
+  });
+  s += '</svg>';
+  host.innerHTML = s;
+
+  const svg = host.firstElementChild;
+  if (animate){
+    /* animate: bars grow from bottom (class 'go' starts the keyframes) */
+    requestAnimationFrame(() => requestAnimationFrame(() => svg.classList.add('go')));
+  }
+  /* no 'go' class on re-render (resize/period switch from resize) => bars render statically at full height */
+
+  /* hover interactions */
+  svg.querySelectorAll('.hz').forEach(z => {
+    const i = +z.dataset.i;
+    z.addEventListener('mouseenter', () => showBarTip(i));
+    z.addEventListener('mouseleave', hideBarTip);
+    z.addEventListener('click', () => showBarTip(i));
+  });
+  barChartW = W;
+}
+
+function showBarTip(i){
+  const wrap = $('#barChartWrap'), tip = $('#barTip'), svg = $('#barSvgHost svg');
+  if (!svg) return;
+  const d = PERIODS[currentPeriod];
+  const W = barChartW;
+  const ML = 36, MR = 6, MT = 14;
+  const iw = W - ML - MR, gw = iw / d.labels.length;
+  const cx = ML + i * gw + gw / 2;
+  const maxV = Math.max(d.reading[i], d.listening[i]);
+  const ih = (+svg.getAttribute('viewBox').split(' ')[3]) - MT - 30;
+  const y = MT + ih - (maxV / 8) * ih - 8;
+
+  tip.innerHTML =
+    '<div class="tip-title">' + d.tip(d.labels[i]) + '</div>' +
+    '<div class="tip-row"><i style="background:' + CHART_COLORS.reading + '"></i>Reading<b>' + d.reading[i].toFixed(1) + ' H</b></div>' +
+    '<div class="tip-row"><i style="background:' + CHART_COLORS.listening + '"></i>Listening<b>' + d.listening[i].toFixed(1) + ' H</b></div>';
+  tip.style.left = Math.min(Math.max(cx, 82), W - 82) + 'px';
+  tip.style.top  = Math.max(6, y) + 'px';
+  tip.classList.add('show');
+  wrap.classList.add('dimmed');
+  svg.querySelectorAll('.bar[data-m="' + i + '"]').forEach(b => b.classList.add('hl'));
+}
+function hideBarTip(){
+  const tip = $('#barTip');
+  if (tip) tip.classList.remove('show');
+  const w = $('#barChartWrap');
+  if (w) w.classList.remove('dimmed');
+  $$('.bar.hl').forEach(b => b.classList.remove('hl'));
+}
+
+/* ================= DONUT CHART ================= */
+function renderDonut(){
+  const host = $('#donutWrap');
+  const cx = 98, cy = 98, R = 76, sw = 19;
+  const CIRC = 2 * Math.PI * R;
+  const segs = [
+    { c:'#5B9DF9', v:71.5 },
+    { c:'#F472B6', v:8.5 },
+    { c:'#FBBF24', v:6.2 }
+  ];
+  const gapPct = 4.4;
+  let acc = 0, arcs = '';
+  segs.forEach((sg, idx) => {
+    const off = -acc / 100 * CIRC;
+    const len = Math.max(0, (sg.v - gapPct) / 100 * CIRC);
+    arcs += '<circle class="arc" cx="' + cx + '" cy="' + cy + '" r="' + R + '" fill="none" stroke="' + sg.c +
+            '" stroke-width="' + sw + '" stroke-linecap="round" stroke-dasharray="0 ' + CIRC.toFixed(2) +
+            '" stroke-dashoffset="' + off.toFixed(2) + '" transform="rotate(-90 ' + cx + ' ' + cy + ')" data-target="' + len.toFixed(2) +
+            '" style="transition:stroke-dasharray 1.15s cubic-bezier(.22,1,.36,1) ' + (250 + idx * 170) + 'ms"/>';
+    acc += sg.v;
+  });
+  host.innerHTML =
+    '<svg viewBox="0 0 196 196" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Overall progress 76 percent">' +
+    '<circle cx="' + cx + '" cy="' + cy + '" r="' + R + '" fill="none" stroke="#EDF1F8" stroke-width="' + sw + '"/>' + arcs +
+    '<circle cx="' + cx + '" cy="' + cy + '" r="62" fill="#EAF2FF"/>' +
+    '<text x="' + cx + '" y="' + (cy + 1) + '" text-anchor="middle" class="donut-num" id="donutNum">0%</text>' +
+    '<rect x="' + (cx - 34) + '" y="' + (cy + 12) + '" width="68" height="20" rx="10" fill="#DCFCE7"/>' +
+    '<text x="' + cx + '" y="' + (cy + 26) + '" text-anchor="middle" fill="#16A34A" font-size="11" font-weight="800">Excellent</text>' +
+    '</svg>';
+
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    host.querySelectorAll('.arc').forEach(a => {
+      const L = +a.dataset.target;
+      a.setAttribute('stroke-dasharray', L.toFixed(2) + ' ' + (CIRC - L).toFixed(2));
+    });
+  }));
+  countUp($('#donutNum'), 76, 1300);
+}
+
+function countUp(el, target, dur){
+  if (!el) return;
+  const t0 = performance.now();
+  function tick(t){
+    const p = Math.min(1, (t - t0) / dur);
+    const e = 1 - Math.pow(1 - p, 3);
+    el.textContent = Math.round(target * e) + '%';
+    if (p < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+/* ================= INIT ================= */
+document.addEventListener('DOMContentLoaded', () => {
+  renderBarChart('monthly', true);
+  renderDonut();
+  $$('.ps-pct').forEach(el => countUp(el, +el.dataset.target, 1200));
+  setTimeout(() => document.body.classList.add('loaded'), 150);
+});
+
+/* Re-render chart on resize (without replaying animation) */
+let lastW = 0;
+function setSearchPlaceholder(){
+  const el = $('#searchInput');
+  if (el) el.placeholder = window.innerWidth <= 560 ? 'Search course' : 'Search your course';
+}
+window.addEventListener('resize', () => {
+  setSearchPlaceholder();
+  const w = $('#barSvgHost').clientWidth;
+  if (Math.abs(w - lastW) > 6){
+    lastW = w;
+    renderBarChart(currentPeriod, false);
+  }
+});
+window.addEventListener('load', () => {
+  lastW = $('#barSvgHost').clientWidth;
+  setSearchPlaceholder();
+});
+</script>
+</body>
+</html>

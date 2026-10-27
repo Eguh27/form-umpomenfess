@@ -130,9 +130,9 @@ export function errMessage(code: string | null): string | null {
     case 'jawaban_tak_valid':
       return 'Jawaban belum lengkap/valid — periksa kembali.';
     case 'kirim':
-      return 'Gagal menyimpan jawaban — coba lagi.';
+      return 'Gagal menyimpan jawaban  coba lagi.';
     case 'lapor':
-      return 'Gagal mengirim laporan — coba lagi.';
+      return 'Gagal mengirim laporan  coba lagi.';
     case 'lapor_ok':
       return 'Terima kasih, laporan sudah kami terima.';
     case 'form_diarsipkan':
