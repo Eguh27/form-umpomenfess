@@ -93,12 +93,12 @@ export default function BuilderMessages({
           )}
 
           {sensitiveBlocks.length > 0 && (
-            <div className="b-message b-message--danger" role="status">
+            <div className="b-message b-message--danger" role="alert">
               <IconAlert />
               <div className="b-message__body">
-                <p className="b-message__title">Peringatan Keras Anti-Phishing</p>
+                <p className="b-message__title">Publikasi Diblokir: Terdeteksi Pertanyaan Sensitif</p>
                 <p className="b-message__text">
-                  Dilarang meminta kata sandi, PIN, NIK, atau rekening. Admin berhak menutup formulir &amp; memblokir akun yang melanggar.
+                  Tombol publikasi dinonaktifkan karena formulir meminta kata sandi, PIN, NIK, atau rekening. Hapus atau ubah pertanyaan berikut agar formulir dapat dipublikasikan.
                 </p>
                 <ul className="b-message__list">
                   {sensitiveBlocks.map((block) => (

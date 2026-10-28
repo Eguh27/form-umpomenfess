@@ -9,6 +9,7 @@ import { serialize } from './serialize';
 import { getSupabaseBrowserClient } from './browserClient';
 import { markReferencedImagesUsed } from './imagesUsed';
 import { friendlySaveError, sameSnapshot, snapshotState } from './saveGuard';
+import { sensitiveQuestionIds } from './sensitive';
 import type { SaveState } from './BuilderTopbar';
 import type { BuilderNotice } from './BuilderMessages';
 
@@ -71,6 +72,11 @@ export function useAutosave({
         updated_at: new Date().toISOString(),
       };
       if (kind === 'publish') {
+        if (sensitiveQuestionIds(stateRef.current.blocks).length > 0) {
+          setSaveState('invalid');
+          setSaveError('Publikasi ditolak: Harap hapus atau ubah pertanyaan data sensitif/phishing terlebih dahulu.');
+          return false;
+        }
         update.status = 'published';
         update.version = versionRef.current + 1;
       }

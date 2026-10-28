@@ -77,6 +77,10 @@ export default function Editor({ formId, slug, status, version, initial, cloudNa
   const selected = state.blocks.find((block) => block.id === selectedId) ?? null;
   const sensitiveSet = new Set(sensitiveQuestionIds(state.blocks));
   const sensitiveBlocks = state.blocks.filter((block) => sensitiveSet.has(block.id));
+  const hasSensitiveBlocks = sensitiveBlocks.length > 0;
+  const publishDisabledReason = hasSensitiveBlocks
+    ? 'Formulir memuat pertanyaan data sensitif/phishing dan tidak dapat dipublikasikan'
+    : undefined;
 
   const handleTitleChange = (title: string) => {
     builder.apply({ ...stateRef.current, title });
@@ -182,6 +186,8 @@ export default function Editor({ formId, slug, status, version, initial, cloudNa
         onPublish={autosave.publish}
         formId={formId}
         slug={slug}
+        publishDisabled={hasSensitiveBlocks}
+        publishDisabledReason={publishDisabledReason}
       />
 
       <BuilderMessages
