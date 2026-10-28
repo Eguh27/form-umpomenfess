@@ -1,4 +1,4 @@
-/* global document, crypto, localStorage */
+/* global document, crypto, localStorage, window, HTMLInputElement, HTMLTextAreaElement, HTMLSelectElement */
 // Dua perilaku kecil halaman isi form:
 // 1. Token dedup untuk double-click/refresh (server tetap penegak utama).
 // 2. Tombol Kirim nonaktif setelah submit pertama (cegah klik ganda).
