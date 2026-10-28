@@ -51,10 +51,13 @@ Set **Production + Preview**. Nama sesuai TASK 4.1 (server-only TANPA prefix `PU
 - □ `PUBLIC_SITE_URL` = domain produksi
 - □ Supabase → Authentication → **URL Configuration** (INI yang menentukan
   tujuan akhir setelah login):
-  - **Site URL** = `https://form.umpomenfess.my.id` — **bukan**
-    `http://localhost:4321`. Site URL adalah fallback yang dipakai Supabase
-    ketika `redirect_to` tidak cocok dengan allowlist, jadi Site URL localhost
-    = pengguna dilempar ke localhost setelah login.
+  - **Site URL** = `https://form.umpomenfess.my.id` (disarankan) — **bukan**
+    `http://localhost:4321`. Per 2026-10-28 Site URL produksi sudah
+    `https://umpomenfess.my.id`; fallback tidak lagi ke localhost, tetapi
+    mendarat di situs utama. Semua alur aplikasi mengirim `redirect_to`
+    eksplisit ke domain form, jadi login tetap benar; set ke domain form bila
+    ingin fallback konsisten. Site URL adalah fallback yang dipakai Supabase
+    ketika `redirect_to` tidak cocok dengan allowlist.
   - **Redirect URLs** (satu per baris; glob resmi Supabase, `*` = karakter
     non-pemisah sehingga cocok untuk subdomain preview):
     - `https://form.umpomenfess.my.id/auth/callback` (produksi)
@@ -64,8 +67,11 @@ Set **Production + Preview**. Nama sesuai TASK 4.1 (server-only TANPA prefix `PU
   - Verifikasi cepat: buka `/auth/login` di domain produksi; header
     `Location` harus berisi
     `redirect_to=https%3A%2F%2Fform.umpomenfess.my.id%2Fauth%2Fcallback`.
-    Setelah callback Google dengan kode salah, Supabase harus tetap
-    mengarah ke domain produksi (bukan localhost).
+    Probe fallback `/auth/v1/verify?token=invalid&type=signup` harus 303 ke
+    domain produksi (bukan localhost); probe dengan `redirect_to` form harus
+    303 ke `https://form.umpomenfess.my.id/auth/callback`. Setelah callback
+    Google dengan kode salah, Supabase harus tetap mengarah ke domain
+    produksi (bukan localhost).
 
 ## 4. Workflow cron (GitHub Actions — cleanup & backup @D)
 
