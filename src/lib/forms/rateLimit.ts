@@ -1,7 +1,12 @@
 /**
  * rateLimit.ts — pembatas submit per IP (T-51/E-A2).
  * Pluggable store: default MemoryRateLimitStore (zero-dependency, bounded FIFO).
- * Mendukung Redis store (Upstash/HTTP) via env RATELIMIT_BACKEND=redis.
+ *
+ * PRODUKSI: hanya MemoryRateLimitStore yang diimplementasikan. Di serverless
+ * (Vercel) store ini per-instance, jadi batas TIDAK global dan tidak boleh
+ * diandalkan sebagai satu-satunya kontrol anti-spam. Kontrol utama tetap
+ * Turnstile (fail-closed) + kuota respons; Redis/Upstash belum terpasang
+ * (lihat TODO T-82).
  */
 
 export const RATE_LIMIT = {
