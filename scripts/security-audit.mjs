@@ -70,6 +70,22 @@ function checkClientBundleLeaks() {
         throw new Error(`Kebocoran rahasia (${pattern.name}) ditemukan pada aset publik: ${file}`);
       }
     }
+
+    // JWT Supabase ditulis sebagai string base64url, jadi regex teks
+    // "service_role" di atas tidak menangkapnya. Decode setiap kandidat JWT
+    // dan tolak bila role-nya service_role.
+    for (const match of content.matchAll(/eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}/g)) {
+      try {
+        const payload = match[0].split('.')[1];
+        const json = JSON.parse(Buffer.from(payload, 'base64url').toString('utf-8'));
+        if (json?.role === 'service_role') {
+          throw new Error(`Kebocoran rahasia (JWT role=service_role) ditemukan pada aset publik: ${file}`);
+        }
+      } catch (err) {
+        if (err instanceof Error && err.message.startsWith('Kebocoran rahasia')) throw err;
+        // Bukan JWT valid — abaikan.
+      }
+    }
   }
 }
 

@@ -18,7 +18,7 @@
 |---|---|---|---|---|
 | E1 | **Buat form / Duplikat gagal total** — `INSERT forms` tanpa `owner_id` → violate not-null. Tidak ada form yang bisa dibuat. | **TINGGI (blocker fungsional)** | @B (+ @A opsional) | ✅ **diperbaiki T-69** (owner_id dari sesi + pesan ramah; 5 test baru) |
 | E2 | **Migrasi seed font belum dieksekusi** — 4 dari 5 template masih `Poppins`/`Inter` (di luar whitelist) → publish & autosave ditolak | **TINGGI (blocker, menunggu manusia)** | manusia/@A | ✅ **selesai 14:46–14:55** (@L update kolom `theme` via REST; @R melengkapi `schema.theme`) — ⚠️ berkas migrasi hanya update `templates.theme` → perlu dilengkapi @A |
-| E3 | **`PUBLIC_SUPABASE_ANON_KEY` = `SUPABASE_SERVICE_ROLE_KEY`** — key service role bocor ke bundle client → RLS bisa dihancurkan total dari luar | **KRITIS (keamanan)** | manusia/@L | ⛔ terbuka |
+| E3 | **`PUBLIC_SUPABASE_ANON_KEY` = `SUPABASE_SERVICE_ROLE_KEY`** — key service role bocor ke bundle client → RLS bisa dihancurkan total dari luar | **KRITIS (keamanan)** | manusia/@L | ⚠️ sebagian (anon diperbaiki; rotasi service key belum) |
 | E4 | Turnstile otomatis ditolak di headless (`600010`) — perilaku normal bot-detection; perlu test key untuk E2E/CI | Rendah | @L/manusia | 📝 catatan |
 | E5 | Halaman respons milik user lain → `302 /dashboard` (export.csv → `404`) — dua-duanya prosaik & aman, bentuknya beda | Info | @B/@C | 📝 catatan |
 | E6 | Sesi browser bergantung pada cookie auth yang **terbaca JS** (`httpOnly:false`, default @supabase/ssr). Kalau cookie di-*httpOnly*-kan, seluruh tulis sisi klien (insert/publish/autosave) gagal diam-diam. | Rendah (latent) | @A/@B | 📝 catatan + cek golive |
@@ -191,6 +191,20 @@ sudah diganti; diperbarui saat redesign T-67.
 ---
 
 ## E3 — `PUBLIC_SUPABASE_ANON_KEY` identik dengan `SUPABASE_SERVICE_ROLE_KEY` (KRITIS)
+
+**Status 2026-10-28 — SEBAGIAN SELESAI:**
+- ✅ `PUBLIC_SUPABASE_ANON_KEY` sudah diganti ke key role `anon`; bundle client produksi
+  `browserClient.DFyWN_V8.js` hanya memuat JWT role `anon`; REST memakai anon key
+  mendapat `content-range */0` untuk `responses`.
+- ❌ `SUPABASE_SERVICE_ROLE_KEY` **masih key yang sama** dengan yang bocor pada
+  laporan awal: sha256 prefix `54cb09fc200d` identik, dan REST memakai key itu masih
+  membaca `responses` (`content-range 0-0/6`). Rotasi service key **belum** dilakukan.
+- Guard baru: `npm run audit:security` men-decode JWT di `dist/client` dan gagal bila
+  ada `role=service_role`; `src/lib/auth/security.test.ts` memastikan anon key
+  ber-role `anon`.
+- Aksi manusia tetap wajib: rotasi JWT secret/service key Supabase → update
+  `.env.local`, Vercel Production/Preview, GitHub Secrets → redeploy → ulangi
+  verifikasi bundle + REST. Rotasi membatalkan sesi login lama.
 
 **Severity:** KRITIS (keamanan).
 

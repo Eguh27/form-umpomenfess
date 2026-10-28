@@ -16,6 +16,20 @@ describe('Security Invariants & Anti-Regression Guards', () => {
     }
   });
 
+  it('E3 Guard: PUBLIC_SUPABASE_ANON_KEY harus ber-role anon (bukan service_role)', () => {
+    const env = (globalThis as unknown as { process?: { env?: Record<string, string> } }).process?.env ?? {};
+    const anon = (import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? env.PUBLIC_SUPABASE_ANON_KEY ?? '').trim();
+    if (anon === '') return;
+
+    const payload = anon.split('.')[1];
+    if (payload === undefined) return; // key format baru (publishable), bukan JWT
+
+    const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, '=');
+    const claims = JSON.parse(atob(padded)) as { role?: string };
+    expect(claims.role).toBe('anon');
+  });
+
   it('CSV Injection Guard: formula Excel berisiko di-escape dengan kutip tunggal', () => {
     const dangerous = ['=cmd|', '+1+2', '-10*5', '@SUM(A1:A10)', '\tmalicious', '\rCRLF'];
     for (const val of dangerous) {
