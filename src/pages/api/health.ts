@@ -1,29 +1,64 @@
 /**
- * GET /api/health — Endpoint healthcheck & uptime ping (E-A3 / NF2).
+ * GET /api/health — Healthcheck & uptime ping (E-A3 / NF2, hardened).
  *
- * Mengembalikan status 200 OK beserta timestamp dan ketersediaan env server
- * (hanya boolean, tanpa secret) untuk memfasilitasi monitoring eksternal
- * (UptimeRobot, BetterStack, GitHub Actions ping) tanpa membebani database.
+ * Returns 200 OK with env availability flags and **active connectivity
+ * probes** for Supabase REST and Cloudinary API. Probes run in parallel
+ * with a 4 s timeout each. If any probe fails the top-level status
+ * becomes "degraded" (still 200 so uptime monitors don't flap on partial
+ * outages — use `services.*.ok` for granular alerts).
+ *
+ * Query parameter `?deep=1` enables probes (default: passive only, to keep
+ * the ping fast for simple uptime monitors).
  */
 import type { APIRoute } from 'astro';
+import { probeSupabase, probeCloudinary } from '../../lib/health/checks';
 
 export const prerender = false;
 
-export const GET: APIRoute = async () => {
-  const hasSupabase = Boolean(
-    import.meta.env.PUBLIC_SUPABASE_URL && import.meta.env.PUBLIC_SUPABASE_ANON_KEY
-  );
+interface ServiceStatus {
+  configured: boolean;
+  ok?: boolean;
+  latencyMs?: number;
+  error?: string;
+}
+
+export const GET: APIRoute = async ({ url }) => {
+  const deep = url.searchParams.get('deep') === '1';
+
+  const supabaseUrl = (import.meta.env.PUBLIC_SUPABASE_URL as string | undefined)?.trim() ?? '';
+  const supabaseKey = (import.meta.env.PUBLIC_SUPABASE_ANON_KEY as string | undefined)?.trim() ?? '';
+  const cloudName = (import.meta.env.CLOUDINARY_CLOUD_NAME as string | undefined)?.trim() ?? '';
   const hasTurnstile = Boolean(import.meta.env.TURNSTILE_SITE_KEY);
-  const hasCloudinary = Boolean(import.meta.env.CLOUDINARY_CLOUD_NAME);
+
+  const hasSupabase = Boolean(supabaseUrl && supabaseKey);
+  const hasCloudinary = Boolean(cloudName);
+
+  const supabase: ServiceStatus = { configured: hasSupabase };
+  const cloudinary: ServiceStatus = { configured: hasCloudinary };
+
+  if (deep) {
+    const [sbResult, cdnResult] = await Promise.all([
+      hasSupabase ? probeSupabase(supabaseUrl, supabaseKey) : null,
+      hasCloudinary ? probeCloudinary(cloudName) : null,
+    ]);
+
+    if (sbResult) Object.assign(supabase, sbResult);
+    if (cdnResult) Object.assign(cloudinary, cdnResult);
+  }
+
+  const allOk = !deep || (
+    (supabase.ok ?? true) && (cloudinary.ok ?? true)
+  );
 
   const payload = {
-    status: 'ok',
+    status: allOk ? 'ok' : 'degraded',
     timestamp: new Date().toISOString(),
     version: '0.1.0',
+    deep,
     services: {
-      supabaseConfigured: hasSupabase,
+      supabase,
+      cloudinary,
       turnstileConfigured: hasTurnstile,
-      cloudinaryConfigured: hasCloudinary,
     },
   };
 
