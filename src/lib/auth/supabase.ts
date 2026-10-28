@@ -17,7 +17,7 @@ import {
   serializeCookieHeader,
   type CookieOptions as SupabaseCookieOptions,
 } from '@supabase/ssr';
-import type { SupabaseClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { APIContext, AstroCookieSetOptions } from 'astro';
 import { isSecureRequest, sessionCookieOptions } from './session';
 
@@ -54,6 +54,22 @@ function toAstroOptions(options: SupabaseCookieOptions): AstroCookieSetOptions {
     astro.sameSite = options.sameSite as AstroCookieSetOptions['sameSite'];
   }
   return astro;
+}
+
+/**
+ * Client anon murni TANPA cookie sesi — untuk permukaan publik (`/f/*`,
+ * laporan responden). Dengan begini user yang sedang login tetap membaca
+ * lewat role `anon`, sehingga tidak butuh policy SELECT published untuk
+ * `authenticated` pada tabel `forms` (yang akan membocorkan `owner_id`).
+ */
+export function createAnonClient(config: SupabaseEnvConfig): SupabaseClient {
+  return createClient(config.url, config.anonKey, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
+    },
+  });
 }
 
 /** Client ber-integrasi cookie Astro — dipakai middleware (per-request). */

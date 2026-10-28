@@ -3,6 +3,7 @@
 - **Penyusun:** @R & @L · 2026-10-25
 - **Cakupan:** Audit keamanan menyeluruh terhadap arsitektur, basis data, pipeline CI, dan kode aplikasi formulir.
 - **Hasil:** **100% PASS** — 236 app tests + 34 ops tests + automated security audit bersih.
+- **Koreksi 2026-10-28 (@L, uji live T-80a):** Ditemukan view `public_forms` di produksi memakai `security_invoker=on` tanpa policy SELECT publik → semua `/f/<slug>` "Form tidak tersedia"; sebaliknya `security_invoker=off` (yang tertulis di migrasi lama) membuat view dieksekusi sebagai `postgres`, melewati RLS, dan **auto-updatable** → anon bisa `UPDATE`/`DELETE` lewat view. Perbaikan: `20261028104500_public_forms_readonly.sql` (`security_invoker=on` + policy SELECT published untuk anon + grant kolom minimum + cabut hak tulis view). Halaman publik/laporan memakai klien anon tanpa cookie sesi; policy published untuk authenticated dihapus karena membocorkan `owner_id`/`tier` lewat tabel `forms`. Migrasi view lama ikut dikoreksi ke `security_invoker=on`.
 
 ---
 
@@ -12,7 +13,7 @@
 - **Status:** **PASS**
 - **Aturan & Bukti:**
   - RLS aktif di seluruh 5 tabel (`forms`, `form_images`, `responses`, `reports`, `templates`).
-  - Responden anonim **tidak memiliki akses langsung** ke tabel data. Membaca form hanya lewat VIEW `public_forms` (`security_invoker = false`, kolom `owner_id` dan data sensitif disembunyikan).
+  - Responden anonim **tidak memiliki akses tulis** ke tabel data. Membaca form lewat VIEW `public_forms` yang **read-only**: `security_invoker = true` + policy SELECT `published` untuk anon + grant kolom minimum; `owner_id` dan data sensitif tidak diekspos. Halaman publik & laporan memakai klien anon tanpa cookie sesi; tidak ada policy published untuk authenticated agar `owner_id`/`tier` tidak bocor lewat tabel `forms`. (Koreksi 2026-10-28: `security_invoker = false` membuat view dieksekusi sebagai `postgres`, melewati RLS, dan auto-updatable — anon bisa UPDATE/DELETE `forms` lewat view. Migrasi `20261028104500_public_forms_readonly.sql` menutup celah ini.)
   - INSERT `responses` hanya diizinkan via service role di endpoint server setelah validasi Turnstile, kuota, tanggal tutup, dan sanitasi schema. Tidak ada direct INSERT dari browser.
   - CRUD `forms` dan `form_images` strictly terikat pada `owner_id = auth.uid()`.
 

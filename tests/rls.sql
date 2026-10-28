@@ -25,6 +25,7 @@ declare
   form_a_draft uuid;
   form_a_published uuid;
   form_b_draft uuid;
+  form_b_published uuid;
   count_tmp integer;
 begin
   ------------------------------------------------------------------ setup ---
@@ -36,10 +37,13 @@ begin
     values (user_a, 'test-rs-a-pub', 'Publik Atas', dummy_schema, dummy_schema->'theme', 'published')
     returning id into form_a_published;
 
-  -- Form milik B
+  -- Form milik B: satu draft, satu published
   insert into public.forms (owner_id, slug, title, schema, theme, status)
     values (user_b, 'test-rs-b-draft', 'Draft B', dummy_schema, dummy_schema->'theme', 'draft')
     returning id into form_b_draft;
+  insert into public.forms (owner_id, slug, title, schema, theme, status)
+    values (user_b, 'test-rs-b-pub', 'Publik B', dummy_schema, dummy_schema->'theme', 'published')
+    returning id into form_b_published;
 
   -- Satu respons terhadap form A (disimulasikan ditulis service role)
   insert into public.responses (form_id, form_version, answers)
@@ -47,16 +51,28 @@ begin
 
   -- ---------------------------------------------------------------- rules ---
 
-  -- [R1] Anon tidak boleh SELECT tabel langsung (RLS tanpa policy → 0 baris)
+  -- [R1] Anon hanya punya grant kolom yang dibutuhkan view (bukan owner_id).
   set local role anon;
-  select count(*) into count_tmp from public.forms;
+  begin
+    perform owner_id from public.forms limit 1;
+    raise exception '[GAGAL] anon dapat membaca kolom owner_id forms langsung';
+  exception when insufficient_privilege then
+    null;
+  end;
+  select count(*) into count_tmp from public.forms
+    where slug in ('test-rs-a-draft', 'test-rs-b-draft');
   if count_tmp <> 0 then
-    raise exception '[GAGAL] anon dapat membaca public.forms (% baris)', count_tmp;
+    raise exception '[GAGAL] draft terlihat lewat tabel forms (% baris)', count_tmp;
   end if;
   select count(*) into count_tmp from public.public_forms
     where slug = 'test-rs-a-pub';
   if count_tmp = 0 then
     raise exception '[GAGAL] anon tidak dapat membaca form published via public_forms';
+  end if;
+  select count(*) into count_tmp from public.public_forms
+    where slug = 'test-rs-b-pub';
+  if count_tmp = 0 then
+    raise exception '[GAGAL] anon tidak dapat membaca form published B via public_forms';
   end if;
 
   -- [R2] Anon TIDAK melihat draft di view
@@ -65,6 +81,21 @@ begin
   if count_tmp <> 0 then
     raise exception '[GAGAL] draft bocor ke public_forms (% baris)', count_tmp;
   end if;
+
+  -- [R2b] View read-only: anon TIDAK bisa UPDATE/DELETE lewat view
+  begin
+    update public.public_forms set title = 'DIRETAS'
+      where slug = 'test-rs-a-pub';
+    raise exception '[GAGAL] anon dapat UPDATE forms lewat public_forms';
+  exception when insufficient_privilege then
+    null;
+  end;
+  begin
+    delete from public.public_forms where slug = 'test-rs-a-pub';
+    raise exception '[GAGAL] anon dapat DELETE forms lewat public_forms';
+  exception when insufficient_privilege then
+    null;
+  end;
 
   -- [R3] Anon TIDAK bisa INSERT responses (hanya service role)
   begin
@@ -108,6 +139,20 @@ begin
       raise exception '[GAGAL] user A berhasil mengubah form milik B';
     end if;
   end;
+
+  -- [R6b] User A TIDAK melihat form published milik B lewat view (halaman
+  -- publik memakai klien anon, jadi tidak ada policy published authenticated
+  -- yang membocorkan owner_id/tier lewat tabel forms).
+  select count(*) into count_tmp from public.public_forms
+    where slug = 'test-rs-b-pub';
+  if count_tmp <> 0 then
+    raise exception '[GAGAL] user A melihat form published B lewat public_forms (% baris)', count_tmp;
+  end if;
+  select count(*) into count_tmp from public.public_forms
+    where slug = 'test-rs-a-pub';
+  if count_tmp <> 1 then
+    raise exception '[GAGAL] user A tidak melihat form published miliknya lewat view';
+  end if;
 
   -- [R7] user A membaca respons pada form miliknya, TIDAK respons form B
   select count(*) into count_tmp from public.responses

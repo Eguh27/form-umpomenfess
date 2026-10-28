@@ -16,6 +16,7 @@ import {
   cloudinaryUrl,
 } from '../../../lib/forms/publicForm';
 import { splitIntoPages } from '../../../components/builder/pages';
+import { createAnonClient, getEnvConfig } from '../../../lib/auth/supabase';
 import { getSupabaseService } from '../../../lib/forms/service';
 import type { FormSchemaData } from '../../../lib/forms/schema';
 import respondentFormUrl from '../../../scripts/respondent-form.js?url&no-inline';
@@ -27,7 +28,10 @@ const err = Astro.url.searchParams.get('err');
 const errText = errMessage(err);
 const errKindCode = errKind(err);
 
-const supabase = Astro.locals.supabase;
+const config = getEnvConfig();
+// Selalu role anon: halaman publik tidak boleh memakai sesi pembuat yang
+// sedang login (view `public_forms` hanya butuh akses publik).
+const supabase = config === null ? null : createAnonClient(config);
 
 let row = null as unknown as Record<string, unknown> | null;
 let notFound = false;

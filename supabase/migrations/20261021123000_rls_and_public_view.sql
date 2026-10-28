@@ -79,11 +79,15 @@ create policy "responses_select_own" on public.responses
 -- Dibuat DULUAN di sini karena policy reports di bawah mereferensikannya.
 -- Kolom yang DISENGGAJA dihilangkan: owner_id, status, deleted_at, tier.
 -- Baris yang tampil: hanya published & belum dihapus.
--- security_invoker = false (default) supaya policy RLS tabel sumber tidak
--- memblokir anon — pemilik view (postgres) yang mengevaluasi akses.
+-- security_invoker = true: view dievaluasi sebagai pemanggil, sehingga RLS
+-- forms tetap berlaku. Policy SELECT published untuk anon dan grant kolom
+-- minimum ditambahkan di migrasi 20261028104500. Halaman publik memakai
+-- klien anon; jangan beri policy published untuk authenticated.
+-- JANGAN set false: view dieksekusi sebagai postgres (bypass RLS) dan
+-- auto-updatable sehingga anon bisa UPDATE/DELETE forms lewat view.
 -- ---------------------------------------------------------------------------
 create view public.public_forms
-  with (security_invoker = false)
+  with (security_invoker = true)
 as
   select
     id,
@@ -104,8 +108,8 @@ grant select on public.public_forms to anon, authenticated;
 
 -- ---------------------------------------------------------------------------
 -- reports — responden (anonim & login) boleh hanya MELAPORKAN form published.
--- Pengecekan "published" lewat view publik (jalan sebagai owner view, bukan
--- invoker) sehingga tidak terkena RLS tabel forms.
+-- Pengecekan "published" lewat view publik (security_invoker=on + policy
+-- SELECT published untuk anon di migrasi 20261028104500).
 -- Tidak ada policy SELECT/UPDATE/DELETE — admin kelak bisa review lewat
 -- service role; ANALOG untuk moderation MVP.
 -- ---------------------------------------------------------------------------

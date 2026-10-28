@@ -17,7 +17,7 @@ comment on column public.forms.archived_at is
 
 -- Perbarui view publik agar mengekspos archived_at di akhir
 create or replace view public.public_forms
-  with (security_invoker = false)
+  with (security_invoker = true)
 as
   select
     id,

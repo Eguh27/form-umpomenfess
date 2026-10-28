@@ -32,7 +32,7 @@ comment on column public.forms.banner_data_url is
 
 -- View publik: kolom baru HARUS ditambahkan di akhir agar create-or-replace sah.
 create or replace view public.public_forms
-  with (security_invoker = false)
+  with (security_invoker = true)
 as
   select
     id,

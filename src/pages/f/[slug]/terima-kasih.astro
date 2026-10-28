@@ -1,12 +1,14 @@
 ---
 import Base from '../../../layouts/Base.astro';
+import { createAnonClient, getEnvConfig } from '../../../lib/auth/supabase';
 
 /*
   T-52 @C — halaman terima kasih. Ambil judul dari view bila masih ada
   (biar personal); kalau tidak, tampilkan generik.
 */
 const slug = Astro.params.slug ?? '';
-const supabase = Astro.locals.supabase;
+const config = getEnvConfig();
+const supabase = config === null ? null : createAnonClient(config);
 let title: string | null = null;
 if (supabase !== null && /^[a-z0-9-]{1,80}$/.test(slug)) {
   const { data } = await supabase

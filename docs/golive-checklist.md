@@ -37,10 +37,11 @@ Set **Production + Preview**. Nama sesuai TASK 4.1 (server-only TANPA prefix `PU
 6. □ `20261022200000_reports_moderation.sql` (kolom + constraint moderasi laporan)
 7. □ `20261024213000_banner_data_url.sql` (kolom `forms.banner_data_url` + CHECK + view publik, T-74)
 8. □ `20261025000000_archived_at.sql` (kolom `forms.archived_at` + index + view publik, E-A5)
-9. [x] □ Verifikasi: `tests/rls.sql` 9/9 · `tests/submit_guard.sql` 8/8 (manusia) · whitelist font 0 liar (@L via REST) · `responses.client_token` ada · rpc `insert_response_guarded` merespons 200 `"form_tidak_tersedia"` utk form acu (signature: uuid version, answers, token?) — @L REST 2026-10-22
-10. □ Verifikasi banner: `tests/banner_data_url.sql` (valid diterima; URL/SVG/oversize ditolak; view publik mengekspos kolom) — jalankan setelah migrasi 7
-11. □ Verifikasi arsip: `tests/archived_at.sql` (kolom ada, view terekspos, index parsial aktif) — jalankan setelah migrasi 8
-12. [x] □ Storage bucket `db-backups` dibuat **privat** — @L 2026-10-22 via storage API (public=false, verifikasi ulang PASS)
+9. □ `20261028104500_public_forms_readonly.sql` (FIX KRITIS: `security_invoker=on`, policy SELECT published **anon saja**, grant kolom minimum, cabut hak tulis view) — **WAJIB dijalankan terakhir setelah semua migrasi view**
+10. [x] □ Verifikasi: `tests/rls.sql` 9/9 · `tests/submit_guard.sql` 8/8 (manusia) · whitelist font 0 liar (@L via REST) · `responses.client_token` ada · rpc `insert_response_guarded` merespons 200 `"form_tidak_tersedia"` utk form acu (signature: uuid version, answers, token?) — @L REST 2026-10-22
+11. □ Verifikasi banner: `tests/banner_data_url.sql` (valid diterima; URL/SVG/oversize ditolak; view publik mengekspos kolom) — jalankan setelah migrasi 7
+12. □ Verifikasi arsip: `tests/archived_at.sql` (kolom ada, view terekspos, index parsial aktif) — jalankan setelah migrasi 8
+13. [x] □ Storage bucket `db-backups` dibuat **privat** — @L 2026-10-22 via storage API (public=false, verifikasi ulang PASS)
 
 ## 3. OAuth & domain
 
@@ -108,6 +109,9 @@ Set **Production + Preview**. Nama sesuai TASK 4.1 (server-only TANPA prefix `PU
 ## 7. Keamanan & kebersihan repo (final gate)
 
 - □ `tests/rls.sql` + `tests/submit_guard.sql` dieksekusi di DB produksi
+- □ View `public_forms` read-only: anon bisa SELECT form published, tetapi
+  `UPDATE`/`DELETE` lewat view ditolak; `security_invoker=on` dan hak tulis
+  view sudah dicabut (migrasi `20261028104500`)
 - □ `docs/google.json` tidak lagi ada dalam repo (`git ls-files | grep -i google`)
 - □ `supabase/.temp/` terabaikan git ✓ (gitignore @L 2026-10-22)
 - □ Push branch → tag `v0.1.0` → deploy

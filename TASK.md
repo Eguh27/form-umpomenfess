@@ -40,7 +40,7 @@ Usulan awal: maks form aktif per user 20; maks gambar per form 5; maks ukuran ga
 
 ### 4.4 RLS
 - Pembuat: CRUD penuh hanya untuk `forms`/`form_images` miliknya; SELECT `responses` hanya untuk form miliknya.
-- Publik: hanya bisa membaca form `published` (tidak `deleted_at`) lewat view/RPC yang mengembalikan kolom aman.
+- Publik: hanya bisa membaca form `published` (tidak `deleted_at`) lewat view/RPC yang mengembalikan kolom aman. View `public_forms` WAJIB **read-only**: `security_invoker = true` + policy SELECT `published` untuk `anon` + grant kolom minimum; hak tulis view dicabut. Halaman publik & laporan memakai klien anon tanpa cookie sesi, jadi TIDAK ada policy published untuk `authenticated` (policy itu membocorkan `owner_id`/`tier` lewat tabel `forms`). Jangan memakai `security_invoker = false` (view dieksekusi sebagai `postgres`, melewati RLS, dan auto-updatable).
 - INSERT `responses` hanya lewat endpoint server (service role) setelah validasi; tidak ada INSERT langsung dari browser.
 
 ### 4.5 Schema form (JSON, versi 1) — divalidasi dengan zod di server
