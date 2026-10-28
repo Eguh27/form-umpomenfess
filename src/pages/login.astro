@@ -406,6 +406,10 @@ const successText = msg ? (SUCCESS_MESSAGES[msg] ?? decodeURIComponent(msg)) : n
     transform: translate(-50%, -46%);
     opacity: 0.25;
   }
+  :global([data-theme="dark"]) .ambient-arc {
+    border-color: rgba(255, 255, 255, 0.12);
+    opacity: 0.35;
+  }
 
   /* Container kartu di tengah */
   .auth-center-container {
@@ -465,8 +469,12 @@ const successText = msg ? (SUCCESS_MESSAGES[msg] ?? decodeURIComponent(msg)) : n
     font-weight: 700;
   }
   :global([data-theme="dark"]) .tab-pill-item.is-active {
-    background: var(--surface);
-    color: #fff;
+    background: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  }
+  :global([data-theme="dark"]) .tab-pill-item:hover:not(.is-active) {
+    color: var(--ink);
   }
 
   /* Judul & Subtitle */
@@ -583,10 +591,11 @@ const successText = msg ? (SUCCESS_MESSAGES[msg] ?? decodeURIComponent(msg)) : n
     display: grid;
     place-items: center;
     opacity: 0.7;
-    transition: opacity 0.15s ease;
+    transition: opacity 0.15s ease, color 0.15s ease;
   }
   .field-trailing-btn:hover {
     opacity: 1;
+    color: var(--ink);
   }
   .field-trailing-btn svg {
     width: 16px;
@@ -640,8 +649,8 @@ const successText = msg ? (SUCCESS_MESSAGES[msg] ?? decodeURIComponent(msg)) : n
     margin-top: 3px;
     padding: 10.5px 16px;
     border-radius: 12px;
-    background: var(--ink, #1f4d46);
-    color: #ffffff;
+    background: var(--brand);
+    color: var(--on-brand);
     font-size: 0.88rem;
     font-weight: 700;
     border: none;
@@ -650,13 +659,23 @@ const successText = msg ? (SUCCESS_MESSAGES[msg] ?? decodeURIComponent(msg)) : n
     box-shadow: 0 3px 10px rgba(31, 77, 70, 0.2);
   }
   .auth-primary-btn:hover:not(:disabled) {
-    background: var(--brand, #2f7263);
+    background: var(--brand-strong);
     transform: translateY(-1px);
     box-shadow: 0 5px 14px rgba(31, 77, 70, 0.3);
   }
   .auth-primary-btn:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+  }
+  :global([data-theme="dark"]) .auth-primary-btn {
+    background: var(--brand);
+    color: var(--on-brand);
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.4);
+  }
+  :global([data-theme="dark"]) .auth-primary-btn:hover:not(:disabled) {
+    background: var(--brand-strong);
+    color: var(--on-brand);
+    box-shadow: 0 5px 16px rgba(0, 0, 0, 0.55);
   }
 
   /* Pemisah Titik-titik */
@@ -705,13 +724,18 @@ const successText = msg ? (SUCCESS_MESSAGES[msg] ?? decodeURIComponent(msg)) : n
   }
   :global([data-theme="dark"]) .social-btn {
     background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.12);
     color: #fff;
   }
   .social-btn:hover {
     transform: translateY(-1.5px);
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.07);
     border-color: rgba(31, 77, 70, 0.2);
+  }
+  :global([data-theme="dark"]) .social-btn:hover {
+    background: rgba(255, 255, 255, 0.14);
+    border-color: rgba(255, 255, 255, 0.25);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
   }
   .social-svg {
     width: 17px;
