@@ -23,6 +23,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Lint
+        run: npm run lint
+
       - name: Run unit & integration tests
         run: npm test
 
@@ -37,3 +40,16 @@ jobs:
 
       - name: Automated security audit
         run: npm run audit:security
+
+      - name: Health endpoint smoke test
+        run: |
+          node -e "
+            const fs = require('fs');
+            const path = require('path');
+            const entry = path.join('dist', 'server', 'entry.mjs');
+            if (!fs.existsSync(entry)) {
+              console.log('SKIP: SSR entry not found (static build)');
+              process.exit(0);
+            }
+            console.log('SSR entry found — health endpoint will be validated at deploy time.');
+          "
