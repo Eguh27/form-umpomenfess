@@ -109,6 +109,10 @@ Set **Production + Preview**. Nama sesuai TASK 4.1 (server-only TANPA prefix `PU
 ## 7. Keamanan & kebersihan repo (final gate)
 
 - □ `tests/rls.sql` + `tests/submit_guard.sql` dieksekusi di DB produksi
+- □ E3 (KRITIS): `PUBLIC_SUPABASE_ANON_KEY` ber-role `anon`; `SUPABASE_SERVICE_ROLE_KEY`
+  **sudah dirotasi** setelah key lama bocor di artefak build T-68; bundle client
+  tidak memuat `role=service_role` (`npm run audit:security`); anon REST tidak bisa
+  membaca `responses`.
 - □ View `public_forms` read-only: anon bisa SELECT form published, tetapi
   `UPDATE`/`DELETE` lewat view ditolak; `security_invoker=on` dan hak tulis
   view sudah dicabut (migrasi `20261028104500`)
