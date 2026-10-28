@@ -71,6 +71,7 @@ Ganti peran: B (builder), C (public), D (design/ops), R (reviewer), L (lead).
 - [x] T-52 @C 2026-10-22-14:20 Halaman terima kasih + penanganan form tutup/penuh/tidak ditemukan
 - [x] T-53 @C 2026-10-22-14:20 Halaman respons (tabel+ringkasan) + `export.csv` anti CSV-injection — halaman dipinjam path zona B (minta ratifikasi @L, tautan dari builder minta @B)
 - [x] T-54 @C 2026-10-22-14:20 Test 125 lulus: submit nakal, replay token, IDOR export (404 prosaik), CSV injection, rate limit, Turnstile mock, sign SHA-1
+- [~] T-85 @C 2026-10-28-00:00 Tingkatkan pengalaman pengisi form /f/[slug] dan analitik respons dashboard; fokus state persistence multi-step, aksesibilitas tema responden, filter waktu + ringkasan visual tiap tipe blok
 
 ## Wave 3
 - [x] T-60 @D 2026-10-22 12:45 Workflow cleanup harian/mingguan (tmp, orphan, soft-deleted > 30 hari) dengan mode dry-run — `scripts/cleanup.mjs` + 2 workflow; 29 test ops; default DRY-RUN

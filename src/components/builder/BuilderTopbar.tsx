@@ -39,6 +39,8 @@ interface Props {
   formId: string;
   slug: string;
   backHref?: string;
+  publishDisabled?: boolean;
+  publishDisabledReason?: string;
 }
 
 export default function BuilderTopbar({
@@ -55,6 +57,8 @@ export default function BuilderTopbar({
   formId,
   slug,
   backHref = '/dashboard',
+  publishDisabled = false,
+  publishDisabledReason,
 }: Props) {
   const menuRef = useRef<HTMLDetailsElement>(null);
   const meta = statusMeta(status);
@@ -157,7 +161,9 @@ export default function BuilderTopbar({
           type="button"
           className="b-btn b-btn--publish"
           onClick={onPublish}
-          disabled={saving}
+          disabled={saving || publishDisabled}
+          title={publishDisabled ? publishDisabledReason : undefined}
+          aria-disabled={saving || publishDisabled}
         >
           Publikasikan
         </button>
@@ -200,7 +206,9 @@ export default function BuilderTopbar({
           type="button"
           className="b-btn b-btn--publish"
           onClick={onPublish}
-          disabled={saving}
+          disabled={saving || publishDisabled}
+          title={publishDisabled ? publishDisabledReason : undefined}
+          aria-disabled={saving || publishDisabled}
         >
           Publikasikan
         </button>

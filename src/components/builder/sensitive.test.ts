@@ -32,4 +32,28 @@ describe('deteksi pertanyaan sensitif (T-43, TASK 7)', () => {
     s = updateBlock(s, id, { label: 'Kata sandi wifi?' });
     expect(sensitiveQuestionIds(s.blocks)).toEqual([id]);
   });
+
+  it('sensitiveQuestionIds memicu pemblokiran publish saat ada pertanyaan sensitif dan pulih saat dibersihkan', () => {
+    let s = emptyState('Form Uji');
+    expect(sensitiveQuestionIds(s.blocks).length).toBe(0);
+
+    // Tambah pertanyaan umum (tidak memblokir)
+    s = addBlock(s, 'question')!;
+    const q1 = s.blocks[0].id;
+    s = updateBlock(s, q1, { label: 'Nama Lengkap' });
+    expect(sensitiveQuestionIds(s.blocks).length).toBe(0);
+
+    // Tambah pertanyaan phishing / data sensitif (harus memblokir)
+    s = addBlock(s, 'question')!;
+    const q2 = s.blocks[1].id;
+    s = updateBlock(s, q2, { label: 'Masukkan Kata Sandi Akun' });
+    const blockedIds = sensitiveQuestionIds(s.blocks);
+    expect(blockedIds.length).toBe(1);
+    expect(blockedIds).toEqual([q2]);
+
+    // Hapus/perbaiki pertanyaan sensitif -> pemblokiran dicabut
+    s = updateBlock(s, q2, { label: 'Alamat Email' });
+    expect(sensitiveQuestionIds(s.blocks).length).toBe(0);
+  });
 });
+
