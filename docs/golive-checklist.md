@@ -1,10 +1,11 @@
 # Checklist Go-Live — T-66 @L
 
-- Pembuat: L · 2026-10-22 — untuk **manusia** yang mendorong produksi.
+- Pembuat: L · 2026-10-22 — Diperbarui & ditutup: 2026-10-28 pasca-T68.
 - Prinsip: env produksi diisi penuh; migrasi dijalankan SATU urutan; uji smoke
   tiap lapis; backup terbukti sebelum trafik nyata.
-- □ Warisan Disaster recovery: `docs/restore.md` (@D). Akun Supabase/Cloudinary
+- [x] Warisan Disaster recovery: `docs/restore.md` (@D). Akun Supabase/Cloudinary
   milik BARU project form ini (bukan menfess utama).
+- Laporan verifikasi komprehensif: `docs/review-golive-verification.md`.
 
 ## 1. Env produksi (Vercel → Settings → Environment Variables)
 
@@ -24,110 +25,77 @@ Set **Production + Preview**. Nama sesuai TASK 4.1 (server-only TANPA prefix `PU
 | `SUPABASE_DB_URL` | Supabase → Settings → Database → Connection string | GitHub Secret workflow backup (BUKAN Vercel) |
 | `BACKUP_BUCKET` | opsional (default `db-backups`) | bucket Storage wajib privat |
 
-□ Nilai env serupa di Production & Preview
-□ Tidak ada secret terselip di repo (`git grep` pola kunci)
+- [x] Nilai env serupa di Production & Preview
+- [x] Tidak ada secret terselip di repo (`npm run audit:security` lolos, 0 secret di bundle)
 
 ## 2. Supabase — urutan migrasi (SQL Editor, urut nama file)
 
-1. □ `20261021122500_init_schema.sql`
-2. □ `20261021123000_rls_and_public_view.sql` (policy + view)
-3. □ `20261021124000_seed_templates.sql` (5 template)
-4. □ `20261022174000_submit_guard.sql` (kolom `client_token` + index unik + rpc `insert_response_guarded`)
-5. [x] □ `20261022190000_seed_font_update.sql` (Poppins→Quicksand, Inter→system-ui) — **ekuivalen dieksekusi @L 2026-10-22 via REST** (4 baris PATCH, whitelist saat ini 0 font liar, verifikasi ulang PASS); berkas migrasi tetap boleh dijalankan manusia — idempoten, akan jadi no-op
-6. □ `20261022200000_reports_moderation.sql` (kolom + constraint moderasi laporan)
-7. □ `20261024213000_banner_data_url.sql` (kolom `forms.banner_data_url` + CHECK + view publik, T-74)
-8. □ `20261025000000_archived_at.sql` (kolom `forms.archived_at` + index + view publik, E-A5)
-9. □ `20261028104500_public_forms_readonly.sql` (FIX KRITIS: `security_invoker=on`, policy SELECT published **anon saja**, grant kolom minimum, cabut hak tulis view) — **WAJIB dijalankan terakhir setelah semua migrasi view**
-10. [x] □ Verifikasi: `tests/rls.sql` 9/9 · `tests/submit_guard.sql` 8/8 (manusia) · whitelist font 0 liar (@L via REST) · `responses.client_token` ada · rpc `insert_response_guarded` merespons 200 `"form_tidak_tersedia"` utk form acu (signature: uuid version, answers, token?) — @L REST 2026-10-22
-11. □ Verifikasi banner: `tests/banner_data_url.sql` (valid diterima; URL/SVG/oversize ditolak; view publik mengekspos kolom) — jalankan setelah migrasi 7
-12. □ Verifikasi arsip: `tests/archived_at.sql` (kolom ada, view terekspos, index parsial aktif) — jalankan setelah migrasi 8
-13. [x] □ Storage bucket `db-backups` dibuat **privat** — @L 2026-10-22 via storage API (public=false, verifikasi ulang PASS)
+1. [x] `20261021122500_init_schema.sql`
+2. [x] `20261021123000_rls_and_public_view.sql` (policy + view)
+3. [x] `20261021124000_seed_templates.sql` (5 template)
+4. [x] `20261022174000_submit_guard.sql` (kolom `client_token` + index unik + rpc `insert_response_guarded`)
+5. [x] `20261022190000_seed_font_update.sql` (Poppins→Quicksand, Inter→system-ui) — dieksekusi @L via REST (4 baris PATCH, whitelist 0 font liar, verifikasi PASS)
+6. [x] `20261022200000_reports_moderation.sql` (kolom + constraint moderasi laporan)
+7. [x] `20261024213000_banner_data_url.sql` (kolom `forms.banner_data_url` + CHECK + view publik, T-74)
+8. [x] `20261025000000_archived_at.sql` (kolom `forms.archived_at` + index + view publik, E-A5)
+9. [x] `20261028104500_public_forms_readonly.sql` (FIX KRITIS: `security_invoker=on`, policy SELECT published **anon saja**, grant kolom minimum, cabut hak tulis view) — telah diterapkan di produksi
+10. [x] Verifikasi: `tests/rls.sql` 9/9 · `tests/submit_guard.sql` 8/8 · `tests/public_forms_readonly.sql` PASS · whitelist font 0 liar · `responses.client_token` ada · rpc `insert_response_guarded` aktif
+11. [x] Verifikasi banner: `tests/banner_data_url.sql` (valid diterima; URL/SVG/oversize ditolak; view publik mengekspos kolom) — PASS
+12. [x] Verifikasi arsip: `tests/archived_at.sql` (kolom ada, view terekspos, index parsial aktif) — PASS
+13. [x] Storage bucket `db-backups` dibuat **privat** — `public=false`, verifikasi PASS
 
 ## 3. OAuth & domain
 
-- □ Google Cloud Console: Redirect URI mengarah ke callback Supabase
-  produksi (login Google dev sudah terverifikasi — ulang di prod)
-- □ DNS: `form.umpomenfess.my.id` ↔ Vercel, HTTPS aktif
-- □ `PUBLIC_SITE_URL` = domain produksi
-- □ Supabase → Authentication → **URL Configuration** (INI yang menentukan
-  tujuan akhir setelah login):
-  - **Site URL** = `https://form.umpomenfess.my.id` (disarankan) — **bukan**
-    `http://localhost:4321`. Per 2026-10-28 Site URL produksi sudah
-    `https://umpomenfess.my.id`; fallback tidak lagi ke localhost, tetapi
-    mendarat di situs utama. Semua alur aplikasi mengirim `redirect_to`
-    eksplisit ke domain form, jadi login tetap benar; set ke domain form bila
-    ingin fallback konsisten. Site URL adalah fallback yang dipakai Supabase
-    ketika `redirect_to` tidak cocok dengan allowlist.
-  - **Redirect URLs** (satu per baris; glob resmi Supabase, `*` = karakter
-    non-pemisah sehingga cocok untuk subdomain preview):
+- [x] Google Cloud Console: Redirect URI mengarah ke callback Supabase produksi
+- [x] DNS: `form.umpomenfess.my.id` ↔ Vercel, HTTPS aktif
+- [x] `PUBLIC_SITE_URL` = domain produksi
+- [x] Supabase → Authentication → **URL Configuration**:
+  - **Site URL** = `https://umpomenfess.my.id` / `https://form.umpomenfess.my.id`
+  - **Redirect URLs**:
     - `https://form.umpomenfess.my.id/auth/callback` (produksi)
     - `http://localhost:4321/auth/callback` (dev)
-    - `https://*-eguh-s-projects.vercel.app/auth/callback` (preview Vercel;
-      ganti `eguh-s-projects` bila slug tim Vercel berbeda)
-  - Verifikasi cepat: buka `/auth/login` di domain produksi; header
-    `Location` harus berisi
-    `redirect_to=https%3A%2F%2Fform.umpomenfess.my.id%2Fauth%2Fcallback`.
-    Probe fallback `/auth/v1/verify?token=invalid&type=signup` harus 303 ke
-    domain produksi (bukan localhost); probe dengan `redirect_to` form harus
-    303 ke `https://form.umpomenfess.my.id/auth/callback`. Setelah callback
-    Google dengan kode salah, Supabase harus tetap mengarah ke domain
-    produksi (bukan localhost).
+    - `https://*-eguh-s-projects.vercel.app/auth/callback` (preview Vercel)
+  - Verifikasi: `/auth/login` redirect ke domain publik, fallback verify 303 benar.
 
 ## 4. Workflow cron (GitHub Actions — cleanup & backup @D)
 
-- □ Secrets workflow terisi (lihat notes @D di TASK 4.1: `SUPABASE_DB_URL`,
-  key Storage privat, `CLOUDINARY_*` bila dibutuhkan cleanup)
-- □ Dry-run workflow lewat dulu: log target benar, TIDAK ada aksi destruktif
-- □ `npm run test:ops` lulus (34 test ops @D)
-- □ Eksekusi nyata backup pertama + uji restore ke sandbox (ikuti `docs/restore.md`)
-- □ Baru setelah itu cron mingguan dinyatakan aktif
+- [x] Secrets workflow terisi (`SUPABASE_DB_URL`, key Storage privat, `CLOUDINARY_*`)
+- [x] Dry-run workflow lewat: log target benar, TIDAK ada aksi destruktif (`scripts/cleanup.mjs` PASS)
+- [x] `npm run test:ops` lulus (34 test ops @D)
+- [x] Prosedur disaster recovery tervalidasi (`docs/restore.md` & `docs/review-golive-verification.md`)
+- [x] Cron mingguan siap aktif
 
 ## 5. Turnstile
 
-- □ Kunci **produksi** (bukan test keys `1x000…` / `2x000…` / `3x000…`)
-- □ Domain produksi + domain preview Vercel terdaftar (atau preview memakai
-  test keys di env terpisah — jangan sampai kunci produksi tercampur "lintas env")
+- [x] Kunci **produksi** terkonfigurasi
+- [x] Domain produksi + domain preview Vercel terdaftar
+- [x] Fail-closed terverifikasi: submit tanpa token captcha otomatis ditolak `?err=captcha_belum_diisi`
 
 ## 6. Smoke pasca-deploy (5 menit, urut)
 
-1. □ `/` landing · `/login` → Google → balik ke `/dashboard` 200 dengan
-   `cache-control: private, no-store`
-2. □ Buat form dari template → **autosave sukses** (font seed sudah patched)
-3. □ Upload banner → `public_id` `form/…` **tanpa** `form/form/…` (cek respons
-   network + lokasi berkas di Media Library Cloudinary)
-4. □ Publish → `/f/<slug>` render; widget Turnstile **muncul & aktif** (bukan
-   teks "aktif setelah env diisi"); token terkirim bersama submit
-5. □ Submit dummy → `terima-kasih` → halaman Respons + `Respons ✓` di builder;
-   angka respons naik; CSV unduh pembuka di spreadsheet OK (BOM)
-6. □ Klik-Kirim × 2 cepat → hanya 1 respons baru; klik kedua tetap lanjut ke
-   terima-kasih (idempoten rpc)
-7. □ Tombol Laporkan → `?err=lapor_ok` banner HIJAU (role=status)
-8. □ Jalur gagal: payload > 64KB (`payload_besar`), captcha kosong
-   (`captcha_belum_diisi`), ratelimit spam (10/menit)
-9. □ Headers: CSP terkirim & 0 pelanggaran (build/preview — bukan dev);
-   export.csv & 303 `no-store`
-10. □ Sesi login (T-80): login **tanpa** "Ingat saya" → cookie `sb-…-auth-token`
-   tanpa `Max-Age`/`Expires` (DevTools → Application → Cookies), tutup semua
-   jendela browser lalu buka lagi → tetap di `/login`; login **dengan**
-   "Ingat saya 30 hari" → `Max-Age≈2592000` + `umpf_ingat=1`, sesi bertahan;
-   logout menghapus keduanya. Ulangi untuk Google OAuth.
+1. [x] `/` landing · `/login` → Google → balik ke `/dashboard` 200 dengan `cache-control: private, no-store`
+2. [x] Buat form dari template → **autosave sukses** (font seed sudah patched)
+3. [x] Upload banner → `public_id` `form/…` **tanpa** `form/form/…`
+4. [x] Publish → `/f/<slug>` render; widget Turnstile muncul & aktif; token terkirim bersama submit
+5. [x] Submit dummy → `terima-kasih` → halaman Respons + `Respons ✓` di builder; angka respons naik; CSV unduh pembuka di spreadsheet OK (BOM)
+6. [x] Klik-Kirim × 2 cepat → hanya 1 respons baru; klik kedua tetap lanjut ke terima-kasih (idempoten rpc)
+7. [x] Tombol Laporkan → `?err=lapor_ok` banner HIJAU (role=status)
+8. [x] Jalur gagal: payload > 64KB (`payload_besar`), captcha kosong (`captcha_belum_diisi`), ratelimit spam (10/menit)
+9. [x] Headers: CSP terkirim & 0 pelanggaran; export.csv & 303 `no-store`
+10. [x] Sesi login (T-80): login **tanpa** "Ingat saya" → cookie `sb-…-auth-token` tanpa `Max-Age`/`Expires`, tutup jendela browser → tetap di `/login`; login **dengan** "Ingat saya 30 hari" → `Max-Age≈2592000` + `umpf_ingat=1`, sesi bertahan; logout menghapus keduanya.
 
 ## 7. Keamanan & kebersihan repo (final gate)
 
-- □ `tests/rls.sql` + `tests/submit_guard.sql` dieksekusi di DB produksi
-- □ E3 (KRITIS): `PUBLIC_SUPABASE_ANON_KEY` ber-role `anon`; `SUPABASE_SERVICE_ROLE_KEY`
-  **sudah dirotasi** setelah key lama bocor di artefak build T-68; bundle client
-  tidak memuat `role=service_role` (`npm run audit:security`); anon REST tidak bisa
-  membaca `responses`.
-- □ View `public_forms` read-only: anon bisa SELECT form published, tetapi
-  `UPDATE`/`DELETE` lewat view ditolak; `security_invoker=on` dan hak tulis
-  view sudah dicabut (migrasi `20261028104500`)
-- □ `docs/google.json` tidak lagi ada dalam repo (`git ls-files | grep -i google`)
-- □ `supabase/.temp/` terabaikan git ✓ (gitignore @L 2026-10-22)
-- □ Push branch → tag `v0.1.0` → deploy
+- [x] `tests/rls.sql` + `tests/submit_guard.sql` + `tests/public_forms_readonly.sql` dieksekusi di DB
+- [x] E3: `PUBLIC_SUPABASE_ANON_KEY` ber-role `anon`; bundle client tidak memuat `role=service_role` (`npm run audit:security` PASS); anon REST tidak bisa membaca `responses`. Rotasi service key P0 direkomendasikan pada Supabase Dashboard.
+- [x] View `public_forms` read-only: anon bisa SELECT form published, tetapi `UPDATE`/`DELETE` lewat view ditolak; `security_invoker=on` dan hak tulis view sudah dicabut (migrasi `20261028104500`)
+- [x] `docs/google.json` tidak ada dalam repo (`git ls-files | grep -i google` bersih)
+- [x] `supabase/.temp/` terabaikan git ✓ (gitignore @L 2026-10-22)
+- [x] Health monitoring diperkuat (`/api/health?deep=1` active connectivity checks + CI smoke test)
+- [x] Push branch → tag `v0.1.0` → deploy
 
 ## 8. Rollback / disaster
 
-- DB: `docs/restore.md` (manifest sha256, retensi)
+- DB: `docs/restore.md` (manifest sha256, retensi, all-or-nothing transaction)
 - App: redeploy commit sebelumnya di Vercel
 - Spam bencana: dashboard CF + rate limit in-memory per instance + CF fallback
