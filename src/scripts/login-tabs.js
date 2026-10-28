@@ -14,6 +14,22 @@
   const switchLink = document.getElementById('btn-toggle-switch');
   const btnShowForgot = document.getElementById('btn-show-forgot');
   const btnBackLogin = document.getElementById('btn-back-login');
+  const rememberInput = document.getElementById('remember-login');
+  const googleLink = document.getElementById('google-login-link');
+
+  // Tombol Google adalah <a>, bukan input form: samakan preferensi "ingat saya"
+  // dengan checkbox agar OAuth memakai masa sesi yang sama.
+  function syncGoogleRemember() {
+    if (!googleLink) return;
+    const base = googleLink.getAttribute('href');
+    if (!base || base === '#') return;
+    googleLink.setAttribute(
+      'href',
+      rememberInput?.checked ? '/auth/login?remember=1' : '/auth/login',
+    );
+  }
+  rememberInput?.addEventListener('change', syncGoogleRemember);
+  syncGoogleRemember();
 
   function setTab(mode) {
     if (mode === 'signup') {

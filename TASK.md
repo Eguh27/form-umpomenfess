@@ -84,6 +84,15 @@ Usulan awal: maks form aktif per user 20; maks gambar per form 5; maks ukuran ga
 - CSP `img-src` sudah mengizinkan `data:`; dilarang memakai `blob:` tanpa mengubah konfigurasi CSP.
 - Migrasi: `supabase/migrations/20261024213000_banner_data_url.sql`; uji constraint: `tests/banner_data_url.sql`.
 
+### 4.8 Masa hidup sesi login (CONTRACT CHANGE 2026-10-28 @L, T-80)
+- **Default** (checkbox "Ingat saya" tidak dicentang): cookie auth Supabase adalah **cookie sesi** — tanpa `Max-Age`/`Expires`, berakhir saat browser ditutup.
+- **"Ingat saya 30 hari"** (opt-in): cookie auth persisten 30 hari (`REMEMBER_MAX_AGE`).
+- Preferensi dibawa cookie non-HttpOnly `umpf_ingat` bernilai `0|1`; selama alur OAuth nilainya `pending` (10 menit) lalu dikonversi callback menjadi `1`/`0`.
+- `@supabase/ssr` menulis cookie auth 400 hari; kebijakan diterapkan di adaptor cookie kita (server `createAstroCookiesClient`/`createBufferedClient`, browser `browserClient.ts`), bukan lewat `cookieOptions` library.
+- Cookie auth dan penanda dipaksa `Secure` bila request HTTPS atau `x-forwarded-proto: https`; `SameSite=Lax`; cookie auth tetap non-HttpOnly karena browser client `@supabase/ssr` membacanya.
+- Logout menghapus cookie auth + penanda. Sesi lama tanpa penanda mendapat `umpf_ingat=0` pada request terautentikasi berikutnya (cookie auth menjadi sesi saat refresh token berikutnya).
+- Batas: ini kebijakan masa hidup cookie di browser, bukan perubahan masa berlaku token Supabase. Access token tetap berumur pendek dan refresh token hanya dapat dipakai selama cookie auth masih ada.
+
 ## 5. Tampilan selaras dengan situs menfess
 - Satu sumber: `design/tokens.css` (CSS variables: warna, font, radius, spasi, bayangan) + `design/README.md` (komponen: header, footer, tombol, kartu).
 - Diambil dari repo menfess (manusia menyalin file yang diperlukan ke folder `design/reference/` di repo ini; agent tidak mengakses repo lain).

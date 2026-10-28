@@ -19,6 +19,14 @@ import {
 } from '@supabase/ssr';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { APIContext, AstroCookieSetOptions } from 'astro';
+import { isSecureRequest, sessionCookieOptions } from './session';
+
+/** Kebijakan sesi per-request: default cookie sesi, "ingat saya" 30 hari. */
+export interface SessionPolicy {
+  remember: boolean;
+  /** Paksa Secure; default diturunkan dari URL/x-forwarded-proto. */
+  secure?: boolean;
+}
 
 export interface SupabaseEnvConfig {
   url: string;
@@ -52,7 +60,10 @@ function toAstroOptions(options: SupabaseCookieOptions): AstroCookieSetOptions {
 export function createAstroCookiesClient(
   context: APIContext,
   config: SupabaseEnvConfig,
+  policy: SessionPolicy = { remember: false },
 ): SupabaseClient {
+  const remember = policy.remember;
+  const secure = policy.secure ?? isSecureRequest(context);
   return createServerClient(config.url, config.anonKey, {
     cookies: {
       getAll() {
@@ -60,7 +71,11 @@ export function createAstroCookiesClient(
       },
       setAll(cookiesToSet) {
         for (const { name, value, options } of cookiesToSet) {
-          context.cookies.set(name, value, toAstroOptions(options));
+          context.cookies.set(
+            name,
+            value,
+            toAstroOptions(sessionCookieOptions(options, remember, secure)),
+          );
         }
       },
     },
@@ -76,6 +91,7 @@ export function createAstroCookiesClient(
 export function createBufferedClient(
   request: Request,
   config: SupabaseEnvConfig,
+  policy: SessionPolicy = { remember: false },
 ): {
   supabase: SupabaseClient;
   /** Tempel header hasil auth ke Response, wajib dipanggil sebelum return. */
@@ -83,6 +99,10 @@ export function createBufferedClient(
 } {
   const pendingCookies: string[] = [];
   const cacheHeaders: Record<string, string> = {};
+  const remember = policy.remember;
+  const secure =
+    policy.secure ??
+    isSecureRequest({ url: new URL(request.url), request });
 
   const supabase = createServerClient(config.url, config.anonKey, {
     cookies: {
@@ -94,7 +114,13 @@ export function createBufferedClient(
           Object.assign(cacheHeaders, headers);
         }
         for (const { name, value, options } of cookiesToSet) {
-          pendingCookies.push(serializeCookieHeader(name, value, options));
+          pendingCookies.push(
+            serializeCookieHeader(
+              name,
+              value,
+              sessionCookieOptions(options, remember, secure),
+            ),
+          );
         }
       },
     },

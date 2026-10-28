@@ -8,6 +8,7 @@
 import type { APIRoute } from 'astro';
 import { createBufferedClient, getEnvConfig } from '../../lib/auth/supabase';
 import { publicOriginOf } from '../../lib/auth/origin';
+import { isSecureRequest, withRememberCookie } from '../../lib/auth/session';
 
 export const GET: APIRoute = async (context) => {
   const config = getEnvConfig();
@@ -15,9 +16,14 @@ export const GET: APIRoute = async (context) => {
     return context.redirect('/login?error=setup');
   }
 
-  const { supabase, flush } = createBufferedClient(context.request, config);
+  // Verifier PKCE selalu cookie sesi; preferensi "ingat saya" baru dipakai
+  // saat callback menukar code menjadi sesi.
+  const { supabase, flush } = createBufferedClient(context.request, config, {
+    remember: false,
+  });
   // Host asli dari Vercel (x-forwarded-host), bukan host internal server.
   const origin = publicOriginOf(context);
+  const remember = context.url.searchParams.get('remember') === '1';
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
@@ -31,5 +37,9 @@ export const GET: APIRoute = async (context) => {
     return context.redirect('/login?error=setup');
   }
 
-  return flush(new Response(null, { status: 303, headers: { Location: data.url } }));
+  return withRememberCookie(
+    flush(new Response(null, { status: 303, headers: { Location: data.url } })),
+    remember ? 'pending' : '0',
+    isSecureRequest(context),
+  );
 };

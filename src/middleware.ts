@@ -9,18 +9,37 @@
  */
 import { defineMiddleware } from 'astro:middleware';
 import { createAstroCookiesClient, getEnvConfig } from './lib/auth/supabase';
+import {
+  hasRememberCookie,
+  isRemembered,
+  isSecureRequest,
+  REMEMBER_COOKIE,
+  rememberCookieOptions,
+} from './lib/auth/session';
 
 export const onRequest = defineMiddleware(async (context, next) => {
   const config = getEnvConfig();
+  const cookieHeader = context.request.headers.get('Cookie');
+  const remember = isRemembered(cookieHeader);
   if (!config) {
     // Env belum diisi: app tetap hidup (halaman publik), auth dinonaktifkan.
     context.locals.supabase = null;
     context.locals.user = null;
   } else {
-    const supabase = createAstroCookiesClient(context, config);
+    const supabase = createAstroCookiesClient(context, config, { remember });
     context.locals.supabase = supabase;
     const { data } = await supabase.auth.getUser();
     context.locals.user = data.user ?? null;
+
+    // Sesi lama (sebelum T-80) belum punya penanda. Pasang "0" agar browser
+    // client ikut menulis cookie sesi, bukan persisten 400 hari.
+    if (context.locals.user !== null && !hasRememberCookie(cookieHeader)) {
+      context.cookies.set(
+        REMEMBER_COOKIE,
+        '0',
+        rememberCookieOptions('0', isSecureRequest(context)),
+      );
+    }
   }
 
   if (context.url.pathname.startsWith('/dashboard') && !context.locals.user) {

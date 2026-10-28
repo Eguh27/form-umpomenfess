@@ -1,5 +1,6 @@
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { POST } from '../../pages/auth/email';
+import { createBufferedClient } from '../../lib/auth/supabase';
 import type { APIContext } from 'astro';
 
 vi.mock('../../lib/auth/supabase', () => ({
@@ -29,6 +30,12 @@ vi.mock('../../lib/auth/supabase', () => ({
     };
   }),
 }));
+
+const createBufferedClientMock = vi.mocked(createBufferedClient);
+
+beforeEach(() => {
+  createBufferedClientMock.mockClear();
+});
 
 describe('/auth/email endpoint', () => {
   it('login gagal bila kredensial salah, redirect ke /login dengan error kredensial_salah', async () => {
@@ -136,5 +143,66 @@ describe('/auth/email endpoint', () => {
 
     const res = await POST(ctx);
     expect(res.headers.get('Location')).toContain('msg=reset_terkirim');
+  });
+
+  it('login tanpa "ingat saya" memakai cookie sesi (bukan 400 hari)', async () => {
+    const formData = new FormData();
+    formData.set('action', 'login');
+    formData.set('email', 'test@example.com');
+    formData.set('password', 'correct123');
+
+    const req = new Request('https://form.example/auth/email', {
+      method: 'POST',
+      body: formData,
+      headers: { 'x-forwarded-proto': 'https' },
+    });
+    const ctx = {
+      request: req,
+      url: new URL('https://form.example/auth/email'),
+      redirect: (url: string) => new Response(null, { status: 302, headers: { Location: url } }),
+    } as unknown as APIContext;
+
+    const res = await POST(ctx);
+
+    expect(createBufferedClientMock).toHaveBeenCalledWith(
+      req,
+      expect.anything(),
+      { remember: false, secure: true },
+    );
+    const marker = res.headers.get('set-cookie') ?? '';
+    expect(marker).toContain('umpf_ingat=0');
+    expect(marker).not.toContain('Max-Age');
+    expect(marker).toContain('Secure');
+  });
+
+  it('login dengan "ingat saya" menulis penanda 30 hari', async () => {
+    const formData = new FormData();
+    formData.set('action', 'login');
+    formData.set('email', 'test@example.com');
+    formData.set('password', 'correct123');
+    formData.set('remember', '1');
+
+    const req = new Request('https://form.example/auth/email', {
+      method: 'POST',
+      body: formData,
+      headers: { 'x-forwarded-proto': 'https' },
+    });
+    const ctx = {
+      request: req,
+      url: new URL('https://form.example/auth/email'),
+      redirect: (url: string) => new Response(null, { status: 302, headers: { Location: url } }),
+    } as unknown as APIContext;
+
+    const res = await POST(ctx);
+
+    expect(createBufferedClientMock).toHaveBeenCalledWith(
+      req,
+      expect.anything(),
+      { remember: true, secure: true },
+    );
+    const marker = res.headers.get('set-cookie') ?? '';
+    expect(marker).toContain('umpf_ingat=1');
+    expect(marker).toContain('Max-Age=2592000');
+    expect(marker).toContain('Secure');
   });
 });

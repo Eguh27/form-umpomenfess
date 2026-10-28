@@ -99,6 +99,11 @@ Set **Production + Preview**. Nama sesuai TASK 4.1 (server-only TANPA prefix `PU
    (`captcha_belum_diisi`), ratelimit spam (10/menit)
 9. □ Headers: CSP terkirim & 0 pelanggaran (build/preview — bukan dev);
    export.csv & 303 `no-store`
+10. □ Sesi login (T-80): login **tanpa** "Ingat saya" → cookie `sb-…-auth-token`
+   tanpa `Max-Age`/`Expires` (DevTools → Application → Cookies), tutup semua
+   jendela browser lalu buka lagi → tetap di `/login`; login **dengan**
+   "Ingat saya 30 hari" → `Max-Age≈2592000` + `umpf_ingat=1`, sesi bertahan;
+   logout menghapus keduanya. Ulangi untuk Google OAuth.
 
 ## 7. Keamanan & kebersihan repo (final gate)
 

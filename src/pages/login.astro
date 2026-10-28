@@ -145,7 +145,17 @@ const successText = msg ? (SUCCESS_MESSAGES[msg] ?? decodeURIComponent(msg)) : n
             </button>
           </div>
 
-          <div style="display:flex;justify-content:flex-end;margin-top:2px;">
+          <div class="auth-meta-row">
+            <label class="auth-remember" for="remember-login">
+              <input
+                type="checkbox"
+                name="remember"
+                value="1"
+                id="remember-login"
+                class="auth-remember-input"
+              />
+              <span>Ingat saya 30 hari</span>
+            </label>
             <button type="button" id="btn-show-forgot" class="auth-link-subtle">
               Lupa kata sandi?
             </button>
@@ -291,6 +301,7 @@ const successText = msg ? (SUCCESS_MESSAGES[msg] ?? decodeURIComponent(msg)) : n
         <div class="auth-social-row">
           {/* Tombol Google (Fungsional OAuth) */}
           <a
+            id="google-login-link"
             href={configured ? '/auth/login' : '#'}
             class="social-btn google-btn"
             title="Masuk cepat dengan akun Google"
@@ -597,6 +608,32 @@ const successText = msg ? (SUCCESS_MESSAGES[msg] ?? decodeURIComponent(msg)) : n
     text-decoration: underline;
   }
 
+  /* Baris "Ingat saya" + lupa kata sandi */
+  .auth-meta-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 2px;
+  }
+  .auth-remember {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    user-select: none;
+  }
+  .auth-remember-input {
+    width: 14px;
+    height: 14px;
+    margin: 0;
+    accent-color: var(--brand);
+    cursor: pointer;
+  }
+
   /* Tombol Utama */
   .auth-primary-btn {
     width: 100%;
@@ -795,6 +832,18 @@ const successText = msg ? (SUCCESS_MESSAGES[msg] ?? decodeURIComponent(msg)) : n
     }
     .auth-form {
       gap: 7px;
+    }
+    .auth-meta-row {
+      gap: 6px;
+      margin-top: 0;
+    }
+    .auth-remember {
+      gap: 5px;
+      font-size: 0.7rem;
+    }
+    .auth-remember-input {
+      width: 13px;
+      height: 13px;
     }
     .input-icon-field {
       border-radius: 9px;

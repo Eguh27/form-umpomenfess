@@ -7,6 +7,7 @@
 import type { APIRoute } from 'astro';
 import { createBufferedClient, getEnvConfig } from '../../lib/auth/supabase';
 import { publicOriginOf } from '../../lib/auth/origin';
+import { isSecureRequest, withRememberCookie } from '../../lib/auth/session';
 
 export const POST: APIRoute = async (context) => {
   const config = getEnvConfig();
@@ -25,8 +26,13 @@ export const POST: APIRoute = async (context) => {
   const email = String(formData.get('email') ?? '').trim().toLowerCase();
   const password = String(formData.get('password') ?? '');
   const fullName = String(formData.get('fullName') ?? '').trim();
+  const remember = action === 'login' && formData.get('remember') === '1';
+  const secure = isSecureRequest(context);
 
-  const { supabase, flush } = createBufferedClient(context.request, config);
+  const { supabase, flush } = createBufferedClient(context.request, config, {
+    remember,
+    secure,
+  });
 
   // 1. Registrasi Akun Baru (Sign Up)
   if (action === 'signup') {
@@ -56,7 +62,11 @@ export const POST: APIRoute = async (context) => {
 
     // Jika akun langsung aktif (tanpa email verification di dev)
     if (data.session) {
-      return flush(new Response(null, { status: 303, headers: { Location: '/dashboard' } }));
+      return withRememberCookie(
+        flush(new Response(null, { status: 303, headers: { Location: '/dashboard' } })),
+        '0',
+        secure,
+      );
     }
 
     // Jika membutuhkan konfirmasi email
@@ -96,6 +106,10 @@ export const POST: APIRoute = async (context) => {
     return context.redirect(`/login?tab=login&error=${errCode}`);
   }
 
-  return flush(new Response(null, { status: 303, headers: { Location: '/dashboard' } }));
+  return withRememberCookie(
+    flush(new Response(null, { status: 303, headers: { Location: '/dashboard' } })),
+    remember ? '1' : '0',
+    secure,
+  );
 };
 
