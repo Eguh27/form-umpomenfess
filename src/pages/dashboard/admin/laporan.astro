@@ -2,7 +2,7 @@
 import Base from '../../../layouts/Base.astro';
 import { isAdmin } from '../../../lib/auth/admin';
 import { getSupabaseService } from '../../../lib/forms/service';
-import { listReports, type ReportItem } from '../../../lib/forms/reports';
+import { listReports, listFlaggedForms, type ReportItem, type FlaggedFormItem } from '../../../lib/forms/reports';
 import { AdminReports } from '../../../components/builder/AdminReports';
 
 const user = Astro.locals.user;
@@ -12,12 +12,18 @@ if (!isAdmin(user)) return Astro.redirect('/dashboard');
 Astro.response.headers.set('cache-control', 'private, no-store');
 
 let reports: ReportItem[] = [];
+let flaggedForms: FlaggedFormItem[] = [];
 let loadError: string | null = null;
 
 const service = getSupabaseService();
 if (service) {
   try {
-    reports = await listReports(service, { limit: 100 });
+    const [fForms, repList] = await Promise.all([
+      listFlaggedForms(service),
+      listReports(service, { limit: 100 }),
+    ]);
+    flaggedForms = fForms;
+    reports = repList;
   } catch (e) {
     loadError = e instanceof Error ? e.message : String(e);
   }
@@ -49,7 +55,7 @@ if (service) {
     )}
 
     {!loadError && (
-      <AdminReports client:load initialReports={reports} />
+      <AdminReports client:load initialFlaggedForms={flaggedForms} initialReports={reports} />
     )}
   </section>
 </Base>

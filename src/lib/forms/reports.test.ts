@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { applyReportAction, countPendingReports, listReports } from './reports';
+import { applyReportAction, countPendingReports, listReports, listFlaggedForms, applyFlaggedFormAction } from './reports';
 
 describe('listReports', () => {
   it('memetakan data dan form summary dengan benar', async () => {
@@ -139,5 +139,158 @@ describe('applyReportAction', () => {
     expect(res.ok).toBe(true);
     expect(formUpdated).toBe(true);
     expect(reportUpdated).toBe(true);
+  });
+});
+
+describe('listFlaggedForms', () => {
+  it('mengambil form dengan is_flagged = true beserta rincian alasan laporan', async () => {
+    const fakeForms = [
+      {
+        id: 'form-flag-1',
+        title: 'Form Mencurigakan',
+        slug: 'form-mencurigakan',
+        status: 'published',
+        owner_id: 'user-1',
+        is_flagged: true,
+        report_count: 2,
+        last_flagged_at: '2026-10-29T10:00:00Z',
+      },
+    ];
+
+    const fakeReports = [
+      {
+        id: 'rep-1',
+        form_id: 'form-flag-1',
+        reason: 'Meminta password akun',
+        created_at: '2026-10-29T09:50:00Z',
+      },
+      {
+        id: 'rep-2',
+        form_id: 'form-flag-1',
+        reason: 'Mengaku sebagai admin kampus',
+        created_at: '2026-10-29T10:00:00Z',
+      },
+    ];
+
+    const fakeClient = {
+      from: (table: string) => {
+        if (table === 'forms') {
+          return {
+            select: () => ({
+              eq: () => ({
+                order: () => ({
+                  order: () => ({
+                    limit: () => Promise.resolve({ data: fakeForms, error: null }),
+                  }),
+                }),
+              }),
+            }),
+          };
+        }
+        if (table === 'reports') {
+          return {
+            select: () => ({
+              in: () => ({
+                order: () => Promise.resolve({ data: fakeReports, error: null }),
+              }),
+            }),
+          };
+        }
+        return {};
+      },
+    } as unknown as SupabaseClient;
+
+    const list = await listFlaggedForms(fakeClient);
+    expect(list).toHaveLength(1);
+    expect(list[0].id).toBe('form-flag-1');
+    expect(list[0].reportCount).toBe(2);
+    expect(list[0].isFlagged).toBe(true);
+    expect(list[0].reasons).toHaveLength(2);
+    expect(list[0].reasons[0].reason).toBe('Meminta password akun');
+    expect(list[0].reasons[1].reason).toBe('Mengaku sebagai admin kampus');
+  });
+
+  it('mengembalikan array kosong jika query forms error', async () => {
+    const fakeClient = {
+      from: () => ({
+        select: () => ({
+          eq: () => ({
+            order: () => ({
+              order: () => ({
+                limit: () => Promise.resolve({ data: null, error: { message: 'db error' } }),
+              }),
+            }),
+          }),
+        }),
+      }),
+    } as unknown as SupabaseClient;
+
+    const list = await listFlaggedForms(fakeClient);
+    expect(list).toEqual([]);
+  });
+});
+
+describe('applyFlaggedFormAction', () => {
+  it('menutup form dan menandai resolved pada laporan terkait (close_form)', async () => {
+    let formUpdated = false;
+    let reportsUpdated = false;
+
+    const fakeClient = {
+      from: (table: string) => ({
+        update: (payload: Record<string, unknown>) => ({
+          eq: (_col: string, val: string) => {
+            if (table === 'forms' && val === 'form-123' && payload.status === 'closed' && payload.is_flagged === false) {
+              formUpdated = true;
+            }
+            if (table === 'reports' && val === 'form-123' && payload.status === 'resolved' && payload.action_taken === 'form_closed') {
+              reportsUpdated = true;
+            }
+            return Promise.resolve({ error: null });
+          },
+        }),
+      }),
+    } as unknown as SupabaseClient;
+
+    const res = await applyFlaggedFormAction(fakeClient, {
+      formId: 'form-123',
+      action: 'close_form',
+      adminUserId: 'admin-xyz',
+      notes: 'Form phishing terkonfirmasi',
+    });
+
+    expect(res.ok).toBe(true);
+    expect(formUpdated).toBe(true);
+    expect(reportsUpdated).toBe(true);
+  });
+
+  it('membersihkan flag dan mengabaikan laporan terkait (unflag)', async () => {
+    let formUnflagged = false;
+    let reportsDismissed = false;
+
+    const fakeClient = {
+      from: (table: string) => ({
+        update: (payload: Record<string, unknown>) => ({
+          eq: (_col: string, val: string) => {
+            if (table === 'forms' && val === 'form-123' && payload.is_flagged === false) {
+              formUnflagged = true;
+            }
+            if (table === 'reports' && val === 'form-123' && payload.status === 'dismissed' && payload.action_taken === 'dismissed') {
+              reportsDismissed = true;
+            }
+            return Promise.resolve({ error: null });
+          },
+        }),
+      }),
+    } as unknown as SupabaseClient;
+
+    const res = await applyFlaggedFormAction(fakeClient, {
+      formId: 'form-123',
+      action: 'unflag',
+      adminUserId: 'admin-xyz',
+    });
+
+    expect(res.ok).toBe(true);
+    expect(formUnflagged).toBe(true);
+    expect(reportsDismissed).toBe(true);
   });
 });

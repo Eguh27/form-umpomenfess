@@ -15,6 +15,24 @@ export interface FormSummary {
   ownerId?: string | null;
 }
 
+export interface ReportReasonSummary {
+  id: string;
+  reason: string;
+  createdAt: string;
+}
+
+export interface FlaggedFormItem {
+  id: string;
+  title: string;
+  slug: string;
+  status: 'draft' | 'published' | 'closed';
+  ownerId: string | null;
+  isFlagged: boolean;
+  reportCount: number;
+  lastFlaggedAt: string | null;
+  reasons: ReportReasonSummary[];
+}
+
 export interface ReportItem {
   id: string;
   formId: string;
@@ -110,7 +128,7 @@ export async function applyReportAction(
 
     const { error: formErr } = await supabase
       .from('forms')
-      .update({ status: 'closed', updated_at: new Date().toISOString() })
+      .update({ status: 'closed', is_flagged: false, updated_at: new Date().toISOString() })
       .eq('id', rep.form_id);
 
     if (formErr) return { ok: false, error: 'Gagal menutup form.' };
@@ -133,3 +151,118 @@ export async function applyReportAction(
   if (repErr) return { ok: false, error: 'Gagal memperbarui status laporan.' };
   return { ok: true };
 }
+
+/** Mengambil daftar form yang ditandai flag (is_flagged = true) beserta ringkasan alasan laporan. */
+export async function listFlaggedForms(
+  supabase: SupabaseClient,
+  options: { limit?: number } = {},
+): Promise<FlaggedFormItem[]> {
+  const limit = Math.min(Math.max(options.limit ?? 50, 1), 100);
+
+  const { data: formRows, error: formErr } = await supabase
+    .from('forms')
+    .select('id, title, slug, status, owner_id, is_flagged, report_count, last_flagged_at')
+    .eq('is_flagged', true)
+    .order('report_count', { ascending: false })
+    .order('last_flagged_at', { ascending: false })
+    .limit(limit);
+
+  if (formErr || !Array.isArray(formRows) || formRows.length === 0) {
+    return [];
+  }
+
+  const formIds = formRows.map((f: Record<string, unknown>) => String(f.id));
+
+  // Ambil alasan laporan terkait untuk form-form ini
+  const { data: reportRows } = await supabase
+    .from('reports')
+    .select('id, form_id, reason, created_at')
+    .in('form_id', formIds)
+    .order('created_at', { ascending: false });
+
+  const reportsByForm = new Map<string, ReportReasonSummary[]>();
+  if (Array.isArray(reportRows)) {
+    for (const r of reportRows) {
+      const fid = String(r.form_id);
+      const list = reportsByForm.get(fid) ?? [];
+      list.push({
+        id: String(r.id),
+        reason: String(r.reason ?? ''),
+        createdAt: String(r.created_at),
+      });
+      reportsByForm.set(fid, list);
+    }
+  }
+
+  return formRows.map((f: Record<string, unknown>) => {
+    const fid = String(f.id);
+    return {
+      id: fid,
+      title: String(f.title ?? 'Tanpa judul'),
+      slug: String(f.slug ?? ''),
+      status: (f.status as FlaggedFormItem['status']) ?? 'draft',
+      ownerId: f.owner_id ? String(f.owner_id) : null,
+      isFlagged: Boolean(f.is_flagged),
+      reportCount: typeof f.report_count === 'number' ? f.report_count : 0,
+      lastFlaggedAt: f.last_flagged_at ? String(f.last_flagged_at) : null,
+      reasons: reportsByForm.get(fid) ?? [],
+    };
+  });
+}
+
+/** Aksi moderasi langsung pada tingkat form (tutup form atau bersihkan flag). */
+export async function applyFlaggedFormAction(
+  supabase: SupabaseClient,
+  args: {
+    formId: string;
+    action: 'close_form' | 'unflag';
+    adminUserId?: string | null;
+    notes?: string | null;
+  },
+): Promise<{ ok: boolean; error?: string }> {
+  const { formId, action, adminUserId, notes } = args;
+  const now = new Date().toISOString();
+
+  if (action === 'close_form') {
+    const { error: formErr } = await supabase
+      .from('forms')
+      .update({ status: 'closed', is_flagged: false, updated_at: now })
+      .eq('id', formId);
+
+    if (formErr) return { ok: false, error: 'Gagal menutup form.' };
+
+    await supabase
+      .from('reports')
+      .update({
+        status: 'resolved',
+        action_taken: 'form_closed',
+        resolved_at: now,
+        resolved_by: adminUserId ?? null,
+        notes: notes?.trim() || 'Ditutup lewat moderasi form',
+      })
+      .eq('form_id', formId);
+  } else if (action === 'unflag') {
+    const { error: formErr } = await supabase
+      .from('forms')
+      .update({ is_flagged: false, updated_at: now })
+      .eq('id', formId);
+
+    if (formErr) return { ok: false, error: 'Gagal membersihkan flag form.' };
+
+    await supabase
+      .from('reports')
+      .update({
+        status: 'dismissed',
+        action_taken: 'dismissed',
+        resolved_at: now,
+        resolved_by: adminUserId ?? null,
+        notes: notes?.trim() || 'Flag dibersihkan oleh admin',
+      })
+      .eq('form_id', formId);
+  } else {
+    return { ok: false, error: 'Aksi tidak dikenal.' };
+  }
+
+  return { ok: true };
+}
+
