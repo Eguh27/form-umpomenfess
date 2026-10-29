@@ -3,7 +3,7 @@
  * Input readOnly/disabled: ini pratinjau, bukan form yang dikirim.
  */
 import type { FormSchemaData } from '../../lib/forms/schema';
-import { isSensitiveLabel } from './sensitive';
+import { isCriticalLabel, isSensitiveLabel } from './sensitive';
 
 type QuestionBlock = Extract<FormSchemaData['blocks'][number], { type: 'question' }>;
 
@@ -22,9 +22,11 @@ export default function PreviewQuestion({ block }: Props) {
         {block.required && <span aria-hidden="true"> *</span>}
       </span>
 
-      {isSensitiveLabel(block.label) && (
-        <p className="b-preview__sensitive">Jangan minta data sensitif di sini.</p>
-      )}
+      {isCriticalLabel(block.label) ? (
+        <p className="b-preview__sensitive">Dilarang keras meminta kata sandi/OTP (simpan &amp; publikasi diblokir).</p>
+      ) : isSensitiveLabel(block.label) ? (
+        <p className="b-preview__sensitive">Jangan minta data sensitif di sini (publikasi diblokir).</p>
+      ) : null}
 
       {block.kind === 'short_text' && (
         <input
