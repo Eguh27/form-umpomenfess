@@ -19,35 +19,6 @@ export function sanitizeXlsxCell(val: string): string {
   return val;
 }
 
-/**
- * Mengonversi timestamp ISO ke format tanggal dan jam lokal Indonesia (WIB) yang mudah dibaca.
- * Contoh: "29 Okt 2026, 17:05:00"
- */
-export function formatLocalTimestamp(isoString: string): string {
-  try {
-    const d = new Date(isoString);
-    if (isNaN(d.getTime())) return isoString;
-
-    const datePart = d.toLocaleDateString('id-ID', {
-      timeZone: 'Asia/Jakarta',
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-    });
-    const timePart = d.toLocaleTimeString('id-ID', {
-      timeZone: 'Asia/Jakarta',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: false,
-    }).replace(/\./g, ':');
-
-    return `${datePart}, ${timePart}`;
-  } catch {
-    return isoString;
-  }
-}
-
 /** Nama file aman untuk Content-Disposition .xlsx. */
 export function xlsxFilename(slug: string, date = new Date()): string {
   const base = slug.replace(/[^a-z0-9-]/g, '').slice(0, 40) || 'form';
@@ -83,7 +54,7 @@ export async function buildXlsx(form: FormSchemaData, rows: CsvRowInput[]): Prom
   // Data rows
   for (const row of rows) {
     const values = [
-      formatLocalTimestamp(row.createdAt), // Format tanggal & jam lokal yang mudah dibaca
+      row.createdAt, // Format ISO sesuai instruksi pengguna
       ...questions.map((q) => sanitizeXlsxCell(answerToText(row.answers[q.id]))),
     ];
     const dataRow = worksheet.addRow(values);
