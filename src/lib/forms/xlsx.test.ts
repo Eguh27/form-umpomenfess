@@ -1,7 +1,18 @@
 import { describe, expect, it } from 'vitest';
 import ExcelJS from 'exceljs';
-import { buildXlsx, sanitizeXlsxCell, xlsxFilename } from './xlsx';
+import { buildXlsx, formatLocalTimestamp, sanitizeXlsxCell, xlsxFilename } from './xlsx';
 import type { FormSchemaData } from './schema';
+
+describe('formatLocalTimestamp', () => {
+  it('mengonversi ISO string ke format tanggal dan jam lokal WIB yang mudah dibaca', () => {
+    const formatted = formatLocalTimestamp('2026-10-29T10:05:00.000Z');
+    expect(formatted).toBe('29 Okt 2026, 17:05:00');
+  });
+
+  it('mengembalikan string apa adanya jika format ISO tidak valid', () => {
+    expect(formatLocalTimestamp('bukan-tanggal-valid')).toBe('bukan-tanggal-valid');
+  });
+});
 
 describe('sanitizeXlsxCell', () => {
   it('membiarkan string normal apa adanya', () => {
@@ -107,14 +118,14 @@ describe('buildXlsx', () => {
 
     // Baris 2: Data 1
     const row2 = worksheet?.getRow(2);
-    expect(row2?.getCell(1).value).toBe('2026-10-29T10:00:00.000Z');
+    expect(row2?.getCell(1).value).toBe('29 Okt 2026, 17:00:00');
     expect(row2?.getCell(2).value).toBe('Budi Santoso');
     expect(row2?.getCell(3).value).toBe('Membaca; Olahraga');
     expect(row2?.getCell(4).value).toBe("'=1+2"); // Dinertalisir
 
     // Baris 3: Data 2
     const row3 = worksheet?.getRow(3);
-    expect(row3?.getCell(1).value).toBe('2026-10-29T10:05:00.000Z');
+    expect(row3?.getCell(1).value).toBe('29 Okt 2026, 17:05:00');
     expect(row3?.getCell(2).value).toBe('Siti Aminah');
     expect(row3?.getCell(3).value).toBe('Coding');
     expect(row3?.getCell(4).value).toBe('Aman tanpa formula');
