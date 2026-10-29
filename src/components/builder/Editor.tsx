@@ -10,7 +10,7 @@ import { insertBlockAfter, moveBlock, questionCount, removeBlock, updateBlock } 
 import { appendNewPage } from './pages';
 import { blockIndexFromIssuePath } from './blockLabels';
 import { payloadBlockIdAt } from './serialize';
-import { sensitiveQuestionIds } from './sensitive';
+import { criticalQuestionIds, sensitiveQuestionIds } from './sensitive';
 import BuilderTopbar from './BuilderTopbar';
 import BuilderMessages, { type BuilderNotice } from './BuilderMessages';
 import BuilderWorkspace, { type WorkspaceTab } from './BuilderWorkspace';
@@ -75,12 +75,18 @@ export default function Editor({ formId, slug, status, version, initial, cloudNa
   }, [state.blocks, selectedId]);
 
   const selected = state.blocks.find((block) => block.id === selectedId) ?? null;
+  const criticalSet = new Set(criticalQuestionIds(state.blocks));
+  const hasCriticalBlocks = criticalSet.size > 0;
+
   const sensitiveSet = new Set(sensitiveQuestionIds(state.blocks));
   const sensitiveBlocks = state.blocks.filter((block) => sensitiveSet.has(block.id));
   const hasSensitiveBlocks = sensitiveBlocks.length > 0;
-  const publishDisabledReason = hasSensitiveBlocks
-    ? 'Formulir memuat pertanyaan data sensitif/phishing dan tidak dapat dipublikasikan'
-    : undefined;
+
+  const publishDisabledReason = hasCriticalBlocks
+    ? 'Penyimpanan & publikasi diblokir: Formulir memuat pertanyaan terlarang (kata sandi/password/OTP/CVV)'
+    : hasSensitiveBlocks
+      ? 'Publikasi diblokir: Formulir memuat pertanyaan data sensitif (NIK/rekening/PIN)'
+      : undefined;
 
   const handleTitleChange = (title: string) => {
     builder.apply({ ...stateRef.current, title });

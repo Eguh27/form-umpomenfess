@@ -6,6 +6,7 @@ import type { SchemaIssue } from '../../lib/forms/schema';
 import type { BlockDraft } from './defaults';
 import { blockIndexFromIssuePath, blockSummary } from './blockLabels';
 import { IconAlert, IconCheck, IconClose } from './builderIcons';
+import { isCriticalLabel } from './sensitive';
 
 export interface BuilderNotice {
   message: string;
@@ -41,6 +42,9 @@ export default function BuilderMessages({
   onIssueSelect,
   onSensitiveSelect,
 }: Props) {
+  const hasCritical = sensitiveBlocks.some(
+    (b) => b.type === 'question' && typeof b.label === 'string' && isCriticalLabel(b.label),
+  );
   const hasMessages = issues.length > 0 || saveError !== null || sensitiveBlocks.length > 0;
 
   return (
@@ -96,9 +100,15 @@ export default function BuilderMessages({
             <div className="b-message b-message--danger" role="alert">
               <IconAlert />
               <div className="b-message__body">
-                <p className="b-message__title">Publikasi Diblokir: Terdeteksi Pertanyaan Sensitif</p>
+                <p className="b-message__title">
+                  {hasCritical
+                    ? 'Pelanggaran Kritis: Penyimpanan & Publikasi Diblokir'
+                    : 'Publikasi Diblokir: Terdeteksi Pertanyaan Sensitif'}
+                </p>
                 <p className="b-message__text">
-                  Tombol publikasi dinonaktifkan karena formulir meminta kata sandi, PIN, NIK, atau rekening. Hapus atau ubah pertanyaan berikut agar formulir dapat dipublikasikan.
+                  {hasCritical
+                    ? 'Formulir terdeteksi meminta kata sandi, password, PIN ATM, CVV, atau kode OTP. Perubahan formulir TIDAK akan disimpan ke database sebelum pertanyaan berikut dihapus:'
+                    : 'Draft tersimpan dengan aman, namun tombol Publikasikan dinonaktifkan karena formulir meminta data sensitif (NIK, rekening, atau PIN). Hapus atau ubah pertanyaan berikut agar formulir dapat dipublikasikan:'}
                 </p>
                 <ul className="b-message__list">
                   {sensitiveBlocks.map((block) => (

@@ -11,7 +11,7 @@ import {
   type QuestionKind,
 } from '../../lib/forms/schema';
 import type { BlockDraft } from './defaults';
-import { isSensitiveLabel } from './sensitive';
+import { isCriticalLabel, isSensitiveLabel } from './sensitive';
 import BlockOptionsEditor from './BlockOptionsEditor';
 import {
   ALIGN_LABELS,
@@ -148,12 +148,17 @@ export default function BlockPanel({ block: b, onPatch }: Props) {
         />
       </div>
 
-      {isSensitiveLabel(b.label) && (
+      {isCriticalLabel(b.label) ? (
         <div className="b-warning b-warning--phishing" role="alert">
-          <strong>⚠️ Peringatan Keras Anti-Phishing:</strong>{' '}
-          <span>Dilarang meminta kata sandi, PIN, NIK, atau data rekening. Admin berhak menutup form &amp; memblokir akun yang melanggar.</span>
+          <strong>⛔ Pelanggaran Kritis (Simpan &amp; Publikasi Diblokir):</strong>{' '}
+          <span>Dilarang meminta kata sandi, password, PIN ATM, CVV, atau kode OTP. Perubahan form TIDAK akan disimpan sampai pertanyaan ini dihapus.</span>
         </div>
-      )}
+      ) : isSensitiveLabel(b.label) ? (
+        <div className="b-warning b-warning--phishing" role="alert">
+          <strong>⚠️ Peringatan Data Sensitif (Publikasi Diblokir):</strong>{' '}
+          <span>Formulir tidak dapat dipublikasikan selama meminta NIK, rekening, atau data sensitif. Draft Anda tetap tersimpan.</span>
+        </div>
+      ) : null}
 
       <label className="b-check">
         <input

@@ -9,7 +9,7 @@ import { serialize } from './serialize';
 import { getSupabaseBrowserClient } from './browserClient';
 import { markReferencedImagesUsed } from './imagesUsed';
 import { friendlySaveError, sameSnapshot, snapshotState } from './saveGuard';
-import { sensitiveQuestionIds } from './sensitive';
+import { criticalQuestionIds, sensitiveQuestionIds } from './sensitive';
 import type { SaveState } from './BuilderTopbar';
 import type { BuilderNotice } from './BuilderMessages';
 
@@ -64,6 +64,13 @@ export function useAutosave({
         return false;
       }
       setIssues([]);
+
+      const criticalIds = criticalQuestionIds(stateRef.current.blocks);
+      if (criticalIds.length > 0) {
+        setSaveState('invalid');
+        setSaveError('Penyimpanan diblokir: Formulir memuat pertanyaan terlarang (kata sandi/password/OTP/CVV). Hapus pertanyaan tersebut agar perubahan dapat disimpan.');
+        return false;
+      }
 
       const update: Record<string, unknown> = {
         title: stateRef.current.title,
