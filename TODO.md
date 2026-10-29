@@ -113,6 +113,7 @@ Ganti peran: B (builder), C (public), D (design/ops), R (reviewer), L (lead).
 - [!] T-82 @L 2026-10-28-10:50 Rate limit submit 10/menit/IP **tidak efektif di Vercel**: 12 request berurutan dengan `X-Forwarded-For` sama semuanya lolos ke captcha (tidak ada `?err=ratelimit`). Penyebab: `MemoryRateLimitStore` per-instance serverless; komentar "mendukung Redis" di `rateLimit.ts` belum ada implementasinya. Butuh keputusan manusia: pasang Redis/Upstash/Vercel KV + env (`RATELIMIT_BACKEND`, URL/token), atau andalkan Turnstile + kuota. `ipFromHeaders` juga memakai nilai pertama `X-Forwarded-For` (perlu verifikasi overwrite Vercel). | src/lib/forms/rateLimit.ts, env Vercel | Sampai diperbaiki, spam bergantung pada Turnstile (fail-closed) + batas respons per form
 - [x] T-83 @A 2026-10-28-17:40 Perbaiki tombol primary dan elemen interaktif yang tidak kelihatan saat dark mode pada /login | src/pages/login.astro
 - [x] T-84 @B 2026-10-29-10:07 Opsi B: Proteksi Phishing 2 Tingkat (Save-Block untuk Tier 1 Kritis kata sandi/OTP/CVV, Publish-Block untuk Tier 2 Sensitif NIK/rekening) — 290 test lulus (37 file), check 0 error, build OK
+- [x] T-85 @A/@C/@B 2026-10-29-10:39 Flagging form terlapor & moderasi form-centric di dasbor admin: migrasi forms.is_flagged + trigger SECURITY DEFINER on_report_flag_form + listFlaggedForms/applyFlaggedFormAction + endpoint /api/admin/reports/flagged/[id]/action + UI tab Form Ter-flag (AdminFlaggedCard) & sinkronisasi tiket laporan; 298 test lulus (38 file), check 0 error, build OK
 
 ## Requests (antar agent)
 
