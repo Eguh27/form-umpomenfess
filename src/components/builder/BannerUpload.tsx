@@ -87,8 +87,16 @@ export default function BannerUpload({ formId, onUploaded }: Props) {
     }
     if (inputRef.current) inputRef.current.value = '';
 
-    const objectUrl = URL.createObjectURL(file);
-    setCropSrc(objectUrl);
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        setCropSrc(reader.result);
+      }
+    };
+    reader.onerror = () => {
+      setError('Gagal membaca berkas gambar. Silakan coba berkas lain.');
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleApplyCrop = async (croppedFile: File) => {
@@ -101,18 +109,12 @@ export default function BannerUpload({ formId, onUploaded }: Props) {
       setError(caught instanceof Error ? caught.message : 'Gagal mengunggah banner. Coba lagi.');
     } finally {
       setBusy(false);
-      if (cropSrc) {
-        URL.revokeObjectURL(cropSrc);
-        setCropSrc(null);
-      }
+      setCropSrc(null);
     }
   };
 
   const handleCloseCrop = () => {
-    if (cropSrc) {
-      URL.revokeObjectURL(cropSrc);
-      setCropSrc(null);
-    }
+    setCropSrc(null);
   };
 
   return (
