@@ -18,20 +18,18 @@ export const createImage = (url: string): Promise<HTMLImageElement> =>
     image.src = url;
   });
 
-/** Menghitung dimensi canvas akhir dengan membatasi lebar maksimal agar memori & ukuran berkas efisien. */
+/** Menghitung dimensi canvas akhir dengan membatasi lebar maksimal dan mengunci rasio aspek tepat 16:9. */
 export function computeCropDimensions(
   cropWidth: number,
-  cropHeight: number,
+  _cropHeight?: number,
   maxWidth = 1600,
 ): { width: number; height: number } {
   let targetWidth = Math.max(1, Math.round(cropWidth));
-  let targetHeight = Math.max(1, Math.round(cropHeight));
-
   if (targetWidth > maxWidth) {
-    const scale = maxWidth / targetWidth;
     targetWidth = maxWidth;
-    targetHeight = Math.max(1, Math.round(targetHeight * scale));
   }
+  // Kunci rasio aspek tepat 16:9 (lebar 16 bagian : tinggi 9 bagian)
+  const targetHeight = Math.max(1, Math.round((targetWidth * 9) / 16));
 
   return { width: targetWidth, height: targetHeight };
 }

@@ -127,7 +127,7 @@ const pages = form === null
           <img
             src={cloudinaryUrl(banner, cloudName)}
             alt={`Banner ${String(row.title)}`}
-            style="width:100%;border-radius:calc(var(--radius) * 0.75);margin-bottom:var(--space-4)"
+            style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:calc(var(--radius) * 0.75);margin-bottom:var(--space-4)"
           />
         )}
 
