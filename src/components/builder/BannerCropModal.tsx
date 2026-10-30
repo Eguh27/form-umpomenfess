@@ -79,6 +79,20 @@ export const BannerCropModal: React.FC<Props> = ({
             <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
               Geser foto atau atur pembesaran (zoom) agar area penting pas dalam banner.
             </p>
+            <span
+              style={{
+                display: 'inline-block',
+                marginTop: '6px',
+                fontSize: '0.72rem',
+                fontWeight: 600,
+                padding: '2px 8px',
+                borderRadius: '4px',
+                background: 'rgba(47, 114, 99, 0.12)',
+                color: 'var(--brand)',
+              }}
+            >
+              🔒 Rasio 16:9 (Terkunci)
+            </span>
           </div>
           <button
             type="button"
@@ -99,6 +113,7 @@ export const BannerCropModal: React.FC<Props> = ({
             crop={crop}
             zoom={zoom}
             aspect={16 / 9}
+            restrictPosition={true}
             onCropChange={onCropChange}
             onCropComplete={onCropAreaComplete}
             onZoomChange={onZoomChange}

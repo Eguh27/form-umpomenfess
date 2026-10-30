@@ -26,4 +26,12 @@ describe('computeCropDimensions', () => {
     expect(dim.width).toBe(1200);
     expect(dim.height).toBe(675);
   });
+
+  it('mengunci rasio aspek tepat 16:9 meski input memiliki tinggi bebas', () => {
+    // 1600 x 1200 (4:3) dikunci menjadi 1600 x 900 (16:9)
+    const dim = computeCropDimensions(1600, 1200);
+    expect(dim.width).toBe(1600);
+    expect(dim.height).toBe(900);
+    expect(dim.width / dim.height).toBeCloseTo(16 / 9, 2);
+  });
 });
