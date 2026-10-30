@@ -6,6 +6,8 @@ import {
   insertForm,
   archiveForm,
   unarchiveForm,
+  restoreForm,
+  hardDeleteForm,
   mapFormRows,
   templatePayload,
   type TemplateRow,
@@ -90,6 +92,8 @@ describe('mapFormRows', () => {
       title: 'Survei',
       status: 'published',
       archivedAt: null,
+      deletedAt: null,
+      bannerPublicId: null,
       responses: 7,
       maxResponses: 100,
       closesAt: null,
@@ -237,5 +241,51 @@ describe('archiveForm & unarchiveForm (E-A5)', () => {
     await unarchiveForm(client, 'form-123');
     expect(targetId).toBe('form-123');
     expect(updatedPayload?.['archived_at']).toBeNull();
+  });
+
+  it('restoreForm menyetel deleted_at kembali null (T-89)', async () => {
+    let updatedPayload: Record<string, unknown> | null = null;
+    let targetId: string | null = null;
+    const client = {
+      from: () => ({
+        update: (payload: Record<string, unknown>) => {
+          updatedPayload = payload;
+          return {
+            eq: (_col: string, val: string) => {
+              targetId = val;
+              return Promise.resolve({ error: null });
+            },
+          };
+        },
+      }),
+    } as unknown as SupabaseClient;
+
+    await restoreForm(client, 'form-999');
+    expect(targetId).toBe('form-999');
+    expect(updatedPayload?.['deleted_at']).toBeNull();
+  });
+
+  it('hardDeleteForm memicu penghapusan Cloudinary bila ada banner lalu delete form (T-89)', async () => {
+    let deletedId: string | null = null;
+    const client = {
+      from: () => ({
+        delete: () => ({
+          eq: (_col: string, val: string) => {
+            deletedId = val;
+            return Promise.resolve({ error: null });
+          },
+        }),
+      }),
+    } as unknown as SupabaseClient;
+
+    let calledUrl = '';
+    const fetchMock = async (url: string | URL | Request) => {
+      calledUrl = String(url);
+      return new Response(JSON.stringify({ ok: true }));
+    };
+
+    await hardDeleteForm(client, 'form-abc', 'form/banner-xyz', fetchMock as unknown as typeof fetch);
+    expect(calledUrl).toBe('/api/uploads/delete');
+    expect(deletedId).toBe('form-abc');
   });
 });

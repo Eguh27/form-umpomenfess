@@ -5,7 +5,7 @@ import { runWeekly } from './cleanup-weekly.mjs';
 
 export const CLEANUP_DEFAULTS = {
   tmpTtlHours: 24,
-  softDeleteRetentionDays: 30,
+  softDeleteRetentionDays: 5,
   orphanMinAgeHours: 24,
   staleFormMonths: 6,
   batchSize: 500,

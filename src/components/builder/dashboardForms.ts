@@ -13,6 +13,8 @@ export interface FormRow {
   title: string;
   status: string;
   archivedAt: string | null;
+  deletedAt?: string | null;
+  bannerPublicId?: string | null;
   responses: number;
   maxResponses: number | null;
   closesAt: string | null;
@@ -27,18 +29,21 @@ export interface TemplateRow {
   previewUrl: string | null;
 }
 
-const FORM_COLUMNS = 'id, slug, title, status, archived_at, max_responses, closes_at, updated_at, responses(count)';
+const FORM_COLUMNS = 'id, slug, title, status, archived_at, deleted_at, schema, max_responses, closes_at, updated_at, responses(count)';
 
 /** Antrian → FormRow; relasi responses(count) bentuk [{count:n}]. */
 export function mapFormRows(data: Record<string, unknown>[]): FormRow[] {
   return data.map((raw) => {
     const counts = raw.responses as Array<{ count: number }> | null;
+    const themeObj = (raw.schema as { theme?: { bannerPublicId?: string | null } } | null)?.theme;
     return {
       id: String(raw.id),
       slug: String(raw.slug),
       title: String(raw.title),
       status: String(raw.status),
       archivedAt: (raw.archived_at as string | null) ?? null,
+      deletedAt: (raw.deleted_at as string | null) ?? null,
+      bannerPublicId: themeObj?.bannerPublicId ?? null,
       responses: counts && counts[0] ? counts[0].count : 0,
       maxResponses: (raw.max_responses as number | null) ?? null,
       closesAt: (raw.closes_at as string | null) ?? null,
@@ -218,4 +223,61 @@ export async function unarchiveForm(supabase: SupabaseClient, id: string): Promi
     .update({ archived_at: null })
     .eq('id', id);
   if (error) throw friendlyError(error, 'mengembalikan form dari arsip');
+}
+
+/** Mengambil daftar form di tempat sampah milik user (deleted_at IS NOT NULL). */
+export async function listDeletedForms(supabase: SupabaseClient): Promise<FormRow[]> {
+  const { data, error } = await supabase
+    .from('forms')
+    .select(FORM_COLUMNS)
+    .not('deleted_at', 'is', null)
+    .order('deleted_at', { ascending: false });
+  if (error) throw new Error(error.message);
+  return mapFormRows((data ?? []) as Record<string, unknown>[]);
+}
+
+/** Memulihkan form dari tempat sampah: set deleted_at null (T-89). */
+export async function restoreForm(supabase: SupabaseClient, id: string): Promise<void> {
+  const { error } = await supabase
+    .from('forms')
+    .update({ deleted_at: null })
+    .eq('id', id);
+  if (error) throw friendlyError(error, 'memulihkan form');
+}
+
+/** Menghapus form secara permanen dari database beserta banner Cloudinary (T-89). */
+export async function hardDeleteForm(
+  supabase: SupabaseClient,
+  id: string,
+  bannerPublicId?: string | null,
+  fetchImpl: typeof fetch = fetch,
+): Promise<void> {
+  if (bannerPublicId) {
+    try {
+      await fetchImpl('/api/uploads/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ publicId: bannerPublicId }),
+      });
+    } catch {
+      // Lanjutkan penghapusan database walau Cloudinary error
+    }
+  }
+
+  const { error } = await supabase
+    .from('forms')
+    .delete()
+    .eq('id', id);
+  if (error) throw friendlyError(error, 'menghapus form secara permanen');
+}
+
+/** Mengosongkan seluruh form di tempat sampah user (T-89). */
+export async function emptyTrash(
+  supabase: SupabaseClient,
+  forms: FormRow[],
+  fetchImpl: typeof fetch = fetch,
+): Promise<void> {
+  for (const f of forms) {
+    await hardDeleteForm(supabase, f.id, f.bannerPublicId, fetchImpl);
+  }
 }

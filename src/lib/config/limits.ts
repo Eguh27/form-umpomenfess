@@ -9,7 +9,7 @@ export const LIMITS = {
   maxResponsesPerForm: 2000,
   maxSubmitPayloadBytes: 64 * 1024,
   tmpImageTtlHours: 24,
-  softDeleteRetentionDays: 30,
+  softDeleteRetentionDays: 5,
 } as const;
 
 export const RESERVED_SLUGS = [
