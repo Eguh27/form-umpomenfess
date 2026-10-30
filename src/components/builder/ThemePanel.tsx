@@ -14,7 +14,8 @@ import type { ThemeVariant } from '../../lib/forms/themePresets';
 import type { ThemeDraft } from './defaults';
 import { CARD_STYLE_LABELS, FONT_LABELS } from './blockLabels';
 import { cloudinaryUrl } from './themeUtils';
-import BannerUpload from './BannerUpload';
+import BannerUpload, { uploadBanner } from './BannerUpload';
+import { BannerCropModal } from './BannerCropModal';
 import { PRESET_THEMES, applyThemePreset, type ThemePreset } from './presetThemes';
 
 interface Props {
@@ -33,6 +34,9 @@ const COLORS: Array<{ key: 'bg' | 'accent' | 'text'; label: string }> = [
 export default function ThemePanel({ formId, theme, onChange, cloudName = '' }: Props) {
   const prefix = useId();
   const [variant, setVariant] = useState<ThemeVariant>('light');
+  const [recropSrc, setRecropSrc] = useState<string | null>(null);
+  const [busyRecrop, setBusyRecrop] = useState(false);
+  const [recropError, setRecropError] = useState<string | null>(null);
   const contrastOk = isReadable(theme.text, theme.bg);
 
   const usePreset = (preset: ThemePreset) => {
@@ -177,12 +181,45 @@ export default function ThemePanel({ formId, theme, onChange, cloudName = '' }: 
               <button
                 type="button"
                 className="b-btn b-btn--ghost b-btn--sm"
+                onClick={() => setRecropSrc(cloudinaryUrl(theme.bannerPublicId!, cloudName))}
+                disabled={busyRecrop}
+              >
+                ✏️ Crop Ulang
+              </button>
+              <button
+                type="button"
+                className="b-btn b-btn--ghost b-btn--sm"
                 onClick={() => onChange({ bannerPublicId: null })}
+                disabled={busyRecrop}
+                style={{ color: 'var(--danger)' }}
               >
                 Hapus banner
               </button>
             </div>
+            {recropError && <p className="b-warning" role="alert">{recropError}</p>}
+            {busyRecrop && <p className="b-help" role="status">Mengunggah banner baru…</p>}
           </div>
+        )}
+
+        {recropSrc && (
+          <BannerCropModal
+            imageSrc={recropSrc}
+            isOpen={true}
+            onClose={() => setRecropSrc(null)}
+            onApplyCrop={async (croppedFile) => {
+              setBusyRecrop(true);
+              setRecropError(null);
+              try {
+                const publicId = await uploadBanner(croppedFile, formId);
+                onChange({ bannerPublicId: publicId });
+              } catch (err) {
+                setRecropError(err instanceof Error ? err.message : 'Gagal memproses banner.');
+              } finally {
+                setBusyRecrop(false);
+                setRecropSrc(null);
+              }
+            }}
+          />
         )}
       </section>
     </div>

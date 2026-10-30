@@ -115,6 +115,7 @@ Ganti peran: B (builder), C (public), D (design/ops), R (reviewer), L (lead).
 - [x] T-84 @B 2026-10-29-10:07 Opsi B: Proteksi Phishing 2 Tingkat (Save-Block untuk Tier 1 Kritis kata sandi/OTP/CVV, Publish-Block untuk Tier 2 Sensitif NIK/rekening) — 290 test lulus (37 file), check 0 error, build OK
 - [x] T-85 @A/@C/@B 2026-10-29-10:39 Flagging form terlapor & moderasi form-centric di dasbor admin: migrasi forms.is_flagged + trigger SECURITY DEFINER on_report_flag_form + listFlaggedForms/applyFlaggedFormAction + endpoint /api/admin/reports/flagged/[id]/action + UI tab Form Ter-flag (AdminFlaggedCard) & sinkronisasi tiket laporan; 298 test lulus (38 file), check 0 error, build OK
 - [x] T-86 @L/@C/@B 2026-10-29-13:21 Ekspor data respons formulir ke format Excel (.xlsx): library exceljs + helper buildXlsx (format waktu ISO + proteksi formula injection + auto-fit) + endpoint /api/forms/[id]/export.xlsx + tombol dasbor respons; 305 test lulus (40 file), check 0 error, build OK
+- [x] T-87 @L/@B 2026-10-30-10:34 Edit & crop banner interaktif (Opsi A): library react-easy-crop + helper cropImage (HTML5 Canvas WebP) + BannerCropModal (drag/zoom 16:9) + integrasi BannerUpload & ThemePanel (crop ulang banner); 309 test lulus (41 file), check 0 error, build OK
 
 ## Requests (antar agent)
 
