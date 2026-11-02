@@ -117,6 +117,7 @@ Ganti peran: B (builder), C (public), D (design/ops), R (reviewer), L (lead).
 - [x] T-86 @L/@C/@B 2026-10-29-13:21 Ekspor data respons formulir ke format Excel (.xlsx): library exceljs + helper buildXlsx (format waktu ISO + proteksi formula injection + auto-fit) + endpoint /api/forms/[id]/export.xlsx + tombol dasbor respons; 305 test lulus (40 file), check 0 error, build OK
 - [x] T-87 @L/@B 2026-10-30-10:34 Edit & crop banner interaktif (Opsi A): library react-easy-crop + helper cropImage (HTML5 Canvas WebP) + BannerCropModal (drag/zoom 16:9) + integrasi BannerUpload & ThemePanel (crop ulang banner); 309 test lulus (41 file), check 0 error, build OK
 - [x] T-88 @L/@B 2026-10-30-10:54 Fix banner cropper CSP: ganti blob URL ke FileReader Data URL & optimasi crossOrigin canvas; 309 test lulus (41 file), check 0 error, build OK
+- [x] T-89 @L/@C/@B/@D 2026-10-30-13:15 Fitur Recycle Bin (Sampah) & Pemusnahan Banner Instan: endpoint /api/uploads/delete + tab Sampah di dasbor + recovery/hard-delete/export + retensi 5 hari cron auto-purge; 319 test lulus (42 file), check 0 err, build sukses
 
 ## Requests (antar agent)
 

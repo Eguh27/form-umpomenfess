@@ -11,6 +11,7 @@ interface SidebarProps {
   activeTab: DashboardTab;
   onSelectTab: (tab: DashboardTab) => void;
   formsCount: number;
+  deletedFormsCount?: number;
   isAdmin?: boolean;
   pendingReportsCount?: number;
 }
@@ -21,6 +22,7 @@ export default function DashboardSidebar({
   activeTab,
   onSelectTab,
   formsCount,
+  deletedFormsCount = 0,
   isAdmin = false,
   pendingReportsCount = 0,
 }: SidebarProps) {
@@ -99,6 +101,11 @@ export default function DashboardSidebar({
             >
               <span>{tab.label}</span>
               {tab.id === 'my-forms' && <span className="db-nav-count">{formsCount}</span>}
+              {tab.id === 'trash' && deletedFormsCount > 0 && (
+                <span className="db-nav-count" style={{ background: 'var(--coral, #f43f5e)', color: '#fff' }}>
+                  {deletedFormsCount}
+                </span>
+              )}
             </button>
           ))}
 

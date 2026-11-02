@@ -15,6 +15,7 @@ import DashboardMyFormsTab from './dashboard/DashboardMyFormsTab';
 import DashboardTemplatesTab from './dashboard/DashboardTemplatesTab';
 import DashboardStatsTab from './dashboard/DashboardStatsTab';
 import DashboardGuideTab from './dashboard/DashboardGuideTab';
+import DashboardTrashTab from './dashboard/DashboardTrashTab';
 import DashboardCreateModal from './dashboard/DashboardCreateModal';
 import DashboardToast from './dashboard/DashboardToast';
 import {
@@ -24,6 +25,10 @@ import {
   duplicatePayload,
   insertForm,
   listForms,
+  listDeletedForms,
+  restoreForm,
+  hardDeleteForm,
+  emptyTrash,
   templatePayload,
   type FormRow,
   type TemplateRow,
@@ -39,6 +44,7 @@ export function DashboardForms({
   pendingReportsCount = 0,
 }: DashboardProps) {
   const [forms, setForms] = useState<FormRow[]>(initialForms);
+  const [deletedForms, setDeletedForms] = useState<FormRow[]>([]);
   const [mainTab, setMainTab] = useState<DashboardTab>('my-forms');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [search, setSearch] = useState('');
@@ -50,7 +56,18 @@ export function DashboardForms({
   const [busy, setBusy] = useState<string | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
-  useEffect(() => () => clearTimeout(toastTimer.current), []);
+  useEffect(() => {
+    let isMounted = true;
+    listDeletedForms(getSupabaseBrowserClient())
+      .then((data) => {
+        if (isMounted) setDeletedForms(data);
+      })
+      .catch(() => undefined);
+    return () => {
+      isMounted = false;
+      clearTimeout(toastTimer.current);
+    };
+  }, []);
 
   const summary = useMemo(() => summarizeForms(forms), [forms]);
 
@@ -72,7 +89,13 @@ export function DashboardForms({
     }
   };
 
-  const refresh = () => run('refresh', async () => setForms(await listForms(getSupabaseBrowserClient())));
+  const refresh = () =>
+    run('refresh', async () => {
+      const client = getSupabaseBrowserClient();
+      const [active, deleted] = await Promise.all([listForms(client), listDeletedForms(client)]);
+      setForms(active);
+      setDeletedForms(deleted);
+    });
 
   const insertAndOpen = (payload: () => Parameters<typeof insertForm>[1]) =>
     run('create', async () => {
@@ -133,6 +156,40 @@ export function DashboardForms({
       showToast(`Formulir "${row.title}" telah dipindahkan ke sampah.`);
     });
 
+  const restore = (row: FormRow) =>
+    run(`restore-${row.id}`, async () => {
+      await restoreForm(getSupabaseBrowserClient(), row.id);
+      await refresh();
+      showToast(`Formulir "${row.title}" berhasil dipulihkan.`);
+    });
+
+  const purge = (row: FormRow) =>
+    run(`purge-${row.id}`, async () => {
+      if (
+        !window.confirm(
+          `Hapus permanen formulir "${row.title}" beserta seluruh data jawabannya? Tindakan ini tidak dapat dibatalkan.`,
+        )
+      )
+        return;
+      await hardDeleteForm(getSupabaseBrowserClient(), row.id, row.bannerPublicId);
+      await refresh();
+      showToast(`Formulir "${row.title}" berhasil dihapus permanen.`);
+    });
+
+  const clearAllTrash = () =>
+    run('empty-trash', async () => {
+      if (deletedForms.length === 0) return;
+      if (
+        !window.confirm(
+          `Kosongkan kotak sampah? Semua (${deletedForms.length}) formulir akan dimusnahkan secara permanen.`,
+        )
+      )
+        return;
+      await emptyTrash(getSupabaseBrowserClient(), deletedForms);
+      await refresh();
+      showToast('Kotak sampah berhasil dikosongkan.');
+    });
+
   const handleCopyLink = (slug: string) => {
     const url = `${window.location.origin}/f/${slug}`;
     navigator.clipboard.writeText(url);
@@ -164,6 +221,7 @@ export function DashboardForms({
         activeTab={mainTab}
         onSelectTab={setMainTab}
         formsCount={summary.total}
+        deletedFormsCount={deletedForms.length}
         isAdmin={user?.isAdmin}
         pendingReportsCount={pendingReportsCount}
       />
@@ -233,6 +291,16 @@ export function DashboardForms({
 
           {mainTab === 'guide' && (
             <DashboardGuideTab onOpenCreateModal={() => setCreateModalOpen(true)} />
+          )}
+
+          {mainTab === 'trash' && (
+            <DashboardTrashTab
+              deletedForms={deletedForms}
+              onRestoreForm={restore}
+              onHardDeleteForm={purge}
+              onEmptyTrash={clearAllTrash}
+              isBusy={busy !== null}
+            />
           )}
         </div>
       </main>

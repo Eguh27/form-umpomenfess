@@ -46,6 +46,26 @@ export default function ThemePanel({ formId, theme, onChange, cloudName = '' }: 
   const presetThemeFor = (preset: ThemePreset) =>
     variant === 'dark' ? (preset.darkTheme ?? preset.theme) : preset.theme;
 
+  const handleDeleteBanner = async () => {
+    const oldPublicId = theme.bannerPublicId;
+    if (!oldPublicId) return;
+    if (!window.confirm('Hapus gambar banner ini secara permanen dari server?')) return;
+    setBusyRecrop(true);
+    setRecropError(null);
+    try {
+      await fetch('/api/uploads/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ publicId: oldPublicId }),
+      });
+      onChange({ bannerPublicId: null });
+    } catch (err) {
+      setRecropError(err instanceof Error ? err.message : 'Gagal menghapus banner.');
+    } finally {
+      setBusyRecrop(false);
+    }
+  };
+
   return (
     <div className="b-panel">
       <section className="b-section" aria-label="Preset tema">
@@ -189,7 +209,7 @@ export default function ThemePanel({ formId, theme, onChange, cloudName = '' }: 
               <button
                 type="button"
                 className="b-btn b-btn--ghost b-btn--sm"
-                onClick={() => onChange({ bannerPublicId: null })}
+                onClick={handleDeleteBanner}
                 disabled={busyRecrop}
                 style={{ color: 'var(--danger)' }}
               >
@@ -197,7 +217,7 @@ export default function ThemePanel({ formId, theme, onChange, cloudName = '' }: 
               </button>
             </div>
             {recropError && <p className="b-warning" role="alert">{recropError}</p>}
-            {busyRecrop && <p className="b-help" role="status">Mengunggah banner baru…</p>}
+            {busyRecrop && <p className="b-help" role="status">Memproses banner…</p>}
           </div>
         )}
 
@@ -209,9 +229,18 @@ export default function ThemePanel({ formId, theme, onChange, cloudName = '' }: 
             onApplyCrop={async (croppedFile) => {
               setBusyRecrop(true);
               setRecropError(null);
+              const oldBannerId = theme.bannerPublicId;
               try {
                 const publicId = await uploadBanner(croppedFile, formId);
                 onChange({ bannerPublicId: publicId });
+                // Musnahkan banner lama jika ada dan berbeda
+                if (oldBannerId && oldBannerId !== publicId) {
+                  fetch('/api/uploads/delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ publicId: oldBannerId }),
+                  }).catch(() => undefined);
+                }
               } catch (err) {
                 setRecropError(err instanceof Error ? err.message : 'Gagal memproses banner.');
               } finally {

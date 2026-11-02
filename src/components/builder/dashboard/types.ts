@@ -3,7 +3,7 @@
  */
 import type { FormRow, TemplateRow } from '../dashboardForms';
 
-export type DashboardTab = 'my-forms' | 'templates' | 'stats' | 'guide';
+export type DashboardTab = 'my-forms' | 'templates' | 'stats' | 'guide' | 'trash';
 
 export type StatusFilter = 'all' | 'published' | 'draft' | 'closed';
 
@@ -13,6 +13,7 @@ export const DASHBOARD_TABS: ReadonlyArray<{ id: DashboardTab; label: string }> 
   { id: 'templates', label: 'Template' },
   { id: 'stats', label: 'Statistik' },
   { id: 'guide', label: 'Panduan' },
+  { id: 'trash', label: 'Sampah' },
 ];
 
 export interface UserSummary {
